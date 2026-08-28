@@ -1,6 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
-@inject IConfiguration Configuration
 @{
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
     var mod = (Module)ViewBag.Module;
@@ -8,12 +7,6 @@
     var _utility = (Utility)ViewBag._utility;
     var _admin = (AdminHelpers)ViewBag._admin;
     var _session = (ISession)ViewBag._session;
-
-    //----- โดเมนอีเมลพนักงานที่อนุญาต (ตั้งค่าที่ appsettings : AzureAd:AllowedEmailDomains) — ว่าง = ไม่จำกัดโดเมน
-    var allowedDomains = (Configuration["AzureAd:AllowedEmailDomains"] ?? "")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Select(d => d.TrimStart('@').ToLowerInvariant())
-        .ToList();
 }
 
 @section NavbarBack{
@@ -86,45 +79,8 @@
 
             <input type="hidden" name="use_otp" value="0" />
 
-            @* ----- ประเภทการ Login : 1 = แบบปกติ (รหัสผ่านในระบบ), 2 = แบบพนักงาน (ยืนยันตัวตนด้วย Azure AD) ----- *@
-            <div class="col-12 mb-3">
-                <div class="field">
-                    <label class="form-label mb-2">ประเภทการ Login <span class="text-danger">*</span></label>
-                    <div class="row">
-                        <div class="col-md-6 col-sm-12">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="radio" name="login_type" id="login_type_1"
-                                    value="1" checked onchange="changeLoginType()">
-                                <label class="form-check-label" for="login_type_1">
-                                    <strong>แบบปกติ</strong>
-                                    <small class="d-block text-muted">กำหนด Username และรหัสผ่านในระบบนี้</small>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-sm-12">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="radio" name="login_type" id="login_type_2"
-                                    value="2" onchange="changeLoginType()">
-                                <label class="form-check-label" for="login_type_2">
-                                    <strong>แบบพนักงาน</strong>
-                                    <small class="d-block text-muted">ตรวจ Username / รหัสผ่าน ด้วย Azure AD (ไม่ต้องกำหนดรหัสผ่าน)</small>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="col-lg-6 col-md-6 mb-3" id="col_username">
                 @Html.Raw(_admin.InputText("Username", "username", ""))
-                <div class="alert alert-info mt-2 py-2 px-3 d-none" id="hint_employee_username" role="alert">
-                    Username ของประเภท <strong>แบบพนักงาน</strong> ต้องเป็นอีเมลพนักงาน
-                    @if (allowedDomains.Count > 0)
-                    {
-                        <text>โดเมน <strong>@string.Join(" หรือ ", allowedDomains.Select(d => "@" + d))</strong></text>
-                    }
-                    และไม่ต้องกำหนดรหัสผ่าน (ตรวจสอบกับ Azure AD ตอนเข้าสู่ระบบ)
-                </div>
             </div>
             <div class="col-lg-6 col-md-6 mb-3" id="col_password">
                 @Html.Raw(_admin.InputPassword("รหัสผ่าน", "password", ""))
@@ -168,64 +124,7 @@
         e.preventDefault();
         return false;
     }
-    //----- ประเภทการ Login -----
-    var allowedEmailDomains = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(allowedDomains));
-
-    function isEmployeeLogin() {
-        return $("input[name='login_type']:checked").val() === '2';
-    }
-
-    // สลับฟอร์มตามประเภทการ Login : แบบพนักงานไม่ต้องกรอกรหัสผ่าน และ Username ต้องเป็นอีเมล
-    function changeLoginType() {
-        var employee = isEmployeeLogin();
-
-        $("#col_password, #col_confirm_password").toggle(!employee);
-        $("form#fm_cms :input[name='password'], form#fm_cms :input[name='confirm_password']")
-            .prop("disabled", employee)
-            .prop("required", !employee);
-        if (employee) {
-            $("form#fm_cms :input[name='password'], form#fm_cms :input[name='confirm_password']").val('');
-        }
-
-        $("#hint_employee_username").toggleClass("d-none", !employee);
-
-        var $username = $("form#fm_cms :input[name='username']");
-        if (employee) {
-            // อีเมลมี @@ . - _ จึงต้องปลดตัวกรอง "ตัวอักษร/ตัวเลขเท่านั้น" และเปิดให้วางได้
-            $username.removeAttr("onkeypress").removeAttr("onpaste").attr("placeholder",
-                allowedEmailDomains.length > 0 ? ("name@@" + allowedEmailDomains[0]) : "name@@example.com");
-        } else {
-            $username.attr("onkeypress", "clsAlphaNoOnly(event)").attr("onpaste", "return false;").attr("placeholder", "");
-        }
-    }
-
-    function validEmployeeUsername(username) {
-        var re = /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
-        if (!re.test(username)) {
-            sAlert('ประเภทการ Login แบบพนักงาน : Username ต้องอยู่ในรูปแบบอีเมล');
-            return false;
-        }
-        if (allowedEmailDomains.length > 0) {
-            var domain = username.substring(username.lastIndexOf('@@') + 1).toLowerCase();
-            if (allowedEmailDomains.indexOf(domain) === -1) {
-                sAlert('ประเภทการ Login แบบพนักงาน : Username ต้องเป็นอีเมลโดเมน @@' + allowedEmailDomains.join(' หรือ @@'));
-                return false;
-            }
-        }
-        return true;
-    }
-
     function sConfrimCustom(form) {
-
-        //----- แบบพนักงาน : ตรวจรูปแบบอีเมล แล้วข้ามเงื่อนไขรหัสผ่านทั้งหมด (ไม่ต้องกำหนดรหัสผ่าน)
-        if (isEmployeeLogin()) {
-            var uname = $("form#fm_cms :input[name='username']").val().trim();
-            if (!validEmployeeUsername(uname)) {
-                $("form#fm_cms :input[name='username']").focus();
-                return false;
-            }
-            return sConfrimSubmit(form);
-        }
 
         var a = document.getElementById('id_password').value;
 
@@ -284,7 +183,7 @@
         return sConfrimSubmit(form);
     }
 
-    // ขั้นตอนยืนยันก่อนบันทึก (ใช้ร่วมกันทั้งแบบปกติและแบบพนักงาน)
+    // ขั้นตอนยืนยันก่อนบันทึก
     function sConfrimSubmit(form) {
         // Validate required fields
         var titleField = $('[name="title"]');
@@ -326,8 +225,6 @@
     $(document).ready(function () {
         $(":input[name='username'],:input[name='password'],:input[name='confirm_password'],:input[name='name'],:input[name='surname'],:input[name='email'],:input[name='access_id']").prop("required", true);
         $(":input[name='username']").attr("onkeypress", "clsAlphaNoOnly(event)").attr("onpaste", "return false;");
-
-        changeLoginType();
 
         $("#id_password").focus(function () {
             $('.condition--password').stop(true, false).slideDown();

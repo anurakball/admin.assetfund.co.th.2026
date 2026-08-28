@@ -8,26 +8,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class AdminUserController : AdminCoreController
     {
-        //----- ประเภทการ Login (web_admin.login_type)
-        private const int LOGIN_TYPE_NORMAL = 1;   // แบบปกติ    : ตรวจรหัสผ่านในระบบ (SHA512) เหมือนเดิมทุกอย่าง
-        private const int LOGIN_TYPE_EMPLOYEE = 2; // แบบพนักงาน : Username ต้องเป็นอีเมลพนักงาน + ตรวจรหัสผ่านผ่าน Azure AD
-
-        private readonly IAzureAdAuthService _azureAd;
-
-        public AdminUserController(IWebHostEnvironment hostingEnvironment, IConfiguration iConfig, IHttpContextAccessor iContext, IAzureAdAuthService azureAd) : base(hostingEnvironment, iConfig, iContext)
+        public AdminUserController(IWebHostEnvironment hostingEnvironment, IConfiguration iConfig, IHttpContextAccessor iContext) : base(hostingEnvironment, iConfig, iContext)
         {
-            _azureAd = azureAd;
             Module = _admin.GetModule("AdminUser");
-        }
-
-        /// <summary>อ่านค่า login_type ที่ส่งมาจากฟอร์ม — ค่าที่ไม่รู้จักถือเป็น "แบบปกติ" เสมอ</summary>
-        private static int ReadLoginType(string? value, int fallback = LOGIN_TYPE_NORMAL)
-        {
-            if (int.TryParse((value ?? "").Trim(), out int v) && (v == LOGIN_TYPE_NORMAL || v == LOGIN_TYPE_EMPLOYEE))
-            {
-                return v;
-            }
-            return fallback;
         }
 
         [HttpPost]
@@ -38,9 +21,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 #region Check requried field
                 var f = collection;
-
-                //----- ประเภทการ Login : ค่าที่ไม่ได้ส่งมา/ไม่รู้จัก = แบบปกติ (พฤติกรรมเดิม)
-                int loginType = ReadLoginType(f["login_type"]);
 
                 if (string.IsNullOrWhiteSpace(f["name"]))
                 {
@@ -66,19 +46,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     TempData["alert_message"] = "กรุณาระบุ Username";
                     return Redirect("Create");
                 }
-                else if (loginType == LOGIN_TYPE_NORMAL && string.IsNullOrWhiteSpace(f["password"]))
+                else if (string.IsNullOrWhiteSpace(f["password"]))
                 {
-                    //----- แบบพนักงานไม่ต้องกำหนดรหัสผ่าน (ใช้ Azure AD) จึงบังคับเฉพาะแบบปกติ
                     TempData["alert_class"] = "alert-danger";
                     TempData["alert_message"] = "กรุณาระบุ Password";
-                    return Redirect("Create");
-                }
-
-                //----- แบบพนักงาน : Username ต้องเป็นอีเมลพนักงานตามโดเมนที่กำหนดใน appsettings (AzureAd:AllowedEmailDomains)
-                if (loginType == LOGIN_TYPE_EMPLOYEE && !_azureAd.IsValidEmployeeUsername(f["username"] + "", out string usernameError))
-                {
-                    TempData["alert_class"] = "alert-danger";
-                    TempData["alert_message"] = usernameError;
                     return Redirect("Create");
                 }
                 #endregion
@@ -105,18 +76,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 //--- custom value ----//
                 if (insertFields != null)
                 {
-                    //----- ประเภทการ Login (คอลัมน์เป็น integer / setFieldsCreate คืนค่าเป็น string)
-                    insertFields["login_type"] = loginType;
-
-                    if (loginType == LOGIN_TYPE_EMPLOYEE)
-                    {
-                        //----- แบบพนักงาน : ไม่เก็บรหัสผ่านในระบบเลย (คอลัมน์ password เป็น NOT NULL จึงเก็บค่าว่าง)
-                        //      การตรวจ Username/Password ทำที่ Azure AD ตอน login
-                        insertFields["username"] = (f["username"] + "").Trim();
-                        insertFields["password"] = "";
-                        insertFields.Remove("last_change_password_at");
-                    }
-                    else if (insertFields.ContainsKey("password") && !string.IsNullOrEmpty(insertFields["password"].ToString()))
+                    if (insertFields.ContainsKey("password") && !string.IsNullOrEmpty(insertFields["password"].ToString()))
                     {
                         insertFields["password"] = _utility.GenerateSHA512String(insertFields["password"].ToString());
                         insertFields.Add("last_change_password_at", System.DateTime.Now);
@@ -231,13 +191,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 #region Check requried field
                 var f = collection;
 
-                //----- ประเภทการ Login : ถ้าฟอร์มไม่ส่งค่ามา ให้คงค่าเดิมของระเบียนไว้ (ไม่เปลี่ยนพฤติกรรมผู้ใช้เดิม)
-                int currentLoginType = ReadLoginType(itemEdit.Rows[0]["login_type"] + "");
-                int loginType = ReadLoginType(f["login_type"], currentLoginType);
-
-                string currentUsername = (itemEdit.Rows[0]["username"] + "").Trim();
-                string newUsername = currentUsername;
-
                 if (string.IsNullOrWhiteSpace(f["name"]))
                 {
                     TempData["alert_class"] = "alert-danger";
@@ -257,47 +210,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     return Redirect("Create");
                 }
 
-                #region ----- เงื่อนไขของ "ประเภทการ Login" -----
-                if (loginType == LOGIN_TYPE_EMPLOYEE)
-                {
-                    //----- แบบพนักงาน : Username ต้องเป็นอีเมลพนักงาน (แก้ Username ได้เฉพาะประเภทนี้)
-                    if (!string.IsNullOrWhiteSpace(f["username"]))
-                    {
-                        newUsername = (f["username"] + "").Trim();
-                    }
-
-                    if (!_azureAd.IsValidEmployeeUsername(newUsername, out string usernameError))
-                    {
-                        TempData["alert_class"] = "alert-danger";
-                        TempData["alert_message"] = usernameError;
-                        return Redirect(string.Format("/Admin/{0}/Edit/{1}", Module.Name, id));
-                    }
-
-                    if (!string.Equals(newUsername, currentUsername, StringComparison.OrdinalIgnoreCase))
-                    {
-                        var checkUserEdit = _db.ExecuteQuery(
-                            "select id from web_admin where TRIM(username) = TRIM(@username) and web_id = @web_id and id <> @id limit 1",
-                            new() { { "username", newUsername }, { "web_id", _currentWebID }, { "id", id } });
-                        if (checkUserEdit.Rows.Count > 0)
-                        {
-                            TempData["alert_class"] = "alert-danger";
-                            TempData["alert_message"] = string.Format("Username <strong>{0}</strong> ไม่สามารถใช้งานได้", newUsername);
-                            return Redirect(string.Format("/Admin/{0}/Edit/{1}", Module.Name, id));
-                        }
-                    }
-                }
-                else if (currentLoginType == LOGIN_TYPE_EMPLOYEE && loginType == LOGIN_TYPE_NORMAL)
-                {
-                    //----- เปลี่ยนจาก "แบบพนักงาน" กลับเป็น "แบบปกติ" : ผู้ใช้นี้ยังไม่มีรหัสผ่านในระบบ จึงต้องตั้งใหม่
-                    if (string.IsNullOrWhiteSpace(f["password"]))
-                    {
-                        TempData["alert_class"] = "alert-danger";
-                        TempData["alert_message"] = "เปลี่ยนเป็นประเภทการ Login แบบปกติ กรุณาระบุ Password ใหม่";
-                        return Redirect(string.Format("/Admin/{0}/Edit/{1}", Module.Name, id));
-                    }
-                }
-                #endregion
-
                 #endregion
 
                 #region Set Cate session 
@@ -312,19 +224,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 //--- custom value ----//
                 if (updateFields != null)
                 {
-                    //----- ประเภทการ Login (คอลัมน์เป็น integer / setFieldsUpdate คืนค่าเป็น string หรือ DBNull)
-                    updateFields["login_type"] = loginType;
-
-                    if (loginType == LOGIN_TYPE_EMPLOYEE)
-                    {
-                        //----- แบบพนักงาน : ล้างรหัสผ่านในระบบทิ้ง (ตรวจกับ Azure AD ตอน login แทน)
-                        //      และปลดเงื่อนไขบังคับเปลี่ยนรหัสผ่าน/วันหมดอายุ ซึ่งใช้กับแบบปกติเท่านั้น
-                        updateFields["username"] = newUsername;
-                        updateFields["password"] = "";
-                        updateFields["last_change_password_at"] = DBNull.Value;
-                        updateFields["force_change_password"] = 0;
-                    }
-                    else if (updateFields.ContainsKey("password") && !string.IsNullOrEmpty(updateFields["password"].ToString()))
+                    if (updateFields.ContainsKey("password") && !string.IsNullOrEmpty(updateFields["password"].ToString()))
                     {
                         updateFields["password"] = _utility.GenerateSHA512String(updateFields["password"].ToString());
                         updateFields.Add("last_change_password_at", System.DateTime.Now);

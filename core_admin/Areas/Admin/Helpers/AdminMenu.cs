@@ -5280,11 +5280,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                             new ("created_at", "วันที่สร้าง"),
                             new ("created_by", "สร้างโดย"),
                         },
-                        //----- login_type : 1 = แบบปกติ (ตรวจรหัสผ่านในระบบ), 2 = แบบพนักงาน (ตรวจผ่าน Azure AD)
-                        //      ค่าถูก validate + cast เป็น int อีกครั้งใน AdminUserController (setFieldsCreate/Update คืนค่าเป็น string)
                         FieldCreate = new()
                         {
-                            "access_id", "username", "password", "name", "surname", "section", "email", "use_otp", "login_type",
+                            "access_id", "username", "password", "name", "surname", "section", "email", "use_otp",
                             "created_at",
                             "updated_at",
                             "created_by",
@@ -5294,7 +5292,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         },
                         FieldUpdate = new()
                         {
-                            "access_id", "password", "name", "surname", "section", "email", "use_otp", "login_type",
+                            "access_id", "password", "name", "surname", "section", "email", "use_otp",
                             "updated_at",
                             "updated_by"
                         }

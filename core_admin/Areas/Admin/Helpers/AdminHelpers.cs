@@ -267,9 +267,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     { "otp", admin["otp"] },
                     { "otp_dt", admin["otp_dt"] },
                     { "last_change_password_at", admin["last_change_password_at"] },
-                    { "web_id",  Convert.ToInt32(admin["web_id"]) },
-                    //----- ประเภทการ Login : 1 = แบบปกติ (ตรวจรหัสผ่านในระบบ), 2 = แบบพนักงาน (ตรวจผ่าน Azure AD)
-                    { "login_type", admin.Table.Columns.Contains("login_type") && admin["login_type"] != DBNull.Value ? Convert.ToInt32(admin["login_type"]) : 1 }
+                    { "web_id",  Convert.ToInt32(admin["web_id"]) }
                 };
             }
             else
@@ -325,17 +323,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 _session.SetInt32("admin_user_id", Convert.ToInt32(admin_user["id"] + ""));
                 _session.SetInt32("admin_web_id", Convert.ToInt32(admin_user["web_id"] + ""));
                 _session.SetInt32("admin_access_id", Convert.ToInt32(admin_user["access_id"] + ""));
-                _session.SetInt32("admin_login_type", Convert.ToInt32(admin_user["login_type"] + ""));
-
                 #region ############ Force Change Password ################
-                //----- ผู้ใช้ "แบบพนักงาน" (login_type = 2) ไม่มีรหัสผ่านในระบบ (ตรวจกับ Azure AD)
-                //      จึงไม่คิดวันหมดอายุรหัสผ่าน และไม่บังคับให้เปลี่ยนรหัสผ่าน
                 string Text_Password_Expired_In = "";
-                if ((admin_user["login_type"] + "").ToString().Trim() == "2")
-                {
-                    //----- ข้ามเงื่อนไขรหัสผ่านหมดอายุทั้งหมด
-                }
-                else if ((admin_user["force_change_password"] + "").ToString().Trim() != "1")
+                if ((admin_user["force_change_password"] + "").ToString().Trim() != "1")
                 {
                     var Config_Password = _config.GetSection("ConfigPassword");
                     int Config_Password_ExpiresInDay = Convert.ToInt32(Config_Password.GetSection("ExpiresInDay").Value.ToString());

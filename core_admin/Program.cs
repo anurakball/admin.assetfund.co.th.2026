@@ -1,4 +1,4 @@
-using AngleSharp.Io;
+﻿using AngleSharp.Io;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
 using Serilog.Events;
@@ -48,10 +48,6 @@ builder.Services.AddMemoryCache();
 builder.Services.AddMvc().AddRazorRuntimeCompilation();
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
-// ตรวจ Username/Password ของผู้ดูแลระบบ "ประเภทการ Login = แบบพนักงาน" กับ Azure AD (OAuth2/OIDC)
-// ค่าเชื่อมต่ออ่านจาก appsettings section "AzureAd"
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<IAzureAdAuthService, AzureAdAuthService>();
 builder.Services.AddSession(options =>
 {
     // Distinct cookie name so the admin session does not collide with the public

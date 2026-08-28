@@ -46,17 +46,5 @@
     "UserID": "root",
     "Password": "",
     "Database": "sam_npa"
-  },
-  "AzureAd": {
-    "Enabled": true,
-    "Instance": "https://login.microsoftonline.com/",
-    "TenantId": "0fe5f270-4e36-4ea2-961b-406a1b457882",
-    "ClientId": "ec9088f2-a573-4526-9f5c-6fe0581c3e1a",
-    "ClientSecret": "",
-    "RedirectUri": "https://sam.siamedigital.com/login-callback",
-    "Scope": "openid profile email",
-    "AllowedEmailDomains": "sam.or.th",
-    "TimeoutSeconds": 20,
-    "AllowConsentPending": true
   }
 }

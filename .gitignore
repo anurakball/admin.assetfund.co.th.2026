@@ -7,3 +7,6 @@ appsettings.Development.json
 appsettings.Local.json
 appsettings.Production.json
 !appsettings.Development.json.example
+
+# Playwright MCP screenshots/snapshots (temp)
+.playwright-mcp/

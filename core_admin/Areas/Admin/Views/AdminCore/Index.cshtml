@@ -726,18 +726,6 @@ border-radius: 0.25rem;
                             <td>-</td>
                         }
                     }
-                    else if (mod.Name == "AdminUser" && head.Key == "username")
-                    {
-                        @* ประเภทการ Login = 2 (แบบพนักงาน / Azure AD) ให้ต่อท้าย Username ว่า "พนักงาน" *@
-                        if (item["login_type"].ToString() == "2")
-                        {
-                            <td>@item["username"] <span class="badge bg-info text-dark" style="margin-left:6px;">พนักงาน</span></td>
-                        }
-                        else
-                        {
-                            <td>@item["username"]</td>
-                        }
-                    }
                     else if (mod.Name == "MemberList" && head.Key == "firstname")
                     { 
                         <td>@item["firstname"] @item["surname"]</td>

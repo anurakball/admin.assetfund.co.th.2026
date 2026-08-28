@@ -25,18 +25,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         private readonly Utility _utility;
         private readonly DBHelper _db;
         private readonly AdminHelpers _admin;
-        private readonly IAzureAdAuthService _azureAd;
-
-        //----- ประเภทการ Login (web_admin.login_type)
-        private const int LOGIN_TYPE_NORMAL = 1;   // แบบปกติ    : ตรวจรหัสผ่านในระบบ (SHA512) — พฤติกรรมเดิมทั้งหมด
-        private const int LOGIN_TYPE_EMPLOYEE = 2; // แบบพนักงาน : ตรวจ Username/Password กับ Azure AD (OAuth2/OIDC)
 
         private int _requestWebID = 0;
         private int _currentWebID = -1;
 
-        public UserController(IWebHostEnvironment hostingEnvironment, IConfiguration iConfig, IHttpContextAccessor iContext, IAzureAdAuthService azureAd)
+        public UserController(IWebHostEnvironment hostingEnvironment, IConfiguration iConfig, IHttpContextAccessor iContext)
         {
-            _azureAd = azureAd;
             _config = iConfig;
             _hostingEnvironment = hostingEnvironment;
             _context = iContext;
@@ -243,60 +237,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         return RedirectToAction("Login", new { targetUrl = targetUrl, webID = _requestWebID });
                     }
 
-                    #region ----- ตรวจ Username / Password ตาม "ประเภทการ Login" -----
-                    // login_type = 1 (แบบปกติ)    : เทียบ SHA512 กับคอลัมน์ password เหมือนเดิมทุกประการ
-                    // login_type = 2 (แบบพนักงาน) : ส่ง Username/Password ไปตรวจกับ Azure AD (OAuth2/OIDC)
-                    //                               ผู้ใช้ประเภทนี้ไม่มีรหัสผ่านเก็บในระบบ (คอลัมน์ password เป็นค่าว่าง)
-                    // ขั้นตอนอื่นหลังจากนี้ (session, สิทธิ์โมดูล, log, นับ login ผิด) ใช้ของเดิมร่วมกันทั้งสองประเภท
-                    int loginType = LOGIN_TYPE_NORMAL;
-                    if (admin_user.ContainsKey("login_type") && (admin_user["login_type"] + "").Trim() == LOGIN_TYPE_EMPLOYEE.ToString())
-                    {
-                        loginType = LOGIN_TYPE_EMPLOYEE;
-                    }
-
-                    bool passwordValid;
-                    if (loginType == LOGIN_TYPE_EMPLOYEE)
-                    {
-                        var azureResult = _azureAd.ValidateCredential(username, password);
-                        passwordValid = azureResult.IsSuccess;
-
-                        //----- กรณีที่ "ไม่ใช่" รหัสผ่านผิด (ตั้งค่าไม่ครบ / ติดต่อ Azure ไม่ได้ / บัญชีถูกล็อคที่ฝั่ง Azure)
-                        //      ไม่นับเป็นการกรอกรหัสผ่านผิด และไม่ล็อค user ในระบบ
-                        if (!passwordValid && azureResult.Status != AzureAdAuthStatus.InvalidCredentials)
-                        {
-                            #region Logs Action
-                            //----- web_admin_log.action_info เป็น varchar(255) จึงต้องตัดความยาวก่อนบันทึก
-                            //      (ข้อความเต็มจาก Azure ยาวเกินได้ง่าย เช่น AADSTS65001 ที่มี Trace/Correlation ID)
-                            string azureLogInfo = string.Format("เข้าสู่ระบบ (Azure AD) ไม่สำเร็จ : {0} - {1}", azureResult.ErrorCode, azureResult.RawError);
-                            if (azureLogInfo.Length > 250)
-                            {
-                                azureLogInfo = azureLogInfo.Substring(0, 250);
-                            }
-
-                            _admin.ActionLogs(
-                                admin_user_id: Convert.ToInt32(admin_user["id"]),
-                                admin_username: admin_user["username"] + "",
-                                action: "login_fail_azure",
-                                action_info: azureLogInfo,
-                                action_url: Request.Host.Value + Request.Path.Value,
-                                action_table: "web_admin"
-                            );
-                            #endregion
-
-                            if (f["relogin"] + "" != null && f["relogin"] + "" == "1")
-                            {
-                                return Content("0");
-                            }
-
-                            TempData["alert_message"] = azureResult.Message;
-                            return RedirectToAction("Login", new { targetUrl = targetUrl, webID = _requestWebID });
-                        }
-                    }
-                    else
-                    {
-                        passwordValid = _utility.GenerateSHA512String(password) == (admin_user["password"] + "").Trim();
-                    }
-                    #endregion
+                    bool passwordValid = _utility.GenerateSHA512String(password) == (admin_user["password"] + "").Trim();
 
                     if (!passwordValid)
                     {
@@ -766,22 +707,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             return Redirect("/Admin/User/Edit");
         }
 
-        /// <summary>ผู้ใช้ "แบบพนักงาน" ไม่มีรหัสผ่านในระบบ (ตรวจกับ Azure AD) จึงเปลี่ยนรหัสผ่านที่นี่ไม่ได้</summary>
-        private bool IsEmployeeLogin()
-        {
-            return (_session.GetInt32("admin_login_type") ?? LOGIN_TYPE_NORMAL) == LOGIN_TYPE_EMPLOYEE;
-        }
-
         [AdminLogin]
         public IActionResult ChangePassword()
         {
-            if (IsEmployeeLogin())
-            {
-                TempData["alert_class"] = "alert-warning";
-                TempData["alert_message"] = "บัญชีนี้เข้าสู่ระบบด้วย Azure AD (แบบพนักงาน) กรุณาเปลี่ยนรหัสผ่านที่ระบบขององค์กร";
-                return Redirect("/Admin/User/Index");
-            }
-
             ViewBag._admin = _admin;
             ViewBag.user = _admin.AdminInfo(_session.GetString("admin_user"));
             ViewBag.pass_old = "";
@@ -796,13 +724,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ChangePassword(IFormCollection f)
         {
-            if (IsEmployeeLogin())
-            {
-                TempData["alert_class"] = "alert-warning";
-                TempData["alert_message"] = "บัญชีนี้เข้าสู่ระบบด้วย Azure AD (แบบพนักงาน) กรุณาเปลี่ยนรหัสผ่านที่ระบบขององค์กร";
-                return Redirect("/Admin/User/Index");
-            }
-
             ViewBag._admin = _admin;
             ViewBag.user = _admin.AdminInfo(_session.GetString("admin_user"));
             ViewBag.pass_old = "";
