@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 using thaicredit_hr_admin.Areas.Admin.Models;
-using static Npgsql.PostgresTypes.PostgresCompositeType;
 
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {

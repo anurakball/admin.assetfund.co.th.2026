@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Npgsql;
+using Microsoft.Data.SqlClient;
 using System.Diagnostics;
 using System.Runtime;
 
@@ -70,9 +70,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var sw = Stopwatch.StartNew();
             try
             {
-                using var conn = new NpgsqlConnection(_db.DefaultConnectionString);
+                using var conn = new SqlConnection(_db.DefaultConnectionString);
                 conn.Open();
-                using var cmd = new NpgsqlCommand("SELECT 1", conn);
+                using var cmd = new SqlCommand("SELECT 1", conn);
                 cmd.ExecuteScalar();
                 sw.Stop();
 

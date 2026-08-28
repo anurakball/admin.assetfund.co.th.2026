@@ -1,4 +1,5 @@
-using Npgsql;
+﻿using Microsoft.Data.SqlClient;
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 
 public interface IAuditLogService
 {
@@ -13,16 +14,17 @@ public class AuditLogService : IAuditLogService
     public AuditLogService(IConfiguration configuration, ILogger<AuditLogService> logger)
     {
         var db = configuration.GetSection("DBConnection");
-        _connStr = new NpgsqlConnectionStringBuilder
+        _connStr = new SqlConnectionStringBuilder
         {
-            Host = db["Host"],
-            Username = db["Username"],
+            DataSource = db["Server"],
+            InitialCatalog = db["Database"],
+            UserID = db["Username"],
             Password = db["Password"],
-            Database = db["Database"],
             Pooling = true,
             MinPoolSize = 1,
             MaxPoolSize = 5,
-            CommandTimeout = 10
+            CommandTimeout = 10,
+            TrustServerCertificate = true
         }.ConnectionString;
         _logger = logger;
     }
@@ -31,12 +33,12 @@ public class AuditLogService : IAuditLogService
     {
         try
         {
-            using var conn = new NpgsqlConnection(_connStr);
+            using var conn = new SqlConnection(_connStr);
             conn.Open();
             const string sql = @"
-                INSERT INTO api_audit_log (endpoint, success, uid, detail, ip_address, error_code)
+                INSERT INTO [2026_api_audit_log] (endpoint, success, uid, detail, ip_address, error_code)
                 VALUES (@endpoint, @success, @uid, @detail, @ip_address, @error_code)";
-            using var cmd = new NpgsqlCommand(sql, conn);
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@endpoint", endpoint);
             cmd.Parameters.AddWithValue("@success", success);
             cmd.Parameters.AddWithValue("@uid", (object?)uid ?? DBNull.Value);

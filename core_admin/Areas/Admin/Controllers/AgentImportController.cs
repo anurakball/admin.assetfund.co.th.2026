@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Npgsql;
+using Microsoft.Data.SqlClient;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using thaicredit_hr_admin.Areas.Admin.Filters;
@@ -387,7 +387,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         long agentId;
                         string codeId;
 
-                        using var conn = new NpgsqlConnection(_db.DefaultConnectionString);
+                        using var conn = new SqlConnection(_db.DefaultConnectionString);
                         conn.Open();
                         using var tx = conn.BeginTransaction();
 
@@ -407,7 +407,7 @@ VALUES
    @now, @now, 'import', 'import')
 RETURNING id";
 
-                            using var cmd = new NpgsqlCommand(memberSql, conn);
+                            using var cmd = new SqlCommand(memberSql, conn);
                             cmd.Transaction = tx;
                             cmd.Parameters.AddWithValue("type",      mem_type);
                             cmd.Parameters.AddWithValue("title",     T(mem_title));
@@ -434,7 +434,7 @@ UPDATE web_member SET
   updated_at = @now, updated_by = 'import'
 WHERE id = @id";
 
-                            using var cmd = new NpgsqlCommand(memberUpdSql, conn);
+                            using var cmd = new SqlCommand(memberUpdSql, conn);
                             cmd.Transaction = tx;
                             cmd.Parameters.AddWithValue("type",      mem_type);
                             cmd.Parameters.AddWithValue("title",     T(mem_title));
@@ -458,7 +458,7 @@ WHERE id = @id";
                         else
                         {
                             string datePrefix = now.ToString("yyyyMMdd");
-                            using var seqCmd = new NpgsqlCommand("SELECT COUNT(*) + 1 FROM web_agent WHERE codeid LIKE @prefix", conn);
+                            using var seqCmd = new SqlCommand("SELECT COUNT(*) + 1 FROM web_agent WHERE codeid LIKE @prefix", conn);
                             seqCmd.Transaction = tx;
                             seqCmd.Parameters.AddWithValue("prefix", $"{datePrefix}%");
                             long nextSeq = (long)(seqCmd.ExecuteScalar() ?? 1L);
@@ -467,7 +467,7 @@ WHERE id = @id";
 
                         // ช่องรหัสทรัพย์ npaid1..npaidN สร้างจาก AdminMenu.NpaFields (จำนวนตาม NpaSlotCount)
                         // ผูกค่าฝั่งตัวแทนชุดเดียวกันทั้ง INSERT และ UPDATE
-                        void BindAgent(NpgsqlCommand cmd)
+                        void BindAgent(SqlCommand cmd)
                         {
                             cmd.Parameters.AddWithValue("codeid",  codeId);
                             cmd.Parameters.AddWithValue("uid",     memberId);
@@ -519,7 +519,7 @@ UPDATE web_agent SET
   updated_at = @now, updated_by = 'import'
 WHERE id = @id";
 
-                            using var cmd = new NpgsqlCommand(agentUpdSql, conn);
+                            using var cmd = new SqlCommand(agentUpdSql, conn);
                             cmd.Transaction = tx;
                             BindAgent(cmd);
                             cmd.Parameters.AddWithValue("id", existAgentId);
@@ -556,7 +556,7 @@ VALUES
    @now, @now, 'import', 'import')
 RETURNING id";
 
-                            using var cmd = new NpgsqlCommand(agentSql, conn);
+                            using var cmd = new SqlCommand(agentSql, conn);
                             cmd.Transaction = tx;
                             BindAgent(cmd);
                             agentId = Convert.ToInt64(cmd.ExecuteScalar());

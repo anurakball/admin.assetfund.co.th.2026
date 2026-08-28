@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Npgsql;
+using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
@@ -21,11 +21,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             _enableSqlDebugLog = _config.GetValue<bool>("EnableSqlDebugLog");
 
             var DBConnection = _config.GetSection("DBConnection");
-            defaultConnectionString = string.Format("Host={0};Username={1};Password={2};Database={3}", 
-                DBConnection.GetSection("Host").Value, 
-                DBConnection.GetSection("Username").Value, 
-                DBConnection.GetSection("Password").Value, 
-                DBConnection.GetSection("Database").Value);
+            defaultConnectionString = string.Format(
+                "Server={0};Database={1};User ID={2};Password={3};TrustServerCertificate=True;MultipleActiveResultSets=True;",
+                DBConnection.GetSection("Server").Value,
+                DBConnection.GetSection("Database").Value,
+                DBConnection.GetSection("Username").Value,
+                DBConnection.GetSection("Password").Value);
         }
         public string DefaultConnectionString
         {
@@ -38,6 +39,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 defaultConnectionString = value;
             }*/
         }
+        /// <summary>ชื่อตารางสำหรับ T-SQL — เติม prefix 2026_ และครอบ [] (ดู <see cref="Db.T"/>)</summary>
+        private static string QuoteTable(string table) => Db.T(table);
+
         public DataTable ExecuteQuery(string query)
         {
             var parameters = new Dictionary<string, object>();
@@ -62,12 +66,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             try
             {
                 DataTable a = new DataTable();
-                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+                List<SqlParameter> filters = new List<SqlParameter>();
                 if (parameters.Count > 0)
                 {
                     foreach (var item in parameters)
                     {
-                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, item.Value));
                     }
                 }
                 a = Query(query, filters);
@@ -113,13 +117,13 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         {
             try
             {
-                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+                List<SqlParameter> filters = new List<SqlParameter>();
 
                 if (parameters.Count > 0)
                 {
                     foreach (var item in parameters)
                     {
-                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, item.Value));
                     }
                 }
 
@@ -152,8 +156,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 if (parameters.Count == 0)
                     throw new ArgumentException("Insert is required parameters.");
 
-                var builder = new NpgsqlCommandBuilder();
-                string escapedTableName = builder.QuoteIdentifier(table);
+                string escapedTableName = QuoteTable(table);
 
                 #region Create sql insert command
                 string field = "";
@@ -186,14 +189,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 }
                 #endregion
 
-                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+                List<SqlParameter> filters = new List<SqlParameter>();
 
 
                 if (parameters.Count > 0)
                 {
                     foreach (var item in parameters)
                     {
-                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, item.Value));
                     }
                 }
 
@@ -234,8 +237,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             string query = "";
             try
             {
-                var builder = new NpgsqlCommandBuilder();
-                string escapedTableName = builder.QuoteIdentifier(table);
+                string escapedTableName = QuoteTable(table);
 
                 #region Create sql update command
                 string field_val = "";
@@ -255,14 +257,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 }
                 #endregion
 
-                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+                List<SqlParameter> filters = new List<SqlParameter>();
 
 
                 if (parametersFieldValue.Count > 0)
                 {
                     foreach (var item in parametersFieldValue)
                     {
-                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, item.Value));
                     }
                 }
 
@@ -270,7 +272,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 {
                     foreach (var item in parametersCondition)
                     {
-                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, item.Value));
                     }
                 }
 
@@ -432,14 +434,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             return map;
         }
         #region Private Methods
-        private static DataTable Query(string consulta, IList<NpgsqlParameter> parametros)
+        private static DataTable Query(string consulta, IList<SqlParameter> parametros)
         {
             try
             {
                 DataTable dt = new DataTable();
-                NpgsqlConnection connection = new NpgsqlConnection(defaultConnectionString);
-                NpgsqlCommand command = new NpgsqlCommand();
-                NpgsqlDataAdapter da;
+                SqlConnection connection = new SqlConnection(defaultConnectionString);
+                SqlCommand command = new SqlCommand();
+                SqlDataAdapter da;
                 try
                 {
                     command.Connection = connection;
@@ -448,7 +450,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     {
                         command.Parameters.AddRange(parametros.ToArray());
                     }
-                    da = new NpgsqlDataAdapter(command);
+                    da = new SqlDataAdapter(command);
                     da.Fill(dt);
                 }
                 finally
@@ -463,13 +465,13 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 throw;
             }
         }
-        private static int NonQuery(string query, IList<NpgsqlParameter> parametros)
+        private static int NonQuery(string query, IList<SqlParameter> parametros)
         {
             try
             {
                 DataSet dt = new DataSet();
-                NpgsqlConnection connection = new NpgsqlConnection(defaultConnectionString);
-                NpgsqlCommand command = new NpgsqlCommand();
+                SqlConnection connection = new SqlConnection(defaultConnectionString);
+                SqlCommand command = new SqlCommand();
 
                 try
                 {
