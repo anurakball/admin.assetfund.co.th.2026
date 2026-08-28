@@ -1,3 +1,4 @@
+@using thaicredit_hr_admin.Areas.Admin.Helpers
 ﻿@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @{
@@ -397,7 +398,7 @@ var sortableMain = null;
                                         string[] arr_get_id = arr_box[i].Split('_');
 
                                         @*----- web_id = 0 อ่าน web_widget, web_id != 0 (microsite) อ่าน web_widget2 (เลือกชุดโดย WidgetTable()); พาเลตต์คงที่ ไม่กรอง web_id *@
-                                        var Widget1 = ViewBag._db.ExecuteQuery(string.Format("select * from " + _admin.WidgetTable() + " where id = " + arr_get_id[1]));
+                                        var Widget1 = ViewBag._db.ExecuteQuery(string.Format("select * from " + Db.T(_admin.WidgetTable()) + " where id = " + arr_get_id[1]));
 
                                         if(Widget1.Rows.Count > 0)
                                         {

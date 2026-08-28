@@ -1,3 +1,4 @@
+@using thaicredit_hr_admin.Areas.Admin.Helpers
 ﻿@*ToolWidget*@
 
 <div class="sticky--wrapper">
@@ -23,7 +24,7 @@
                                     @{
                                         @*----- widget ลูกของกลุ่ม: กรองด้วย cat_id (โครงสร้างกลุ่ม-ลูก) เท่านั้น
                                                 พาเลตต์เป็นค่าคงที่ ไม่กรอง web_id/status เพื่อไม่ให้ microsite เห็นว่าง *@
-                                        var Sub_Widget = ViewBag._db.ExecuteQuery(string.Format("select * from " + ViewBag.WidgetTable + " where cat_id = " + ViewBag.All_Widget.Rows[i]["id"] + " order by sort asc"));
+                                        var Sub_Widget = ViewBag._db.ExecuteQuery(string.Format("select * from " + Db.T((string)ViewBag.WidgetTable) + " where cat_id = " + ViewBag.All_Widget.Rows[i]["id"] + " order by sort asc"));
 
                                         for (int ii = 0; ii < Sub_Widget.Rows.Count; ii++)
                                         {

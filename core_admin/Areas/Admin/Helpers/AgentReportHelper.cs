@@ -141,11 +141,16 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     NULLIF(LTRIM(RTRIM(COALESCE(a.cus_contact_province, ''))), ''),
                     'ไม่ระบุ')";
 
+            // T-SQL ห้ามใส่ subquery ใน GROUP BY (PostgreSQL ใช้ GROUP BY 1 อ้างลำดับคอลัมน์ได้)
+            // จึงคำนวณชื่อจังหวัดในตารางย่อยก่อน แล้วค่อยจัดกลุ่มจากคอลัมน์ที่ได้
             var dtAgentProvince = db.ExecuteQuery($@"
-                SELECT {ProvinceExpr} AS province, COUNT(*) AS cnt
-                FROM [2026_web_agent] a
-                {where}
-                GROUP BY {ProvinceExpr}
+                SELECT province, COUNT(*) AS cnt
+                FROM (
+                    SELECT {ProvinceExpr} AS province
+                    FROM [2026_web_agent] a
+                    {where}
+                ) t
+                GROUP BY province
                 ORDER BY cnt DESC, province", prms);
 
             foreach (DataRow r in dtAgentProvince.Rows)

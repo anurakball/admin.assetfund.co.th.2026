@@ -1,3 +1,4 @@
+@using thaicredit_hr_admin.Areas.Admin.Helpers
 ﻿@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @{
@@ -94,7 +95,7 @@
                             {
                                 <h5 style="color:#333">@all_table_txt_arr[run]</h5>
 
-                                var All_Page = ViewBag._db.ExecuteQuery(string.Format("select * from " + this_table + " where web_id = @web_id and cat_id = '0' and id <> '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+                                var All_Page = ViewBag._db.ExecuteQuery(string.Format("select * from " + Db.T(this_table) + " where web_id = @web_id and cat_id = '0' and id <> '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
                                 ViewBag.All_Page = All_Page;
 
                                 for (int i = 0; i < ViewBag.All_Page.Rows.Count; i++)
