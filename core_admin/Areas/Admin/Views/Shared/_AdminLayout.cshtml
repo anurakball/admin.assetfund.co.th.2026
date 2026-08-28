@@ -1,0 +1,357 @@
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Csrf
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers;
+@functions
+{
+    public string GetCsrfToken()
+    {
+        return Csrf.GetAndStoreTokens(Context).RequestToken;
+    }
+}
+@{
+    string Admin_Text_Password_Expired_In = "";
+    if (!string.IsNullOrEmpty(HttpContextAccessor.HttpContext.Session.GetString("admin_text_password_expired_in")))
+    {
+        Admin_Text_Password_Expired_In =
+        (HttpContextAccessor.HttpContext.Session.GetString("admin_text_password_expired_in")).ToString().Trim();
+        HttpContextAccessor.HttpContext.Session.Remove("admin_text_password_expired_in");
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="csrf-token" content="@GetCsrfToken()" csrf-param="_csrf_token" method-param="_method">
+    <meta name="web-id" content="@(HttpContextAccessor.HttpContext.Session.GetInt32("admin_web_id") ?? 0)" >
+    <meta name="elfinder-roots-hash" content="@(HttpContextAccessor.HttpContext.Session.GetString("admin_elfinder_root_hash") ?? "")" >
+
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@200;400;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS/JS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+
+    
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+
+
+    <!-- elFinder JS (REQUIRED) -->
+    <script type="text/javascript" src="~/lib/elfinder/js/elfinder.min.js"></script>
+    <script src="~/lib/elfinder/js/extras/editors.default.min.js"></script>
+    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/jquery-ui.css" />
+    <!-- CK Editor --> 
+    <script src="~/lib/ckeditor/build/ckeditor.js"></script>
+    <!-- Mask JS -->
+    <script src="~/js/mask.min.js"></script>
+    <!-- sweetalert -->
+    @*<link href="//cdn.jsdelivr.net/npm/@@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">*@
+    <script src="~/js/sweetalert2.min.js"></script>
+
+    <!-- Custom CSS/JS  -->
+    <link rel="stylesheet" href="~/css/Admin/admin_site.css" />
+    <script>
+    var admin_fm_path1 = "@HttpContextAccessor.HttpContext.Session.GetString("admin_fm_path1")";
+    var admin_fm_path2 = "@HttpContextAccessor.HttpContext.Session.GetString("admin_fm_path2")";
+    </script>
+    <script src="~/js/Admin/admin_site.js?t=@System.DateTime.Now.ToString("yyyyMMddHHmm")"></script>
+
+    <link rel="stylesheet" href="~/css/Admin/loading.css" />
+
+   
+    <!-- Plugin html -->
+    <!-- fontawesome icon -->
+    @*<link href="~/assets/fonts/fontawesome/css/fontawesome-all.min.css" rel="stylesheet" />*@
+    <link href="~/assets/fonts/fontawesome7/css/all.min.css" rel="stylesheet" />
+    <!-- animation css -->
+    <link href="~/assets/plugins/animation/css/animate.min.css" rel="stylesheet" />
+    <!-- vendor css -->
+    <link href="~/assets/css/style.css" rel="stylesheet" />
+    <link href="~/css/main.min.css" rel="stylesheet" />
+    <!-- //Plugin html -->
+
+
+    @await RenderSectionAsync("pageCreator", required: false)
+
+    <style type="text/css">
+    .page-header .page-block .page-header-title .title:before
+    {
+        width: 120px !important;
+    }
+    </style>
+
+    @*  ธีมเนื้อหา CKEditor — ให้พื้นที่พิมพ์ (.ck-content) แสดงสี/สไตล์เหมือนหน้าเว็บจริง (front-end)
+        - scope = .ck-editor__editable.ck-content (พื้นที่พิมพ์เท่านั้น ไม่กระทบ UI อื่นของ admin)
+        - ใช้ 2 class เพื่อ specificity สูงกว่า default ของ CKEditor (.ck-content ...) จึง override สีหัวตาราง (เทา -> เขียว) ได้โดยไม่ต้องใช้ !important
+        - ใช้ค่าสี hex ตรง ๆ เพราะ admin ไม่มีตัวแปร --clr-* ของ front-end
+        - ไม่พอร์ต max-width/จัดกึ่งกลาง และ overflow-x ของ figure.table มา เพราะจะรบกวน widget แก้ไขตารางใน editor  *@
+    <style type="text/css">
+        /* หัวข้อ: สีเขียวแบรนด์ + ขนาดไล่ระดับ (เทียบเท่า front-end) */
+        .ck-editor__editable.ck-content h2,
+        .ck-editor__editable.ck-content h3,
+        .ck-editor__editable.ck-content h4,
+        .ck-editor__editable.ck-content h5 {
+            color: #286140;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        .ck-editor__editable.ck-content h2 { font-size: clamp(1.6rem, 1.15rem + 1.9vw, 2.25rem); }
+        .ck-editor__editable.ck-content h3 { font-size: clamp(1.35rem, 1.1rem + 1.05vw, 1.75rem); }
+        .ck-editor__editable.ck-content h4 { font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.4rem); font-weight: 600; }
+        .ck-editor__editable.ck-content h5 { font-size: clamp(1.05rem, 1rem + 0.3vw, 1.2rem); font-weight: 600; }
+
+        /* ตัวหนา / ลิงก์ */
+        .ck-editor__editable.ck-content strong,
+        .ck-editor__editable.ck-content b { font-weight: 700; color: #363636; }
+        .ck-editor__editable.ck-content a {
+            color: #429f69;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        /* รายการ (ul/ol) */
+        .ck-editor__editable.ck-content ul,
+        .ck-editor__editable.ck-content ol { padding-left: 1.5em; }
+        .ck-editor__editable.ck-content li { margin-bottom: 0.5em; }
+        .ck-editor__editable.ck-content li::marker { color: #429f69; }
+
+        /* รูปภาพ + คำบรรยายรูป (figcaption) */
+        .ck-editor__editable.ck-content img { border-radius: 16px; }
+        .ck-editor__editable.ck-content figcaption {
+            font-size: 0.875rem;
+            color: #656565;
+            text-align: center;
+        }
+
+        /* blockquote */
+        .ck-editor__editable.ck-content blockquote {
+            padding: 1em 1.5em;
+            border-left: 4px solid #429f69;
+            background: #f9f9f9;
+            border-radius: 0 8px 8px 0;
+            color: #4a4a4a;
+            font-style: italic;
+        }
+
+        /* ตาราง: หัวตารางสีเขียว + เส้นขอบ + zebra (ให้เหมือน front-end แทนหัวสีเทา default ของ CKEditor) */
+        .ck-editor__editable.ck-content .table table th,
+        .ck-editor__editable.ck-content .table table td {
+            border: 1px solid #ececec;
+            padding: 0.7em 1em;
+        }
+        .ck-editor__editable.ck-content .table table th {
+            background: #429f69;
+            color: #ffffff;
+            font-weight: 600;
+            border-color: #429f69;
+        }
+        .ck-editor__editable.ck-content .table table tbody tr:nth-child(even) td { background: #f9f9f9; }
+
+        /* เส้นคั่น hr */
+        .ck-editor__editable.ck-content hr { border: 0; border-top: 1px solid #ececec; }
+    </style>
+
+    <title>@Html.Raw(ViewBag.Title)</title>
+</head>
+
+<body>
+    <div class="loading" style="display:@((ViewBag.showLoading + "" == "1") ? "" : "none");">Loading...</div>
+
+    @await Component.InvokeAsync("AdminMenu")
+
+    <!-- [ Header ] start -->
+    <header class="navbar pcoded-header navbar-expand-lg navbar-light">
+        <div class="m-header">
+            <a class="mobile-menu" id="mobile-collapse1" href="javascript:"><span></span></a>
+            <a href="/" class="b-brand">
+                <div class="b-bg">
+                    <img src="/assets/images/icon/SAM_logo-white-pink.png" />
+                </div>
+                <span class="b-title">บริษัท บริหารสินทรัพย์สุขุมวิท จำกัด</span>
+            </a>
+        </div>
+        <a class="mobile-menu" id="mobile-header" href="javascript:">
+            <i class="feather icon-more-horizontal"></i>
+        </a>
+        <div id="header_custom" class="collapse navbar-collapse">
+            @await RenderSectionAsync("NavbarBack", required: false)
+            <ul class="navbar-nav ml-auto">
+                <li class="name-user">
+                    <i class="feather icon-user"></i> @(HttpContextAccessor.HttpContext.Session.GetString("admin_name")
+                    ?? "") @(HttpContextAccessor.HttpContext.Session.GetString("admin_surname") ?? "")
+                </li>
+                <li id="li_logout" class="logout">
+                    <a href="javascript:;" onclick="logOut()" class="dud-logout" title="ออกจากระบบ"
+                        data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="feather icon-log-out"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </header>
+    <!-- [ Header ] end -->
+
+
+    <!-- [ Main Content ] start -->
+    <div class="pcoded-main-container">
+        <div class="pcoded-wrapper">
+            <div class="pcoded-content">
+                <div class="pcoded-inner-content">
+
+                    @if (TempData["alert_message"] != null)
+                    {
+                        string alerClass = (TempData["alert_class"] != null) ? (TempData["alert_class"] + "") :
+                        "alert-warning";
+                        <div class="alert @alerClass">
+                            @Html.Raw(TempData["alert_message"])
+                        </div>
+                    }
+
+                    @{
+                        var moduleName = ViewBag.ModuleName;
+                        var icon = new AdminMenu().Menu().SelectMany(x => x.SubMenu).FirstOrDefault(x => x.ModuleName == moduleName)?.Icon;
+                    }
+
+                    <div class="page-header">
+                        <div class="page-block">
+                            <div class="row align-items-center">
+                                <div class="col-md-12">
+                                    <div class="page-header-title">
+                                        <h3 class="title"><i class="@icon"></i>  @Html.Raw(ViewBag.Title) </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @RenderBody()
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Latest Sortable -->
+    <script src="~/lib/sortable/Sortable.js"></script>
+
+    @*<script src="~/assets/js/vendor-all.min.js"></script>*@
+    <script src="~/assets/js/pcoded.min.js"></script>
+    <script src="~/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/assets/plugins/slimscroll/slimscroll.min.js"></script>
+
+    <!-- Bootstrap Datepicker -->
+    @*<link rel="stylesheet" href="~/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css" />
+        <script src="~/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+        <script src="~/lib/bootstrap-datepicker/locales/bootstrap-datepicker.th.min.js"></script>*@
+
+    <!-- Bootstrap Datetimepicker -->
+    <link href="~/assets/plugins/jquery-datetimepicker/jquery.datetimepicker.css" rel="stylesheet" />
+    <script src="~/assets/plugins/jquery-datetimepicker/moment-with-locales.min.js"></script>
+    <script src="~/assets/plugins/jquery-datetimepicker/th.min.js"></script>
+    <script src="~/assets/plugins/jquery-datetimepicker/jquery.datetimepicker.full.min.js"></script>
+
+
+
+    <script>
+        $(document).ready(function () {
+
+            //----- show drag sort -----//
+            $(".move_handle").fadeIn();
+
+
+            //----- toolstip -----//
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+
+            //----- active admin menu -----//
+            activeMenu();
+
+            //----- autocomplete off -----//
+            $("form#fm_cms").prop("autocomplete", "off");
+
+
+            //----- add * to requried field -----//
+            if ($("#fm_cms").length > 0) {
+                $("#fm_cms :input[required]:visible").each(function () {
+                    $('<span class="req"> *</span>').appendTo($(this).closest("div.field").find("label"));
+                });
+            }
+
+            //----- custom link admin ---//
+            var findLink = $(".slimScrollDiv").find("li a[href$='/Admin/JobRegister']");
+            if (findLink.length > 0) {
+                findLink.prop('href', findLink.prop('href') + '?first_view=1')
+            }
+
+            $.datetimepicker.setLocale('th');
+            $('.cms_datetime').datetimepicker({
+                format: 'd/m/Y H:i',
+            });
+            $('.cms_datetime_s').datetimepicker({
+                format: 'd/m/Y H:i:s',
+            });
+            $('.cms_date').datetimepicker({
+                format: 'd/m/Y',
+                timepicker: false
+            });
+
+            var Admin_Text_Password_Expired_In = "@Admin_Text_Password_Expired_In.ToString().Trim()";
+            if ($.trim(Admin_Text_Password_Expired_In) != "") {
+                Swal.fire({
+                    title: 'ข้อความแจ้งเตือน',
+                    html: Admin_Text_Password_Expired_In,
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                });
+            }
+
+            if ($('#header_custom').find('div.btn-group').length > 0) {
+                console.log("Found");
+                $('#header_custom').addClass('justify-content-between');
+            } else {
+                console.log("Not Found");
+                $('#header_custom').addClass('justify-content-end');
+            }
+
+            $('.popover-opener').click(function () {
+                $(this).parent().addClass('show');
+            });
+            $('.close-popover').click(function () {
+                $(this).parents('.popoverWrapper').removeClass('show');
+            });
+
+
+            if (window.self !== window.top)
+            { 
+                $('.pcoded-navbar').addClass('navbar-collapsed');
+                document.getElementById('li_logout').style.display = 'none';
+            } 
+        });
+    </script>
+     
+    @await RenderSectionAsync("Dragdrop", required: false)
+    @await RenderSectionAsync("Slide", required: false)
+
+</body> 
+</html>

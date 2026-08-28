@@ -1,0 +1,189 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+}
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+@{
+    var logFiles = (List<object>)ViewBag.LogFiles ?? new List<object>();
+}
+
+<div class="container-fluid px-0 mt-3">
+
+    <div class="row g-3">
+
+        @* File List Panel *@
+        <div class="col-md-4 col-lg-3" id="log-file-panel">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between py-2">
+                    <span><i class="fas fa-folder-open me-2"></i>ไฟล์ Log ทั้งหมด</span>
+                    <span class="badge bg-secondary">@logFiles.Count ไฟล์</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (logFiles.Count == 0)
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                            ไม่พบไฟล์ log
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush" id="log-file-list">
+                            @foreach (dynamic f in logFiles)
+                            {
+                                long sizeKb = (long)f.size / 1024;
+                                <li class="list-group-item list-group-item-action px-3 py-2 log-file-item"
+                                    data-filename="@f.name"
+                                    role="button"
+                                    title="คลิกเพื่ออ่านไฟล์">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-file-alt text-danger mt-1 me-2 flex-shrink-0"></i>
+                                        <div class="overflow-hidden">
+                                            <div class="fw-semibold text-truncate small" style="max-width:200px">@f.name</div>
+                                            <div class="text-muted" style="font-size:0.72rem">
+                                                <i class="far fa-clock me-1"></i>@f.lastModified
+                                                &nbsp;·&nbsp;@sizeKb KB
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Content Panel *@
+        <div class="col-md-8 col-lg-9" id="log-content-panel">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between py-2">
+                    <span id="content-title"><i class="fas fa-file-code me-2"></i>เนื้อหาไฟล์</span>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span id="content-spinner" class="d-none">
+                            <span class="spinner-border spinner-border-sm text-light" role="status"></span>
+                        </span>
+                        <button class="btn btn-sm btn-outline-light d-none" id="btn-copy" title="คัดลอกเนื้อหา">
+                            <i class="fas fa-copy me-1"></i>คัดลอก
+                        </button>
+                        <button class="btn btn-sm btn-outline-light d-none" id="btn-wrap" title="ตัดบรรทัด">
+                            <i class="fas fa-align-left me-1"></i>ตัดบรรทัด
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0 d-flex flex-column" style="min-height:500px">
+                    <div id="log-placeholder" class="text-center text-muted m-auto py-5">
+                        <i class="fas fa-hand-pointer fa-2x mb-3 d-block"></i>
+                        <span>เลือกไฟล์ทางซ้ายเพื่อแสดงเนื้อหา</span>
+                    </div>
+                    <pre id="log-content"
+                         class="d-none m-0 p-3 flex-grow-1 overflow-auto"
+                         style="background:#1e1e1e;color:#d4d4d4;font-size:0.8rem;white-space:pre;border-radius:0 0 .375rem .375rem;max-height:70vh"></pre>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .log-file-item:hover  { background-color: #f0f4ff; cursor: pointer; }
+    .log-file-item.active { background-color: #0d6efd; color: #fff; }
+    .log-file-item.active .text-muted  { color: rgba(255,255,255,.75) !important; }
+    .log-file-item.active .text-danger { color: #fff !important; }
+</style>
+
+<script>
+(function () {
+    var currentFile = null;
+    var wrapEnabled = false;
+
+    document.querySelectorAll('.log-file-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+            var fileName = this.dataset.filename;
+            if (fileName === currentFile) return;
+
+            document.querySelectorAll('.log-file-item').forEach(function (el) { el.classList.remove('active'); });
+            this.classList.add('active');
+            currentFile = fileName;
+            loadFile(fileName);
+        });
+    });
+
+    function loadFile(fileName) {
+        var spinner  = document.getElementById('content-spinner');
+        var pre      = document.getElementById('log-content');
+        var holder   = document.getElementById('log-placeholder');
+        var title    = document.getElementById('content-title');
+        var btnCopy  = document.getElementById('btn-copy');
+        var btnWrap  = document.getElementById('btn-wrap');
+
+        spinner.classList.remove('d-none');
+        pre.classList.add('d-none');
+        holder.classList.add('d-none');
+
+        fetch('/Admin/ErrorLogs/GetFileContent?fileName=' + encodeURIComponent(fileName), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            spinner.classList.add('d-none');
+            if (data.success) {
+                title.innerHTML = '<i class="fas fa-file-code me-2"></i>' + data.fileName;
+                pre.textContent = data.content;
+                if (data.truncated) {
+                    var kb = Math.round(data.totalSize / 1024);
+                    pre.textContent += '\n\n[... ไฟล์ขนาด ' + kb + ' KB — แสดงเฉพาะ 5 MB แรก ...]';
+                }
+                pre.classList.remove('d-none');
+                btnCopy.classList.remove('d-none');
+                btnWrap.classList.remove('d-none');
+            } else {
+                holder.innerHTML = '<i class="fas fa-exclamation-triangle fa-2x text-warning mb-3 d-block"></i><span>' + data.message + '</span>';
+                holder.classList.remove('d-none');
+            }
+        })
+        .catch(function () {
+            spinner.classList.add('d-none');
+            holder.innerHTML = '<i class="fas fa-times-circle fa-2x text-danger mb-3 d-block"></i><span>เกิดข้อผิดพลาดในการโหลดไฟล์</span>';
+            holder.classList.remove('d-none');
+        });
+    }
+
+    document.getElementById('btn-copy').addEventListener('click', function () {
+        var pre = document.getElementById('log-content');
+        navigator.clipboard.writeText(pre.textContent).then(function () {
+            var btn = document.getElementById('btn-copy');
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>คัดลอกแล้ว';
+            setTimeout(function () { btn.innerHTML = '<i class="fas fa-copy me-1"></i>คัดลอก'; }, 2000);
+        });
+    });
+
+    document.getElementById('btn-wrap').addEventListener('click', function () {
+        var pre = document.getElementById('log-content');
+        wrapEnabled = !wrapEnabled;
+        pre.style.whiteSpace = wrapEnabled ? 'pre-wrap' : 'pre';
+        this.innerHTML = wrapEnabled
+            ? '<i class="fas fa-align-justify me-1"></i>ไม่ตัดบรรทัด'
+            : '<i class="fas fa-align-left me-1"></i>ตัดบรรทัด';
+    });
+})();
+</script>

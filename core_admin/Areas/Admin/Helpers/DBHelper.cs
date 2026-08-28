@@ -1,0 +1,497 @@
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Npgsql;
+using System.Data;
+
+namespace thaicredit_hr_admin.Areas.Admin.Helpers
+{
+    public class DBHelper
+    {
+        private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        private Utility _utility;
+        private static string defaultConnectionString = "";
+        private readonly bool _enableSqlDebugLog;
+        public DBHelper(IWebHostEnvironment hostingEnvironment, IConfiguration iConfig)
+        {
+            _config = iConfig;
+            _hostingEnvironment = hostingEnvironment;
+            _utility = new Utility(hostingEnvironment, iConfig);
+            _enableSqlDebugLog = _config.GetValue<bool>("EnableSqlDebugLog");
+
+            var DBConnection = _config.GetSection("DBConnection");
+            defaultConnectionString = string.Format("Host={0};Username={1};Password={2};Database={3}", 
+                DBConnection.GetSection("Host").Value, 
+                DBConnection.GetSection("Username").Value, 
+                DBConnection.GetSection("Password").Value, 
+                DBConnection.GetSection("Database").Value);
+        }
+        public string DefaultConnectionString
+        {
+            get
+            {
+                return defaultConnectionString;
+            }
+            /*set
+            {
+                defaultConnectionString = value;
+            }*/
+        }
+        public DataTable ExecuteQuery(string query)
+        {
+            var parameters = new Dictionary<string, object>();
+            return ExecuteQuery(query, parameters);
+        }
+        public DataTable ExecuteQuery(string query, Dictionary<string, object> parameters)
+        {
+            #region ----- debug log -----
+            if (_enableSqlDebugLog && _hostingEnvironment.IsDevelopment() && !query.Contains("web_admin_module") && !query.Contains("web_admin_access"))
+            {
+                Console.WriteLine("==============================================================");
+                Console.WriteLine($"{System.DateTime.Now}");
+                Console.WriteLine($"ExecuteQuery:{query}");
+                Console.WriteLine(JsonConvert.SerializeObject(parameters));
+                Console.WriteLine("==============================================================");
+            }
+            #endregion
+
+
+            if (parameters == null)
+                parameters = new Dictionary<string, object>();
+            try
+            {
+                DataTable a = new DataTable();
+                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+                if (parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                    }
+                }
+                a = Query(query, filters);
+
+                string eMessage = System.Text.RegularExpressions.Regex.Replace(query, @"\t|\n|\r", "");
+
+                string kv = "";
+                if (parameters != null && parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        kv += item.Key + "=" + item.Value + ",";
+                    }
+                }
+
+                return a;
+            }
+            catch (Exception ex)
+            {
+                #region Log error
+                string kv = "";
+                if (parameters != null && parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        kv += item.Key + "=" + item.Value + ",";
+                    }
+                }
+
+                string eMessage = System.Text.RegularExpressions.Regex.Replace(ex.Message, @"\t|\n|\r", "");
+                _utility.writeLogs(eMessage + " - " + query + "\r\n" + "parameter - " + kv);
+                #endregion
+
+                throw ex;
+            }
+        }
+        public int ExecuteNonQuery(string query)
+        {
+            var parameters = new Dictionary<string, object>();
+            return ExecuteNonQuery(query, parameters);
+        }
+        public int ExecuteNonQuery(string query, Dictionary<string, object> parameters)
+        {
+            try
+            {
+                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+
+                if (parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                    }
+                }
+
+                return NonQuery(query, filters);
+            }
+            catch (Exception ex)
+            {
+                #region Log error
+                string kv = "";
+                if (parameters != null && parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        kv += item.Key + "=" + item.Value + ",";
+                    }
+                }
+
+                string eMessage = System.Text.RegularExpressions.Regex.Replace(ex.Message, @"\t|\n|\r", "");
+                _utility.writeLogs(eMessage + " - " + query + "\r\n" + "parameter - " + kv);
+                #endregion
+
+                throw ex;
+            }
+        }
+        public int Insert(string table, Dictionary<string, object> parameters)
+        {
+            string query = "";
+            try
+            {
+                if (parameters.Count == 0)
+                    throw new ArgumentException("Insert is required parameters.");
+
+                var builder = new NpgsqlCommandBuilder();
+                string escapedTableName = builder.QuoteIdentifier(table);
+
+                #region Create sql insert command
+                string field = "";
+                string val = "";
+                
+                if (parameters.Count > 0)
+                {
+                    field += "(";
+                    int i = 0;
+                    foreach (var item in parameters)
+                    {
+                        if (i != 0) { field += ","; }
+                        field += "" + item.Key + "";
+                        i++;
+                    }
+                    field += ")";
+
+                    val += "(";
+                    int v = 0;
+                    foreach (var item in parameters)
+                    {
+                        if (v != 0) { val += ","; }
+                        val += "@" + item.Key + "";
+                        v++;
+                    }
+                    val += " ) ";
+
+                    query += string.Format("INSERT INTO {0} {1} VALUES {2}", escapedTableName, field, val);
+
+                }
+                #endregion
+
+                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+
+
+                if (parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                    }
+                }
+
+                #region ----- debug log -----
+                if (_enableSqlDebugLog && _hostingEnvironment.IsDevelopment() && !query.Contains("web_admin_module") && !query.Contains("web_admin_access"))
+                {
+                    Console.WriteLine("==============================================================");
+                    Console.WriteLine($"{System.DateTime.Now}");
+                    Console.WriteLine($"Insert:{query}");
+                    Console.WriteLine(JsonConvert.SerializeObject(parameters));
+                    Console.WriteLine("==============================================================");
+                }
+                #endregion
+
+                return NonQuery(query, filters);
+            }
+            catch (Exception ex)
+            {
+                #region Log error
+                string kv = "";
+                if (parameters != null && parameters.Count > 0)
+                {
+                    foreach (var item in parameters)
+                    {
+                        kv += item.Key + "=" + item.Value + ",";
+                    }
+                }
+
+                string eMessage = System.Text.RegularExpressions.Regex.Replace(ex.Message, @"\t|\n|\r", "");
+                _utility.writeLogs(eMessage + " - " + query + "\r\n" + "parameter - " + kv);
+                #endregion
+
+                throw ex;
+            }
+        }
+        public int Update(string table, string condition, Dictionary<string, object> parametersFieldValue, Dictionary<string, object> parametersCondition)
+        {
+            string query = "";
+            try
+            {
+                var builder = new NpgsqlCommandBuilder();
+                string escapedTableName = builder.QuoteIdentifier(table);
+
+                #region Create sql update command
+                string field_val = "";
+
+                if (parametersFieldValue.Count > 0)
+                {
+                    int v = 0;
+                    foreach (var item in parametersFieldValue)
+                    {
+                        if (v != 0) { field_val += ","; }
+                        field_val += "" + item.Key + " = @" + item.Key + "";
+                        v++;
+                    }
+
+                    query += string.Format("UPDATE {0} SET {1} {2}", escapedTableName, field_val, condition);
+
+                }
+                #endregion
+
+                List<NpgsqlParameter> filters = new List<NpgsqlParameter>();
+
+
+                if (parametersFieldValue.Count > 0)
+                {
+                    foreach (var item in parametersFieldValue)
+                    {
+                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                    }
+                }
+
+                if (parametersCondition.Count > 0)
+                {
+                    foreach (var item in parametersCondition)
+                    {
+                        filters.Add(new NpgsqlParameter(item.Key, item.Value));
+                    }
+                }
+
+                #region Logs test
+                if (false)
+                {
+                    string kv = "";
+                    if (parametersFieldValue != null && parametersFieldValue.Count > 0)
+                    {
+                        foreach (var item in parametersFieldValue)
+                        {
+                            kv += item.Key + "=" + item.Value + ",";
+                        }
+                    }
+                    _utility.writeLogs("log test UPDATE - " + query + "\r\n" + "parameter - " + kv);
+                }
+                #endregion
+
+                #region ----- debug log -----
+                if (_enableSqlDebugLog && _hostingEnvironment.IsDevelopment() && !query.Contains("web_admin_module") && !query.Contains("web_admin_access"))
+                {
+                    Console.WriteLine("==============================================================");
+                    Console.WriteLine($"{System.DateTime.Now}");
+                    Console.WriteLine($"Update:{query}");
+                    Console.WriteLine(JsonConvert.SerializeObject(parametersFieldValue));
+                    Console.WriteLine(JsonConvert.SerializeObject(parametersCondition));
+                    Console.WriteLine("==============================================================");
+                }
+                #endregion
+
+                return NonQuery(query, filters);
+            }
+            catch (Exception ex)
+            {
+                #region Log error
+                string kv = "";
+                if (parametersFieldValue != null && parametersFieldValue.Count > 0)
+                {
+                    foreach (var item in parametersFieldValue)
+                    {
+                        kv += item.Key + "=" + item.Value + ",";
+                    }
+                }
+                if (parametersCondition != null && parametersCondition.Count > 0)
+                {
+                    kv += "\r\n";
+                    foreach (var item in parametersCondition)
+                    {
+                        kv += item.Key + "=" + item.Value + ",";
+                    }
+                }
+
+                string eMessage = System.Text.RegularExpressions.Regex.Replace(ex.Message, @"\t|\n|\r", "");
+                _utility.writeLogs(eMessage + " - " + query + "\r\n" + "parameter - " + kv);
+                #endregion
+
+                throw ex;
+            }
+        }
+        public string DataTableToJSONWithJSONNet(DataTable table)
+        {
+            string JSONString = string.Empty;
+            JSONString = Newtonsoft.Json.JsonConvert.SerializeObject(table);
+            return JSONString;
+        }
+
+        /// <summary>
+        /// JSON สำหรับฝังใน &lt;script&gt; ของ View โดยตรง (เช่น <c>var jsonRow = @Html.Raw(...)</c>)
+        ///
+        /// ⚠️ ห้ามใช้ <see cref="DataTableToJSONWithJSONNet"/> กับกรณีนี้ — ค่าจาก DB ที่มี <c>&lt;/script&gt;</c>
+        /// (มาจากฟอร์มหน้าเว็บ / ไฟล์ Import) จะปิด tag แล้วรันสคริปต์ที่ผู้โจมตีแทรกมาในเบราว์เซอร์ของแอดมิน
+        /// (stored XSS) — <c>StringEscapeHandling.EscapeHtml</c> แปลง &lt; &gt; &amp; ' " เป็น \uXXXX
+        /// ซึ่งยังเป็น JSON ที่ถูกต้องและ decode กลับได้ค่าเดิมทุกตัวอักษร
+        /// </summary>
+        public string DataTableToScriptJSON(DataTable table)
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(table,
+                new Newtonsoft.Json.JsonSerializerSettings
+                {
+                    StringEscapeHandling = Newtonsoft.Json.StringEscapeHandling.EscapeHtml
+                });
+        }
+
+        /// <summary>
+        /// Query the secondary MySQL database (sam_npa) using the MySQLConnection config section.
+        /// Parameters use @name placeholders, same as ExecuteQuery.
+        /// </summary>
+        public DataTable ExecuteQueryMySQL(string query, Dictionary<string, object> parameters = null)
+        {
+            if (parameters == null)
+                parameters = new Dictionary<string, object>();
+
+            var mysqlConfig = _config.GetSection("MySQLConnection");
+            string connStr = string.Format(
+                "Server={0};User ID={1};Password={2};Database={3}",
+                mysqlConfig["Server"], mysqlConfig["UserID"], mysqlConfig["Password"], mysqlConfig["Database"]
+            );
+
+            var dt = new DataTable();
+            try
+            {
+                using var conn = new MySqlConnector.MySqlConnection(connStr);
+                conn.Open();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = query;
+                foreach (var item in parameters)
+                {
+                    cmd.Parameters.AddWithValue(item.Key, item.Value ?? DBNull.Value);
+                }
+                using var reader = cmd.ExecuteReader();
+                dt.Load(reader);
+            }
+            catch (Exception ex)
+            {
+                string eMessage = System.Text.RegularExpressions.Regex.Replace(ex.Message, @"\t|\n|\r", "");
+                _utility.writeLogs("MySQL - " + eMessage + " - " + query);
+                throw;
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// แปลงรหัสทรัพย์ NPA (product_code) → ชื่อโครงการ แบบยิงคิวรีครั้งเดียวด้วย IN (...)
+        /// ใช้ในหน้า AgentList Edit/Detail ที่มีช่องรหัสทรัพย์หลายสิบช่อง — ถ้า lookup ทีละช่อง
+        /// จะยิง MySQL เท่ากับจำนวนช่อง (30 ครั้งต่อการเปิดหน้า 1 ครั้ง)
+        /// คืน Dictionary ที่ key = product_code (รหัสที่ไม่พบจะไม่มี key)
+        /// </summary>
+        public Dictionary<string, string> GetNpaProjectNames(IEnumerable<string> codes)
+        {
+            var map = new Dictionary<string, string>();
+            var list = (codes ?? Enumerable.Empty<string>())
+                .Select(c => (c ?? "").Trim())
+                .Where(c => c.Length > 0)
+                .Distinct()
+                .ToList();
+            if (list.Count == 0) return map;
+
+            var pars = new Dictionary<string, object>();
+            var placeholders = new List<string>();
+            for (int i = 0; i < list.Count; i++)
+            {
+                placeholders.Add("@c" + i);
+                pars["@c" + i] = list[i];
+            }
+
+            try
+            {
+                var dt = ExecuteQueryMySQL(
+                    "select product_code, project from tb_product2 where product_code in (" +
+                    string.Join(",", placeholders) + ")", pars);
+                foreach (DataRow r in dt.Rows)
+                {
+                    var code = (r["product_code"]?.ToString() ?? "").Trim();
+                    var proj = (r["project"]?.ToString() ?? "").Trim();
+                    if (code.Length > 0 && proj.Length > 0) map[code] = proj;
+                }
+            }
+            catch { }   // MySQL ล่ม = ไม่แสดงชื่อโครงการ แต่หน้า admin ต้องเปิดได้ตามปกติ
+            return map;
+        }
+        #region Private Methods
+        private static DataTable Query(string consulta, IList<NpgsqlParameter> parametros)
+        {
+            try
+            {
+                DataTable dt = new DataTable();
+                NpgsqlConnection connection = new NpgsqlConnection(defaultConnectionString);
+                NpgsqlCommand command = new NpgsqlCommand();
+                NpgsqlDataAdapter da;
+                try
+                {
+                    command.Connection = connection;
+                    command.CommandText = consulta;
+                    if (parametros != null && parametros.Count() > 0)
+                    {
+                        command.Parameters.AddRange(parametros.ToArray());
+                    }
+                    da = new NpgsqlDataAdapter(command);
+                    da.Fill(dt);
+                }
+                finally
+                {
+                    if (connection != null)
+                        connection.Close();
+                }
+                return dt;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        private static int NonQuery(string query, IList<NpgsqlParameter> parametros)
+        {
+            try
+            {
+                DataSet dt = new DataSet();
+                NpgsqlConnection connection = new NpgsqlConnection(defaultConnectionString);
+                NpgsqlCommand command = new NpgsqlCommand();
+
+                try
+                {
+                    connection.Open();
+                    command.Connection = connection;
+                    command.CommandText = query;
+                    command.Parameters.AddRange(parametros.ToArray());
+                    return command.ExecuteNonQuery();
+
+                }
+                finally
+                {
+                    if (connection != null)
+                        connection.Close();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+    }
+}

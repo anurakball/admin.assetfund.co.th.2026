@@ -1,0 +1,79 @@
+﻿@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "View profile"; //"Profile edit";
+    AdminHelpers _admin = (AdminHelpers)ViewBag._admin;
+
+    /* [ปิดการใช้งาน 2FA]
+    string use_otp_0 = "checked";
+    string use_otp_1 = "";
+    if ((ViewBag.user["use_otp"] + "").ToString().Trim() == "1")
+    {
+        use_otp_0 = "";
+        use_otp_1 = "checked";
+    }
+    */
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Breadcrumb = new List<string>() { "Personal information",
+ViewBag.Title } })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfrim(this);" class="">
+        <div class="row">
+            @Html.AntiForgeryToken()
+
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อ", "name", ViewBag.user["name"]))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("สกุล", "surname", ViewBag.user["surname"]))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("สังกัด", "section", ViewBag.user["section"]))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputEmail("อีเมล", "email", ViewBag.user["email"]))
+            </div>
+            @* [ปิดการใช้งาน 2FA - comment ไว้ก่อน]
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label mb-2">เปิดใช้งานการเข้าสู่ระบบ Two Factor Authentication</label>
+                    <div class="row">
+
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check form-switch" style="color:red;">
+                                <input class="form-check-input" type="radio" name="use_otp" id="use_otp_0" value="0"
+                                    @use_otp_0>
+                                <label class="form-check-label" for="use_otp_0">ปิดการใช้งาน</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check form-switch" style="color:green;">
+                                <input class="form-check-input" type="radio" name="use_otp" id="use_otp_1" value="1"
+                                    @use_otp_1>
+                                <label class="form-check-label" for="use_otp_1">เปิดการใช้งาน</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            *@
+        </div>
+        @*
+            @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "" })
+        *@
+    </form>
+</div>
+
+@section Scripts{
+<script>
+    $(document).ready(function () {
+        $(":input[name='name'],:input[name='surname'],:input[name='email']").prop("required", true);
+
+        $("#fm_cms :input").each(function () {
+            $(this).prop("disabled", true)
+        })
+    });
+</script>
+}

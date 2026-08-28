@@ -1,0 +1,12 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{ 
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+}
+@Html.Raw(ViewBag.Resp)
+ 

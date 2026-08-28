@@ -1,0 +1,223 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<script src="/js/spectrum.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/Admin/spectrum.min.css">
+
+<style>
+    .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
+    .cms-section > legend { font-size:1.15rem; font-weight:700; color:#0047B6; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
+
+    /* กล่องแก้ไขปุ่มท้ายเว็บ (3 ปุ่ม เรียงข้างกันบนจอกว้าง / ซ้อนกันบนจอแคบ) */
+    .btn-box { border:1px solid #e3e3e3; border-radius:10px; padding:16px; height:100%; background:#fafbfd; }
+    .btn-box__title { font-size:1rem; font-weight:700; color:#0047B6; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #e3e3e3; }
+    .btn-box__note { font-size:.875rem; color:#666; margin-bottom:18px; }
+    .btn-box__note code { color:#BC1320; }
+</style>
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="title" value="ข้อความด้านล่าง" />
+
+        <fieldset class="cms-section">
+            <legend>Call Center และรูปภาพ</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("เบอร์ Call Center", "tel",  (row["tel"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputFileManeger("รูปภาพ <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 960 x 1080 (แนวตั้ง))</span>", "email", (row["email"].ToString() ?? "").Trim()))
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>โซเชียลมีเดีย</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Facebook URL", "sc_fb",  (row["sc_fb"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Twitter URL", "sc_tw",  (row["sc_tw"].ToString() ?? "").Trim()))
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("LINE URL", "sc_ln",  (row["sc_ln"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Youtube URL", "sc_yt",  (row["sc_yt"].ToString() ?? "").Trim()))
+                </div>
+            </div>
+@*
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Tiktok URL", "sc_tt",  (row["sc_tt"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+
+                </div>
+            </div>
+*@
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>ปุ่มลิงก์ด้านล่าง</legend>
+            <p class="btn-box__note">
+                ถ้าต้องการให้ปุ่มเปิดหน้าต่าง <strong>"รับสมัครข่าวสาร"</strong>
+                ให้กำหนด <strong>"ลิ้งค์ URL ปุ่ม"</strong> เป็น <code>#subscribeModal</code>
+                (ใส่ได้ทั้งภาษาไทยและอังกฤษ) ปุ่มจะเปิดหน้าต่างป๊อปอัพขึ้นมาแทนการลิงก์ไปหน้าอื่น
+            </p>
+
+            <div class="row">
+                @for (int i = 1; i <= AdminMenu.HomeFooterButtonCount; i++)
+                {
+                    string fText     = "btn" + i + "_text";
+                    string fEnText   = "en_btn" + i + "_text";
+                    string fUrl      = "btn" + i + "_url";
+                    string fEnUrl    = "en_btn" + i + "_url";
+                    string fTarget   = "btn" + i + "_url_target";
+                    string fBgColor  = "btn" + i + "_bg_color";
+                    string fTxtColor = "btn" + i + "_text_color";
+
+                    string vBgColor  = (row[fBgColor].ToString() ?? "").Trim();
+                    string vTxtColor = (row[fTxtColor].ToString() ?? "").Trim();
+
+                    <div class="col-xl-4 col-lg-4 col-md-12 mb-3">
+                        <div class="btn-box">
+                            <h5 class="btn-box__title">ปุ่มที่ @i</h5>
+
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputText("ชื่อปุ่ม <span class='fi fi-th'></span>", fText, (row[fText].ToString() ?? "").Trim()))
+                            </div>
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputText("ชื่อปุ่ม <span class='fi fi-us'></span>", fEnText, (row[fEnText].ToString() ?? "").Trim()))
+                            </div>
+
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputTextLinkCMSPage("ลิ้งค์ URL ปุ่ม <span class='fi fi-th'></span>", fUrl, (row[fUrl].ToString() ?? "").Trim()))
+                            </div>
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputTextLinkCMSPage("ลิ้งค์ URL ปุ่ม <span class='fi fi-us'></span>", fEnUrl, (row[fEnUrl].ToString() ?? "").Trim()))
+                            </div>
+
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputUrlTarget("URL Target", fTarget, row[fTarget] + ""))
+                            </div>
+
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputText("สีพื้นหลังปุ่ม", fBgColor, vBgColor))
+                                @Html.Raw("<script> $('#id_" + fBgColor + "').spectrum({ allowEmpty: true, showInput: true, preferredFormat: 'hex', color: '" + vBgColor + "' }); </script>")
+                            </div>
+                            <div class="mb-3">
+                                @Html.Raw(_admin.InputText("สีตัวอักษรปุ่ม", fTxtColor, vTxtColor))
+                                @Html.Raw("<script> $('#id_" + fTxtColor + "').spectrum({ allowEmpty: true, showInput: true, preferredFormat: 'hex', color: '" + vTxtColor + "' }); </script>")
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>แอปพลิเคชัน</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("App Store URL", "sc_as", (row["sc_as"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Google Play URL", "sc_gp", (row["sc_gp"].ToString() ?? "").Trim()))
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>ลิขสิทธิ์ (Copyright)</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Copy Right <span class='fi fi-th'></span>", "cr", (row["cr"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Copy Right <span class='fi fi-us'></span>", "en_cr", (row["en_cr"].ToString() ?? "").Trim()))
+                </div>
+            </div>
+        </fieldset>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@* modal [Link Helper] ของช่อง URL ปุ่ม — เลือกหน้า CMS แล้วเติม path ให้อัตโนมัติ *@
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    function sConfirmCustom(form) {
+         
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    
+    $(document).ready(function() {
+
+        checkLockedRow(modConfig, jsonRow);
+         
+    });
+</script>
+}

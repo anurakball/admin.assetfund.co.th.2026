@@ -1,0 +1,128 @@
+﻿@using thaicredit_hr_admin.Areas.Admin.Helpers;
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_LayoutIntro.cshtml";
+}
+@section pageIntro{
+    <link rel="stylesheet" href="~/css/pages/intro.min.css" asp-append-version="true" />
+    <link href="~/assets/fonts/fontawesome7/css/all.min.css" rel="stylesheet" />
+}
+  
+<div class="intropage-wrapper">
+    <div class="img-bgintro" style="padding:20px;">
+
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="img-logo" style="margin-bottom:5px !important;">
+                        <img src="/assets/images/icon/SAM_logo-white-pink.png" style="height:53px;"/>
+                    </div>
+                    <div align="center">
+                        <button type="button" class="btn" onclick="window.location.href='/Admin/User/LastActivity'" style="background-color:#fff;font-size:22px;box-shadow: 5px 5px #f79727;">
+                            <span class="btn-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+                            <span class="btn-text">Admin Panel</span>
+                        </button>
+                    </div>
+                    <div class="head-page mb-3">
+                        <h2>SAM Admin Management</h2>
+                        <p class="text-white">Here is what’s happening with your Report today:</p>
+                    </div>
+                     
+                    <div class="row mb-5" style="margin-bottom:1px !important;">
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <div class="box-display">
+                                <div class="head-display">
+                                    <div class="name-display">Active users</div>
+                                    <a class="icon-display" target="_top" href="/Admin/User/LastActivity">
+                                        <i class="bi bi-arrow-right-short"></i>
+                                    </a>
+                                </div>
+                                <div class="body-display">@ViewBag.active_user_today</div>
+                            </div>    
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <div class="box-display">
+                                <div class="head-display">
+                                    <div class="name-display">Total Users</div>
+                                    <a class="icon-display" target="_top" href="/Admin/User/LastActivity">
+                                        <i class="bi bi-arrow-right-short"></i>
+                                    </a>
+                                </div>
+                                <div class="body-display">@ViewBag.total_user_today</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <div class="box-display">
+                                <div class="head-display">
+                                    <div class="name-display">User Active/weekly (%)</div>
+                                    <a class="icon-display" target="_top" href="/Admin/User/LastActivity">
+                                        <i class="bi bi-arrow-right-short"></i>
+                                        </a>
+                                </div>
+                                <div class="body-display">@ViewBag.sum_weekly%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>        
+            <div class="row mb-5" style="margin-bottom:30px !important;">
+                <p class="text-white">Here are the systems that were accessed most recently:</p>
+            </div>
+            <div class="row">
+                 
+                @if (ViewBag.LastUse != null)
+                {
+                    foreach (System.Data.DataRow item in (System.Data.DataRowCollection)ViewBag.LastUse)
+                    {
+                        var moduleName = item["mod_name"].ToString();
+                        var icon = new AdminMenu().Menu().SelectMany(x => x.SubMenu).FirstOrDefault(x => x.ModuleName == moduleName)?.Icon;
+                         
+                        <div class="col-lg-3 col-md-6 col-12">
+                            <a class="shotcut-menu" href="/Admin/@Html.Raw(item["mod_name"])">
+                                <div class="info" data-bs-toggle="tooltip" data-bs-placement="top" title="@Html.Raw(item["mod_name_txt"])"><i class="bi bi-info-circle"></i></div>
+                                <div class="box-body">
+                                    <div class="icon-menu" style="margin-top:1rem !important;margin-bottom:1rem !important;">
+                                        <i class="@icon" style="font-size:72px; color:#333;"></i>
+                                    </div>
+                                    <div class="name-menu">@Html.Raw(item["mod_name_txt"])</div>
+                                </div>
+                            </a>
+                        </div>    
+                    }
+                }
+                 
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="head-page mb-3" style="margin-bottom:5px !important;"> 
+                        <br /><p class="text-white">Latest access activities across menu items:</p><br />
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped-custom" style="border:1px solid #fff;">
+                            <thead>
+                                <tr>
+                                <th> &nbsp; Action</th>
+                                <th> &nbsp; Action Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @if(ViewBag.activ_logs != null)
+                            {
+                                foreach (System.Data.DataRow item in (System.Data.DataRowCollection)ViewBag.activ_logs)
+                                {
+                                    <tr>
+                                        <td> &nbsp; @Html.Raw(item["action_info"])</td>
+                                        <td> &nbsp; @Html.Raw(((DateTime)item["created_at"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</td>
+                                    </tr>
+                                }
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <br /><br />
+        </div>
+    </div>
+
+</div>

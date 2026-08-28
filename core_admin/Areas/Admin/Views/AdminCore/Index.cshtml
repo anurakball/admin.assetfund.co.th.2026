@@ -1,0 +1,1021 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+
+    @* ── ปุ่ม [Preview] ดูตัวอย่างหน้าเว็บ front-end ของฉบับร่าง ──
+       เปิดเฉพาะโมดูลที่ประกาศไว้ใน PreviewMenu (ต้อง sync กับ PreviewMap ฝั่ง front-end)
+       ปุ่มวางไว้หน้าคอลัมน์แรกของ ListData และโผล่ทุกแถว (ไม่จำกัดสถานะอนุมัติ)
+       ยกเว้นแถวที่ถูกปิดด้วยกฎระดับแถวใน PreviewRowGate *@
+    var frontUrl = (_utility.frontURL() ?? "").TrimEnd('/');
+    var hasFrontPreview = frontUrl != "" && PreviewMenu.IsSupported(mod.Name)
+                          && mod_config.ListData != null && mod_config.ListData.Count > 0;
+    var previewColumnKey = hasFrontPreview ? mod_config.ListData[0].Key : "";
+    @* กฎระดับแถว: ซ่อนปุ่มของแถวที่หน้าเว็บ front-end ไม่เรนเดอร์ค่าของแถวนั้น (พรีวิวแล้วไม่เห็นผล)
+       สร้างครั้งเดียวต่อหน้า — ดู PreviewRowGate ใน Areas/Admin/Helpers/PreviewMenu.cs *@
+    var previewGate = hasFrontPreview ? PreviewMenu.CreateGate(mod.Name, _db) : null;
+
+    @* ── ลิงก์ "ดูรายชื่อผู้สมัคร" ท้ายหัวข้อ (เฉพาะเมนูประกาศจัดซื้อจัดจ้าง ประเภท "ประกาศเชิญชวน") ──
+       กดแล้วไปหน้ารายชื่อผู้ลงทะเบียน พร้อมเลือก dropdown "ประกาศ" เป็นรายการนั้นให้อัตโนมัติ
+       (ส่ง ?cat_id=<id ของประกาศ> — web_announce_submit.cat_id อ้าง web_core_news.id)
+       text= / page=1 ต่อท้ายเพื่อล้างคำค้นหาและหน้าเดิมที่ค้างอยู่ใน session ของเมนูปลายทาง
+       id หมวดหามาจากชื่อ ไม่ได้ hardcode — ถ้าไม่พบหมวดนี้ ลิงก์จะไม่แสดง *@
+    string inviteCatId = (mod.Name == "AnnouncePro" && !string.IsNullOrEmpty(mod_config.TableCateModuleID))
+        ? _admin.GetCatIdByTitle(mod_config.TableCate, Convert.ToInt32(mod_config.TableCateModuleID), "ประกาศเชิญชวน")
+        : "";
+    Func<DataRow, bool> hasSubmitLink = row =>
+        inviteCatId != "" && row.Table.Columns.Contains("cat_id") && row["cat_id"].ToString() == inviteCatId;
+    Func<DataRow, string> submitLinkHtml = row =>
+        "<a href=\"/Admin/AnnounceSubmit?cat_id=" + row["id"] + "&text=&page=1\" class=\"badge bg-primary\" style=\"margin-left:6px;text-decoration:none;white-space:nowrap;\" title=\"ดูรายชื่อผู้ลงทะเบียนของประกาศนี้\"><i class=\"bi bi-people\"></i> ดูรายชื่อผู้สมัคร</a>";
+}
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+} 
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+<style type="text/css">
+.badge {
+display: inline-block;
+padding: 0.35em 0.65em;
+font-size: 1em;
+font-weight: 700;
+line-height: 1;
+color: #fff;
+text-align: center;
+white-space: nowrap;
+vertical-align: baseline;
+border-radius: 0.25rem;
+}
+</style>
+@if ((mod_config.FieldSearch != null && mod_config.FieldSearch.Count > 0) || mod_config.EnableDateSearch == true || (!string.IsNullOrEmpty(mod_config.TableCate) && !string.IsNullOrEmpty(mod_config.TableCateField)))
+{
+    <div class="form-wrapper">
+        <form action="" method="get" autocomplete="off" id="formSearch" class="form">
+            <div class="row">
+                @if (mod_config.FieldSearch.Count > 0 && mod_config.FieldSearch.Where(c => c.Key == "text").ToList().Count() > 0)
+                {
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        @Html.Raw(_admin.InputText("ค้นหา", "text", (searchInputVal.ContainsKey("text") && !string.IsNullOrEmpty(searchInputVal["text"]) ? searchInputVal["text"] : ""), "คำค้นหา"))
+                    </div>
+                }
+
+                @if (mod.Name == "MemberList")
+                {
+                    var mtSel = (searchInputVal.ContainsKey("member_type") && !string.IsNullOrEmpty(searchInputVal["member_type"])) ? searchInputVal["member_type"] : "";
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="field">
+                            <label for="id_member_type" class="form-label">ประเภทสมาชิก</label>
+                            <select class="form-control" id="id_member_type" name="member_type" onchange="$('#btnSearch').trigger('click');">
+                                <option value="">ทั้งหมด</option>
+                                <option value="1" @(mtSel == "1" ? "selected" : "")>สมาชิก</option>
+                                <option value="2" @(mtSel == "2" ? "selected" : "")>Investor</option>
+                                <option value="3" @(mtSel == "3" ? "selected" : "")>Agency</option>
+                                <option value="4" @(mtSel == "4" ? "selected" : "")>Sale/Executive</option>
+                            </select>
+                        </div>
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(mod_config.TableCate) && !string.IsNullOrEmpty(mod_config.TableCateField))
+                {
+                    if (@mod.Name == "CMSPage" || @mod.Name == "CMSPageFooter1" || @mod.Name == "CMSPageFooter2" || @mod.Name == "FooterLink")
+                    {
+                        
+                    }
+                    else if (@mod.Name == "AboutBoard2" || @mod.Name == "AboutBoard3" || @mod.Name == "AboutBoard4sub" || @mod.Name == "Article" || @mod.Name == "News" || @mod.Name == "VDOGroupsub" || @mod.Name == "AnnounceOther" || @mod.Name == "AnnouncePro" || @mod.Name == "ContactSubmit" || @mod.Name == "Download" || @mod.Name == "DownloadSubmit" || @mod.Name == "FAQ" || @mod.Name == "Link" || @mod.Name == "Promotion" || @mod.Name == "EForm")
+                    {
+                        <div class="col-lg-4 col-md-6 mb-3">
+                        @Html.Raw(
+                        _admin.InputSelectDB(
+                        mod_config.TableCateLabel,
+                        mod_config.TableCateField,
+                        (searchInputVal.ContainsKey(mod_config.TableCateField) && !string.IsNullOrEmpty(searchInputVal[mod_config.TableCateField]) ? searchInputVal[mod_config.TableCateField] : ""),
+                        showAllOption: true,
+                        mod_config.TableCate,
+                        value_field: "id",
+                        text_field: mod_config.TableCateTitle,
+                        order_by: mod_config.TableCateOrderby,
+                        sort: mod_config.TableCateSort,
+                        txtAllOption: "ทั้งหมด",
+                        ModuleID: mod_config.TableCateModuleID
+                        ))
+                        </div>
+                        <script>
+                        $("#id_cat_id").change(function () { $('#btnSearch').trigger('click'); });
+                        </script>
+                    }
+                    else if (@mod.Name == "AnnounceSubmit" || @mod.Name == "AnnounceJobSubmit" || @mod.Name == "AnnounceJobSubmitFull")
+                    {
+                        <div class="col-lg-8 col-md-10 mb-3">
+                        @Html.Raw(
+                        _admin.InputSelectDB(
+                        mod_config.TableCateLabel,
+                        mod_config.TableCateField,
+                        (searchInputVal.ContainsKey(mod_config.TableCateField) && !string.IsNullOrEmpty(searchInputVal[mod_config.TableCateField]) ? searchInputVal[mod_config.TableCateField] : ""),
+                        showAllOption: true,
+                        mod_config.TableCate,
+                        value_field: "id",
+                        text_field: mod_config.TableCateTitle,
+                        order_by: mod_config.TableCateOrderby,
+                        sort: mod_config.TableCateSort,
+                        txtAllOption: "ทั้งหมด",
+                        ModuleID: mod_config.TableCateModuleID
+                        ))
+                        </div>
+                        <script>
+                        $("#id_cat_id").change(function () { $('#btnSearch').trigger('click'); });
+                        </script>
+                    }
+                    else if (@mod.Name == "AboutBoard4" || @mod.Name == "VDO" || @mod.Name == "AnnounceSubmit")
+                    {
+                        <div class="col-lg-8 col-md-10 mb-3">
+                            @Html.Raw(
+                            _admin.InputSelectDBcat(
+                            mod_config.TableCateLabel,
+                            mod_config.TableCateField,
+                            (searchInputVal.ContainsKey(mod_config.TableCateField) && !string.IsNullOrEmpty(searchInputVal[mod_config.TableCateField]) ? searchInputVal[mod_config.TableCateField] : ""),
+                            showAllOption: true,
+                            mod_config.TableCate,
+                            value_field: "id",
+                            text_field: mod_config.TableCateTitle,
+                            order_by: mod_config.TableCateOrderby,
+                            sort: mod_config.TableCateSort,
+                            txtAllOption: "ทั้งหมด",
+                            ModuleID: mod_config.TableCateModuleID
+                            ))
+                        </div>
+                        <script>
+                            $("#id_cat_id").change(function () { $('#btnSearch').trigger('click'); });
+                        </script>
+                    }
+                    else
+                    {
+                        <div class="col-lg-4 col-md-6 mb-3">
+                        @Html.Raw(
+                        _admin.InputSelectDB(
+                        mod_config.TableCateLabel,
+                        mod_config.TableCateField,
+                        (searchInputVal.ContainsKey(mod_config.TableCateField) && !string.IsNullOrEmpty(searchInputVal[mod_config.TableCateField]) ? searchInputVal[mod_config.TableCateField] : ""),
+                        showAllOption: true,
+                        mod_config.TableCate,
+                        value_field: "id",
+                        text_field: mod_config.TableCateTitle,
+                        order_by: mod_config.TableCateOrderby,
+                        sort: mod_config.TableCateSort
+                        ))
+                        </div>
+                        <script>
+                        $("#id_cat_id").change(function () { $('#btnSearch').trigger('click'); });
+                        </script>
+                    } 
+                }
+                @*@Html.Raw(_admin.InputText("Username", "username", (searchInputVal.ContainsKey("username") && !string.IsNullOrEmpty(searchInputVal["username"]) ? searchInputVal["username"] : ""), "Username"))*@
+                @if (mod_config.EnableDateSearch == true)
+                {
+                    <div class="col-lg-8 col-md-6 mb-3">
+                        <div class="field">
+                            <label for="date_after" class="form-label">ค้นหาวันที่</label>
+                            <div class="input-group input-daterange mb-3">
+                                <span class="input-group-text">จากวันที่</span>
+                                <input type="text" class="form-control" id="date_timepicker_start" name="after" value="@ViewBag.after" placeholder="dd/mm/yyyy">
+                                <span class="input-group-text">ถึงวันที่</span>
+                                <input type="text" class="form-control" id="date_timepicker_end" name="before" value="@ViewBag.before" placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>
+                    </div>
+                }
+            
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn btn--primary" id="btnSearch" title="ค้นหา" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <span class="btn-icon"><i class="bi bi-search"></i> </span>
+                    <span class="btn-text">Search</span>
+                </button> 
+                    <button id="this_main_clear_btn" type="button" class="btn btn--gray" onclick="$('form#formSearch :input').val('').trigger('change').trigger('blur'); $('#btnSearch').trigger('click')" title="Clear" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <span class="btn-icon"><i class="bi bi-x-lg"></i></span>
+                    <span class="btn-text">Clear</span>
+                </button> 
+            </div>
+        </form>
+    </div>  
+}
+<hr class="navbar-divider">
+<div class="btn-group btn-group-mob-icon d-flex ms-auto mb-4">
+    @if (mod_config.CanAdd == true)
+    {
+        <button type="button" class="btn btn--outline--primary" onclick="window.location.href='/Admin/@mod.Name/Create'" title="เพิ่ม" data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-icon"><i class="bi bi-plus-lg"></i></span>
+            <span class="btn-text">Create new</span>
+        </button>
+    }
+    @if (mod_config.CanExport == true)
+    {
+        <button id="this_export_btn" type="button" class="btn btn--outline--green BTN_Export" onclick="exportData($(this), '@(mod.Name)')" data-query="@ViewBag.sqlQuery" data-totalrows="@string.Format("{0:n0}", ViewBag.totalRecord)" data-exportid="" title="Export" data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-icon"><i class="bi bi-filetype-xlsx"></i></span>
+            <span class="btn-text">Export</span>
+        </button>
+    }
+    @*if (mod_config.CanDelete == true)
+    { 
+        <button type="button" class="btn btn--outline--red" onclick="deleteMultiple('@mod.Name');" title="ลบ" data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-icon"><i class="bi bi-trash"></i> </span>
+            <span class="btn-text">Delete</span>
+        </button> 
+    }*@
+    @if (mod_config.CanMove == true)
+    {
+        <button type="button" id="btnMoveTools" data-showMoveTools='@((bool)ViewBag.showMoveTools ? "1" : "")'
+            class="btn @((bool)ViewBag.showMoveTools ? "btn--secondary" : "btn--outline--secondary")"
+            onclick="checkSort($(this), '@(mod_config.TableCateField ?? "")')" title="จัดเรียง" data-bs-toggle="tooltip" data-bs-placement="top" >
+            <span class="btn-icon"><i class="bi bi-arrow-down-up"></i></span>
+            <span class="btn-text">จัดเรียง</span>
+        </button>
+    }
+</div>
+@if (mod.Name == "EFormSubmit")
+{
+    <script>
+    if(document.getElementById('id_cat_id').value == '')
+    {
+            document.getElementById('this_export_btn').style.display = 'none';
+    } 
+    </script>
+}
+<div class="table-responsive mb-4">
+    <table class="table table-striped-custom">
+        <thead>
+            <tr>
+                @if (mod_config.CanDelete == true || mod_config.CanExport == true) 
+                {
+                    <th class="text-center chk" >
+                    <div class="field">
+                        <div class="form-check">
+                            <input type="checkbox" id="checkAll" class="form-check-input">
+                        </div>
+                    </div>
+                    </th>
+                }
+                <th class="text-center order"># &nbsp;
+                <a href="javascript:;" title="จากน้อยไปมาก" data-bs-toggle="tooltip" data-bs-placement="top" onclick="let url = updateQueryStringParameter(window.location.href, 'orderby', 'sort'); window.location.href = updateQueryStringParameter(url, 'sort', 'asc');" class="@(mod_config.OrderBy == "sort" && !string.IsNullOrWhiteSpace(mod_config.Sort) && mod_config.Sort.ToLower() == "asc" ? "text-active" : "text-white")">
+                    <i class="bi bi-sort-up-alt"></i>
+                </a>
+
+                <a href="javascript:;" title="จากมากไปน้อย" data-bs-toggle="tooltip" data-bs-placement="top" onclick="let url = updateQueryStringParameter(window.location.href, 'orderby', 'sort'); window.location.href = updateQueryStringParameter(url, 'sort', 'desc');" class="@(mod_config.OrderBy == "sort" && !string.IsNullOrWhiteSpace(mod_config.Sort) && mod_config.Sort.ToLower() == "desc" ? "text-active" : "text-white")">
+                    <i class="bi bi-sort-down"></i>
+                </a>
+                </th>
+                @if (mod_config.CanEdit == true || mod_config.CanStatus == true || mod_config.CanDelete == true)
+                {
+                    <th class="text-center">Action</th>
+                }
+                @if (mod_config.CanMove == true && (bool)ViewBag.showMoveTools == true)
+                {
+                    <th class="text-center"><span class="text-active">จัดเรียง </span></th>
+                }
+                @foreach (var head in mod_config.ListData)
+                {
+                    <th class="">
+                    <span class="@(mod_config.OrderBy==head.Key?"text-active":"")">@head.Value </span>
+                    @if (head.Key.ToLower() != "sort" && !head.Key.ToLower().StartsWith("img"))
+                    { 
+                        @if (mod.Name != "BranchMain")
+                        {
+                            <a href="javascript:;" title="จากน้อยไปมาก" data-bs-toggle="tooltip" data-bs-placement="top" onclick="let url = updateQueryStringParameter(window.location.href, 'orderby', '@head.Key'); window.location.href = updateQueryStringParameter(url, 'sort', 'asc');" class="@(mod_config.OrderBy==head.Key && !string.IsNullOrWhiteSpace(mod_config.Sort) && mod_config.Sort.ToLower() == "asc"?"text-active":"text-white")">
+                            <i class="bi bi-sort-up-alt"></i>
+                            </a>
+
+                            <a href="javascript:;" title="จากมากไปน้อย" data-bs-toggle="tooltip" data-bs-placement="top" onclick="let url = updateQueryStringParameter(window.location.href, 'orderby', '@head.Key'); window.location.href = updateQueryStringParameter(url, 'sort', 'desc');" class="@(mod_config.OrderBy==head.Key && !string.IsNullOrWhiteSpace(mod_config.Sort) && mod_config.Sort.ToLower() == "desc"?"text-active":"text-white")">
+                                <i class="bi bi-sort-down"></i>
+                            </a>
+                        } 
+                    }
+                    </th>
+                }
+                @if (mod_config.EnableViewDetail == true)
+                {
+                    <th class="text-center">รายละเอียด</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+        @{
+            int rows = (int)ViewBag.startRows;
+        }
+        @if(ViewBag.listData != null)
+        {
+            foreach (DataRow item in (DataRowCollection)ViewBag.listData)
+            {
+                <tr data-id="@item["id"]">
+                @if (mod_config.CanDelete == true || mod_config.CanExport == true)
+                {
+                    <td class="text-center chk">
+                    <div class="field">
+                        <div class="form-check">
+                            <input type="checkbox" name="_id" value="@item["id"]" id="_id_@item["id"]" class="form-check-input">
+                        </div>
+                    </div>
+                    </td>     
+                }
+                <td class="text-center order" scope="row">
+                @{
+                    string this_sort = "";
+                    if(mod.Name == "AnnounceSubmit" || mod.Name == "AnnounceJobSubmit" || mod.Name == "AnnounceJobSubmitFull" || mod.Name == "ContactSubmit" || mod.Name == "DownloadSubmit" || mod.Name == "LinkSubmit")
+                    {
+                        this_sort = item["id"]+"";
+                    }
+                    else if (item.Table.Columns.Contains("sort"))
+                    {
+                        this_sort = item["sort"].ToString().Remove(item["sort"].ToString().Length - 1);
+                    }
+                }
+                <span class="ps-2">@this_sort</span>
+                </td>
+                @if (mod_config.CanEdit == true || mod_config.CanStatus == true || mod_config.CanDelete == true)
+                {
+                    <td class="text-center" >
+                        <div class="btn-group btn-group--icon">
+                            @if (mod_config.CanEdit == true) 
+                            {
+                                if(@mod.Name == "BranchMain")
+                                {
+                                    <button type="button" class="btn btn--edit" onclick="window.location.href='/Admin/@(mod.Name)/Edit/@(item["branch_id"])'" title="แก้ไข" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                }
+                                else 
+                                {
+                                    <button type="button" class="btn btn--edit" onclick="window.location.href='/Admin/@(mod.Name)/Edit/@(item["id"])'" title="แก้ไข" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                }
+                            }
+
+                            @{
+                                if (@mod.Name == "CMSPage" && item["is_home"] + "" == "1")
+                                {
+                                     
+                                }
+                                else 
+                                {
+                                    @if (mod_config.CanStatus == true && item["status"] != null && !string.IsNullOrEmpty(item["status"].ToString()))
+                                    {
+                                        if (mod.Name == "HomeImageSlide")
+                                        {
+                                            if(item["status"].ToString() == "2")
+                                            {
+                                                <button style="background-color:#198754 !important;" type="button" class="btn btn--success" onclick="statusRow('@mod.Name', '@item["id"]', '1')" title="ปักหมุด (Pin)" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                    <i class="bi bi-pin-fill"></i>
+                                                </button>
+                                                <button type="button" class="btn btn--success" onclick="statusRow('@mod.Name', '@item["id"]', '0')" title="เปิด" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            }
+                                            else 
+                                            {
+                                                if(item["status"].ToString() == "1")
+                                                {
+                                                    <button style="background-color:#198754 !important; opacity: 0.2" type="button" class="btn btn--success" onclick="statusRow('@mod.Name', '@item["id"]', '2')" title="ปักหมุด (Pin)" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                        <i class="bi bi-pin-fill"></i>
+                                                    </button>
+                                                    
+                                                    <button type="button" class="btn btn--success" onclick="statusRow('@mod.Name', '@item["id"]', '0')" title="เปิด" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                        <i class="bi bi-check-circle"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button style="background-color:#198754 !important; opacity: 0.2" type="button" class="btn btn--success" onclick="statusRow('@mod.Name', '@item["id"]', '2')" title="ปักหมุด (Pin)" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                        <i class="bi bi-pin-fill"></i>
+                                                    </button>
+                                                    
+                                                    <button type="button" class="btn btn--lightred" onclick="statusRow('@mod.Name', '@item["id"]', '1')" title="ปิด" data-bs-toggle="tooltip" data-bs-placement="top">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                }
+                                            } 
+                                        }
+                                        else 
+                                        {
+                                            <button type="button" class="btn @((item["status"].ToString() ?? "") == "1" ? "btn--success" : "btn--lightred")" onclick="statusRow('@mod.Name', '@item["id"]', '@((item["status"].ToString() ?? "") == "1" ? "0" : "1")')" title="@((item["status"].ToString() ?? "") == "1" ? "ปิด" : "เปิด")" data-bs-toggle="tooltip" data-bs-placement="top"><i class="bi @((item["status"].ToString() ?? "") == "1" ? "bi-check-circle" : "bi-x-circle-fill")"></i></button>
+                                        } 
+                                    }
+
+                                    @if (mod_config.CanDelete == true)
+                                    {
+                                        <button type="button" class="btn btn--red" onclick="deleteRow('@mod.Name', '@item["id"]')" title="ลบ" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+                                }
+                            } 
+                        </div>
+                    </td>
+                }
+                 
+                @if (mod_config.CanMove == true && (bool)ViewBag.showMoveTools == true)
+                {
+                    <td class="text-center">
+                        <div class="btn-group btn-group--icon">
+                            
+                            @{
+                                if (@mod.Name == "CMSPage" && item["is_home"] + "" == "1")
+                                {
+                                    
+                                }
+                                else
+                                {
+                                    <div class="btn btn--secondary move_handle" title="ลากเพื่อเลื่อน" data-bs-toggle="tooltip" data-bs-placement="top" style="cursor: move; display:none;">
+                                        <i class="bi bi-arrow-down-up"></i>
+                                    </div>
+                                    @*
+                                    <button type="button" class="btn btn--secondary" onclick="moveRow('@mod.Name', '@item["id"]', 'up')" title="เลื่อนขึ้น" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-arrow-up"></i>
+                                    </button>
+                                    <button type="button" class="btn btn--secondary" onclick="moveRow('@mod.Name', '@item["id"]', 'down')" title="เลื่อนลง" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-arrow-down"></i>
+                                    </button>
+                                    *@
+                                }
+                            }
+                            
+                        </div>
+                    </td>
+                }
+                @foreach (var head in mod_config.ListData)
+                {
+                    @if (!string.IsNullOrEmpty(mod_config.FrontLinkField) && head.Key == mod_config.FrontLinkField)
+                    {
+                        @* ลิงก์ไปหน้าจริงบนเว็บ front-end — โดเมนมาจาก key "FrontURL" ใน appsettings
+                           แสดงเป็นลิงก์เฉพาะเมื่อเข้าเงื่อนไขที่ front-end ใช้ค้นหาจริงครบทุกข้อ
+                           ไม่งั้นแสดงเป็นข้อความ + ป้ายบอกเหตุผล กันผู้ใช้กดแล้วเจอ "ไม่พบหน้า" *@
+                        string slug = (item[head.Key] ?? "").ToString().Trim();
+                        bool frontVisible = slug != "";
+                        string reason = slug == "" ? "ยังไม่ได้อนุมัติ URL" : "";
+
+                        if (frontVisible && mod_config.FrontLinkRequire1Fields != null)
+                        {
+                            foreach (string reqField in mod_config.FrontLinkRequire1Fields)
+                            {
+                                if (!item.Table.Columns.Contains(reqField) || (item[reqField] ?? "").ToString() != "1")
+                                {
+                                    frontVisible = false;
+                                    reason = reqField == "status" ? "ปิดใช้งาน"
+                                           : reqField == "pb_status" ? "รออนุมัติ"
+                                           : reqField == "show_front" ? "ไม่เผยแพร่หน้าเว็บ"
+                                           : "ไม่ผ่านเงื่อนไข " + reqField;
+                                    break;
+                                }
+                            }
+                        }
+
+                        <td>
+                            @if (frontVisible)
+                            {
+                                string frontLink = _utility.frontURL(mod_config.FrontLinkPrefix + slug);
+                                <a href="@frontLink" target="_blank" rel="noopener noreferrer" title="เปิดหน้านี้บนเว็บไซต์" data-bs-toggle="tooltip" data-bs-placement="top">
+                                    @slug <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">@(slug == "" ? "-" : slug)</span>
+                                <br />
+                                <span class="badge bg-warning text-dark" title="ยังไม่แสดงบนเว็บไซต์" data-bs-toggle="tooltip" data-bs-placement="top">@reason</span>
+                            }
+                        </td>
+                    }
+                    else if (mod.Name == "AnnounceSubmit" && head.Key == "file_status")
+                    {
+                        <td> 
+                        @{
+                            if(item["file1"].ToString()!="")
+                            {
+                                <select name="file_status" id="file_status_@(item["id"])" onchange="update_file_status_@(item["id"])(this.value)">
+                                    <option value="">รอตรวจสอบ</option>
+                                    <option value="1">ผ่าน</option>
+                                    <option value="2">ไม่ผ่าน</option>
+                                </select>
+                                <script>
+                                    document.getElementById('file_status_@(item["id"])').value = '@(item["file_status"])';
+                                    function update_file_status_@(item["id"])(v1)
+                                    {
+                                        $.ajax({
+                                            url: '/Admin/AdminUser/AnnounceSubmitFileStatus',
+                                            type: 'GET',
+                                            data: { id: '@(item["id"])', file_status: v1 },
+                                            success: function(response) {
+                                                alert('update successful.');
+                                            },
+                                            error: function(xhr) {
+                                                alert('Error: ' + xhr.status + ' ' + xhr.statusText);
+                                            }
+                                        });
+                                    }
+                                </script>
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                        } 
+                        </td>
+                    }
+                    else if (mod.Name == "AnnounceSubmit" && head.Key == "file1")
+                    {
+                        <td>
+                             @{
+                                if(item["file1"].ToString()!="")
+                                {
+                                    <a href="#@item["file1"]" style="text-decoration: underline;">เอกสารแนบ</a>
+                                }
+                                else
+                                {
+                                    <text>-</text>
+                                }
+                             }
+                        </td>
+                    }
+                    else if (hasFrontPreview && head.Key == previewColumnKey
+                             && previewGate.CanPreview(item))
+                    {
+                        @* คอลัมน์แรกของโมดูลที่รองรับพรีวิว — ทุกรายการจะมีปุ่ม [Preview] นำหน้า
+                           กดแล้วเปิด modal ขนาดเกือบเต็มจอ (95vw) iframe หน้าเว็บฝั่ง front-end ที่แสดงค่าฉบับร่าง
+                           (คอลัมน์ที่ไม่ใช่ pb_*) ของรายการนี้
+
+                           หมายเหตุ: ไม่เช็ค pb_status แล้ว — เดิมจำกัดไว้เฉพาะ pb_status = 0 (แก้แล้วรออนุมัติ)
+                           ซึ่งเป็นกรณีที่ค่าฉบับร่างต่างจากค่าที่หน้าเว็บจริงแสดง ตอนนี้เปิดให้พรีวิวได้ทุกสถานะ
+                           (รายการที่อนุมัติแล้วจะเห็นค่าเท่ากับหน้าเว็บจริง)
+
+                           หมายเหตุ: branch นี้อยู่ก่อน branch ของ CMSPage ที่แสดงป้าย "ไม่แสดงในเมนู"
+                           จึงต้องแสดงป้ายนั้นเองด้วย ไม่งั้นข้อมูลเดิมจะหายไปจากหน้า list *@
+                        bool hideInMenu = item.Table.Columns.Contains("page_type_sub") && item["page_type_sub"].ToString() == "2";
+                        string title_txt = item[head.Key].ToString();
+                        if (title_txt.Length > 80)
+                        {
+                            title_txt = title_txt.Substring(0, 80) + "...";
+                        }
+                        <td>
+                            @{
+                                string previewUrl = PreviewMenu.BuildUrl(frontUrl, mod.Name, item["id"].ToString());
+                            }
+                            @* ปุ่มเป็นไอคอนอย่างเดียว (ไม่มีข้อความ [Preview]) เพื่อไม่ให้ดันหัวข้อไปทางขวา
+                               ชื่อปุ่มบอกด้วย tooltip + aria-label แทน *@
+                            <button type="button" class="badge bg-warning text-dark border-0"
+                                    style="margin-right:8px;cursor:pointer;"
+                                    title="ดูตัวอย่างหน้าเว็บไซต์" aria-label="ดูตัวอย่างหน้าเว็บไซต์"
+                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                    onclick="openFrontPreview('@previewUrl')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            @title_txt
+                            @if (hideInMenu)
+                            {
+                                <span class="badge bg-warning text-dark" style="background-color:#DDD !important; color:#333; margin-left:6px;">ไม่แสดงในเมนู</span>
+                            }
+                            @if (mod.Name == "AnnouncePro" && hasSubmitLink(item))
+                            {
+                                @Html.Raw(submitLinkHtml(item))
+                            }
+                        </td>
+                    }
+                    else if (mod.Name == "AnnouncePro" && head.Key == "title" && hasSubmitLink(item))
+                    {
+                        @* กรณีไม่ได้ตั้งค่า FrontURL (ไม่มีปุ่ม Preview) — ยังต้องมีลิงก์ดูรายชื่อผู้สมัครท้ายหัวข้อ *@
+                        string title_pro = item[head.Key].ToString();
+                        if (title_pro.Length > 80)
+                        {
+                            title_pro = title_pro.Substring(0, 80) + "...";
+                        }
+                        <td>@title_pro @Html.Raw(submitLinkHtml(item))</td>
+                    }
+                    else if (string.IsNullOrEmpty(item[head.Key].ToString()))
+                    {
+                        <td>-</td>  
+                    }
+                    else if (head.Key == "created_at")
+                    {
+                        <td><a href="javascript:;" title="สร้างโดย @item["created_by"]">@(((DateTime)item[head.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</a></td>
+                    }
+                    else if (head.Key == "updated_at")
+                    {
+                        <td><a href="javascript:;" title="แก้ไขโดย @item["updated_by"]">@(((DateTime)item[head.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</a></td>
+                    }
+                    else if ((head.Key).EndsWith("_date"))
+                    {
+                        <td>@(((DateTime)item[head.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</td>
+                    } 
+                    else if (head.Key == "pb_status")
+                    {
+                        <td>
+                        @{
+                            if (item[head.Key].ToString() == "1")
+                            {
+                                 <h6><span class="badge bg-success" title="อนุมัติโดย @item["approve_by"]">Published</span></h6>
+                            }
+                            else if (item[head.Key].ToString() == "0" && mod_config.CanApprove == true)
+                            {
+                                    @if (item["show_front"].ToString() == "0")
+                                {
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn--primary" onclick="approveRow('@mod.Name', '@item["id"]', '1')" title="อนุมัติและเผยแพร่เนื้อหา" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        Approve and public
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn--success" onclick="approveRow('@mod.Name', '@item["id"]', '1')" title="อนุมัติ" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        Approve
+                                        </button>
+                                        <button type="button" class="btn btn--red" onclick="approveRow('@mod.Name', '@item["id"]', '0')" title="ไม่อนุมัติ" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        Unapprove
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                    <h6><span class="badge bg-info text-dark">Wait for approval...</span></h6>
+                            }
+                        }
+                        </td>
+                    }
+                    else if (head.Key.StartsWith("img") == true && item[head.Key].ToString().Trim().StartsWith("bi ") == true)
+                    {
+                        @* คอลัมน์ img* ที่เก็บคลาสไอคอน Bootstrap Icons (เช่น "bi bi-unlock") ไม่ใช่ path รูป — แสดงเป็นไอคอน ไม่ใช่ <img> *@
+                        <td class="text-center"><i class="@item[head.Key].ToString().Trim()" style="font-size:1.6rem;"></i></td>
+                    }
+                    else if (head.Key.StartsWith("img") == true)
+                    {
+                        if(item[head.Key].ToString().IndexOf(",") > -1)
+                        {
+                            string[] file_name_arr = item[head.Key].ToString().Split(',');
+
+                            <td><img class='img-thumbnail' src='@(_utility.rootURL() + "/" + file_name_arr[0])' data-holder-rendered='true' style='max-width: 230px;background-color:#CCC;'></td>
+                        }
+                        else
+                        {
+                            <td><img class='img-thumbnail' src='@(_utility.rootURL() + "/" + item[head.Key])' data-holder-rendered='true' style='max-width: 230px;background-color:#CCC;'></td>
+                        } 
+                    }
+                    else if (head.Key == "t2" && (mod.Name != "MemberEmail" && mod.Name != "AgentEmail" && mod.Name != "NpaEmail" && mod.Name != "BuyNPAEmail" && mod.Name != "MeetNPAEmail" && mod.Name != "NplEmail" && mod.Name != "NpaOfferEmail"))
+                    {
+                        <td><img class='img-thumbnail' src='@(_utility.rootURL() + "/" + item[head.Key])' data-holder-rendered='true' style='max-width: 230px;background-color:#CCC;'></td>
+                    }
+                    else if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && head.Key == "title" && !string.IsNullOrEmpty(item["page_type"].ToString()) && item["page_type"].ToString() == "group" )
+                    {
+                        string childCount = string.Format("{0:n0}", _admin.getChildCount(mod, Convert.ToInt32(item["id"])));
+                        <td data-child-count="@childCount" data-title="@item[head.Key]">@item[head.Key] <a href="javascript:;" style="margin-left:6px;" onclick="window.location.href = updateQueryStringParameter(window.location.href, '@mod_config.FieldCMSPage', '@item["id"]');"><span class="badge bg-warning text-dark"><strong>@childCount</strong> รายการ</span></a></td>
+                    }
+                    else if ((mod.Name == "CMSPage" || mod.Name == "CMSPageFooter1" || mod.Name == "CMSPageFooter2" || mod.Name == "FooterLink") && head.Key == "title" && !string.IsNullOrEmpty(item["page_type"].ToString()) && item["page_type"].ToString() == "1")
+                    {
+                        string childCount = string.Format("{0:n0}", _admin.getChildCount(mod, Convert.ToInt32(item["id"])));
+                        <td data-child-count="@childCount" data-title="@item[head.Key]">@item[head.Key] <a href="javascript:;" style="margin-left:6px;" onclick="window.location.href = updateQueryStringParameter(window.location.href, '@mod_config.FieldCMSPage', '@item["id"]');"><span class="badge bg-warning text-dark">เมนูย่อย <strong>@childCount</strong> รายการ</span></a></td>
+                    } 
+                    else if ((mod.Name == "CMSPage" || mod.Name == "CMSPageFooter1" || mod.Name == "CMSPageFooter2" || mod.Name == "FooterLink") && head.Key == "title" && !string.IsNullOrEmpty(item["page_type"].ToString()) && item["page_type_sub"].ToString() == "2")
+                    { 
+                        <td>@item[head.Key] <span class="badge bg-warning text-dark" style="background-color:#DDD !important; color:#333; margin-left:6px;">ไม่แสดงในเมนู</span></td>
+                    }
+                    else if ((mod.Name == "CMSPage" || mod.Name == "CMSPageFooter1" || mod.Name == "CMSPageFooter2" || mod.Name == "FooterLink") && head.Key == "page_type" && !string.IsNullOrEmpty(item["page_type"].ToString()))
+                    {
+                        string result_txt = "";
+                        if(item["page_type"]+"" == "1")
+                        {
+                            <td>Group Menu</td>
+                        }
+                        else if(item["page_type"]+"" == "2")
+                        {
+                            <td>URL Link</td>
+                        }
+                        else if(item["page_type"]+"" == "3")
+                        {
+                            <td>Page Content</td> 
+                        }
+                        else if(item["page_type"]+"" == "4")
+                        {
+                            <td>System Link</td> 
+                        }
+                        else if(item["page_type"]+"" == "5")
+                        {
+                            <td>File Link</td> 
+                        }
+                    } 
+                    else if (mod.Name == "VDO" && head.Key == "url")
+                    { 
+                        var regex = new System.Text.RegularExpressions.Regex(@"(?:youtube\.com\/(?:.*v=|.*\/|embed\/)|youtu\.be\/)([^#\&\?]*).*",System.Text.RegularExpressions.RegexOptions.IgnoreCase); 
+                        var match = regex.Match(item["url"]+""); 
+                        if (match.Success)
+                        {
+                            <td><iframe src="https://www.youtube.com/embed/@match.Groups[1].Value" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></td>
+                        }
+                        else
+                        {
+                            <td>-</td>
+                        }
+                    }
+                    else if (mod.Name == "AdminUser" && head.Key == "username")
+                    {
+                        @* ประเภทการ Login = 2 (แบบพนักงาน / Azure AD) ให้ต่อท้าย Username ว่า "พนักงาน" *@
+                        if (item["login_type"].ToString() == "2")
+                        {
+                            <td>@item["username"] <span class="badge bg-info text-dark" style="margin-left:6px;">พนักงาน</span></td>
+                        }
+                        else
+                        {
+                            <td>@item["username"]</td>
+                        }
+                    }
+                    else if (mod.Name == "MemberList" && head.Key == "firstname")
+                    { 
+                        <td>@item["firstname"] @item["surname"]</td>
+                    }
+                    else if (mod.Name == "MemberList" && head.Key == "member_type")
+                    {
+                        @switch (item["member_type"].ToString())
+                        {
+                            case "2":
+                                <td>Investor</td>
+                                break;
+                            case "3":
+                                <td>Agency</td>
+                                break;
+                            case "4":
+                                <td>Sale/Executive</td>
+                                break;
+                            default:
+                                <td>สมาชิก</td>
+                                break;
+                        }
+                    }
+                    else if (mod.Name == "MemberList" && head.Key == "type")
+                    {
+                        if(item["type"].ToString() == "1")
+                        {
+                            <td>นิติบุคคล</td>
+                        }
+                        else if(item["type"].ToString() == "2")
+                        {
+                            <td>บุคคล</td>
+                        }
+                    }
+                    else if (mod.Name == "MemberList" && head.Key == "confirm_email")
+                    { 
+                        if(item["confirm_email"].ToString() == "1")
+                        {
+                            <td>ยืนยันอีเมลแล้ว</td>
+                        }
+                        else  
+                        {
+                            <td>ยังไม่ยืนยันอีเมล</td>
+                        }
+                    }
+                    else if (mod.Name == "AgentList" && head.Key == "upfile1")
+                    { 
+                        <td> 
+                        
+                        @{
+                            for(int i=1;i<=4;i++)
+                            {
+                                if(item["upfile"+i].ToString() != "")
+                                {
+                                    <a style="text-decoration: underline;" href='#@item["upfile"+i]'>ไฟล์แนบ @i</a><br />
+                                }
+                            }
+                        }
+                          
+                        </td>
+                    }
+                    else if (mod.Name == "AgentList" && head.Key == "npaid1")
+                    { 
+                        <td> 
+                        
+                        @{
+                            for(int i=1;i<=AdminMenu.NpaSlotCount;i++)
+                            {
+                                if(item["npaid"+i].ToString() != "")
+                                {
+                                    @item["npaid"+i] <br />
+                                }
+                            }
+                        }
+                          
+                        </td>
+                    }
+                    else if (mod.Name == "AgentList" && head.Key == "approved")
+                    {
+                        @* ข้อความสถานะมาจาก AgentStatus ที่เดียวกับหน้า Detail/Edit — ต้องตรงกันทุกหน้า *@
+                        <td>
+                            <span class="badge @AgentStatus.BadgeClass(item["approved"])">@AgentStatus.Label(item["approved"])</span>
+                        </td>
+                    }
+                    else if (mod.Name == "EFormSubmit" && head.Key == "cat_id")
+                    {
+                        string _formName = _admin.GetCatTitle("web_eform", item["cat_id"] + "");
+                        int _answered = thaicredit_hr_admin.Areas.Admin.Helpers.EFormSubmitHelper.AnsweredCount(item["info"] + "", item["en_info"] + "");
+                        <td style="min-width:170px;">
+                            <span class="badge bg-primary" style="font-size:0.82rem;white-space:normal;text-align:left;">@(string.IsNullOrWhiteSpace(_formName) ? "#" + item["cat_id"] : _formName)</span>
+                            <div class="text-muted" style="font-size:0.76rem;margin-top:3px;"><i class="bi bi-input-cursor-text"></i> @_answered ช่องที่กรอก</div>
+                        </td>
+                    }
+                    else if (mod.Name == "EFormSubmit" && head.Key == "info")
+                    {
+                        string _summary = thaicredit_hr_admin.Areas.Admin.Helpers.EFormSubmitHelper.Summary(item["info"] + "", item["en_info"] + "");
+                        <td style="max-width:460px;min-width:280px;word-break:break-word;white-space:normal;">
+                            @if (string.IsNullOrWhiteSpace(_summary))
+                            {
+                                <span class="text-muted">- ไม่มีข้อมูล -</span>
+                            }
+                            else
+                            {
+                                <span style="color:#334155;font-size:0.86rem;line-height:1.5;">@_summary</span>
+                            }
+                        </td>
+                    }
+                    else if (mod.Name == "SubscriptionNews" && head.Key == "recipient_type")
+                    {
+                        @switch (item["recipient_type"].ToString())
+                        {
+                            case "custom":
+                                <td><span class="badge bg-info text-dark">กำหนดเอง</span></td>
+                                break;
+                            default:
+                                <td><span class="badge bg-primary">ทุกอีเมล</span></td>
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        string result_txt = item[head.Key].ToString();
+                        if (result_txt.Length > 80)
+                        {
+                            result_txt = result_txt.Substring(0, 80);
+
+                            <td>@result_txt...</td>
+                        }
+                        else
+                        {
+                            <td>@item[head.Key]</td>
+                        }
+                    }
+                }
+                
+                @if (mod_config.EnableViewDetail == true)
+                {
+                    <td class="text-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn--secondary" onclick="window.location.href='/Admin/@(mod.Name)/Detail/@(item["id"])'" title="ดูรายละเอียด" data-bs-toggle="tooltip" data-bs-placement="top">
+                                ดู
+                            </button>
+                        </div>
+                    </td>
+                }
+            </tr>
+                rows++;
+            }
+        }
+        </tbody>
+    </table>
+    @if ((int)ViewBag.totalRecord > 0) 
+    {
+        <p class="text-end">@String.Format("แสดง {0} ถึง {1} จาก {2:n0} รายการ", ViewBag.startRows, rows-1, ViewBag.totalRecord)</p>
+    }else{
+        <p class="text-end">0 รายการ</p>
+    }
+</div>
+
+<div class="row flex-column flex-lg-row justify-content-between">
+    <div class="col-lg-9 mb-4 mb-lg-0">
+        @Html.Raw(ViewBag.pageHtml)
+    </div>
+    <div class="col-auto">
+        @await Component.InvokeAsync("AdminPerPage", new { Perpage = mod_config.PerPage })
+    </div>
+</div>
+
+@if (hasFrontPreview)
+{
+    @* modal พรีวิว (กว้าง 95vw จัดกลางจอ) สำหรับปุ่ม [Preview] — render เฉพาะโมดูลที่รองรับพรีวิวหน้าเว็บ
+       (Areas/Admin ไม่มี _ViewImports จึงไม่มี tag helper <partial> ต้องใช้ Html.PartialAsync) *@
+    @await Html.PartialAsync("~/Areas/Admin/Views/Shared/_PartialFrontPreviewModal.cshtml")
+}
+
+@section Scripts{
+    <script>
+    $(document).ready(function() {
+
+        if ($("#btnMoveTools").length == 1 && $("#btnMoveTools").data('showmovetools') == 1) {
+            dragRow('@mod.Name');
+        }
+
+        $("#checkAll").click(function() {
+            if ($("#checkAll:checked").length == 1) {
+                $(":input[name='_id']").prop('checked', true);
+            } else {
+                $(":input[name='_id']").prop('checked', false);
+            }
+
+            if($(":input[name='_id']:checked").length > 0)
+            {
+                var List_ID = [];
+                $(":input[name='_id']:checked").each(function(){
+                    List_ID.push($(this).val());
+                });
+                if (List_ID.length > 0) {
+                    $(".BTN_Export").data("exportid", List_ID.join(','));
+                }
+                else{
+                    $(".BTN_Export").data("exportid","");
+                }
+            }
+            else{
+                $(".BTN_Export").data("exportid","");
+            }
+        });
+        $(":input[name='_id']").click(function() {
+            if ($(":input[name='_id']:checked").length == 0) {
+                $("#checkAll").prop('checked', false);
+                    $(".BTN_Export").data("exportid", "");
+            }
+            else
+            {
+                var List_ID = [];
+                $(":input[name='_id']:checked").each(function(){
+                    List_ID.push($(this).val());
+                });
+                if (List_ID.length > 0) {
+                    $(".BTN_Export").data("exportid", List_ID.join(','));
+                }
+                else{
+                    $(".BTN_Export").data("exportid","");
+                }
+            }                
+        });
+
+        //$('.input-daterange').datepicker({
+        //    format: "dd/mm/yyyy",
+        //    weekStart: 1,
+        //    todayBtn: "linked",
+        //    language: "th",
+        //    clearBtn: true,
+        //});
+
+        $.datetimepicker.setLocale('th');
+
+        jQuery('#date_timepicker_start').datetimepicker({
+            format:'d/m/Y',
+            onShow: function (ct) {
+                this.setOptions({
+                    maxDate: jQuery('#date_timepicker_end').val() ? jQuery('#date_timepicker_end').val() : '0',
+                    formatDate:'d/m/Y',
+                })
+            },
+            onClose: function(current_time, $input){
+                if ($input.datetimepicker('getValue') > new Date()) {
+                    $input.val('');
+                    sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ มากกว่าวันที่ปัจจุบันได้", "warning");
+                }
+            },
+            timepicker: false
+        });
+        jQuery('#date_timepicker_end').datetimepicker({
+            format:'d/m/Y',
+            onShow: function (ct) {
+                this.setOptions({
+                    minDate: jQuery('#date_timepicker_start').val() ? jQuery('#date_timepicker_start').val() : false,
+                    formatDate:'d/m/Y',
+                    maxDate: '0'
+                })
+            },
+            onClose: function(current_time, $input){
+                if ($input.datetimepicker('getValue') > new Date()) {
+                    $input.val('');
+                    sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ มากกว่าวันที่ปัจจุบันได้", "warning");
+                }
+            },
+            timepicker: false
+        });
+    
+        // some modules have no search bar (id_text / clear button absent) — guard against null
+        var _idText = document.getElementById('id_text');
+        var _clearBtn = document.getElementById('this_main_clear_btn');
+        if (_idText != null && _clearBtn != null)
+        {
+            _clearBtn.style.display = (_idText.value == '') ? 'none' : '';
+        }
+    });
+
+</script>
+}

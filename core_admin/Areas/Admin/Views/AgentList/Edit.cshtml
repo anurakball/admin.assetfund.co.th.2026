@@ -1,0 +1,368 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@using System.Data
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+
+    // ------- ข้อมูลสำหรับ dropdown ที่อยู่ (จังหวัด/อำเภอ/ตำบล) -------
+    string baseProvince = (row["cus_base_province"].ToString() ?? "").Trim();
+    string baseAmphur = (row["cus_base_amphur"].ToString() ?? "").Trim();
+    string baseTambol = (row["cus_base_tambol"].ToString() ?? "").Trim();
+    string contactProvince = (row["cus_contact_province"].ToString() ?? "").Trim();
+    string contactAmphur = (row["cus_contact_amphur"].ToString() ?? "").Trim();
+    string contactTambol = (row["cus_contact_tambol"].ToString() ?? "").Trim();
+
+    DBHelper _dbHelper = (DBHelper)ViewBag._db;
+    DataTable provinces = _dbHelper.ExecuteQuery("select code, name_in_thai from web_data_provinces order by name_in_thai");
+
+    // ⚠️ ค่าใน DB เป็น varchar — ถ้าเป็นข้อมูลเก่าที่เก็บ "ชื่อ" ไว้ การ cast @code::int จะทำให้ทั้งหน้าพัง
+    //    จึงกรองด้วย GeoHelper.IsCode() ก่อน แล้วส่งเป็น int ให้ query (ไม่ใช่ code = ไม่มีตัวเลือกให้เลือก แต่หน้ายังเปิดได้)
+    Func<string, DataTable> loadDistricts = (provCode) =>
+        !GeoHelper.IsCode(provCode) ? new DataTable() :
+        _dbHelper.ExecuteQuery("select d.code, d.name_in_thai from web_data_districts d join web_data_provinces p on p.id = d.province_id where p.code = @code order by d.name_in_thai",
+            new Dictionary<string, object>() { { "code", int.Parse(provCode.Trim()) } });
+
+    Func<string, DataTable> loadSubdistricts = (distCode) =>
+        !GeoHelper.IsCode(distCode) ? new DataTable() :
+        _dbHelper.ExecuteQuery("select s.code, s.name_in_thai from web_data_subdistricts s join web_data_districts d on d.id = s.district_id where d.code = @code order by s.name_in_thai",
+            new Dictionary<string, object>() { { "code", int.Parse(distCode.Trim()) } });
+
+    DataTable baseDistricts = loadDistricts(baseProvince);
+    DataTable baseSubdistricts = loadSubdistricts(baseAmphur);
+    DataTable contactDistricts = loadDistricts(contactProvince);
+    DataTable contactSubdistricts = loadSubdistricts(contactAmphur);
+
+    // helper render <option> ของ select ที่อยู่
+    Func<DataTable, string, string> renderOptions = (dt, selected) =>
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<option value=\"\">-- เลือก --</option>");
+        foreach (DataRow dr in dt.Rows)
+        {
+            string code = dr["code"].ToString();
+            string name = dr["name_in_thai"].ToString();
+            sb.Append($"<option value=\"{code}\"{(code == selected ? " selected" : "")}>{name}</option>");
+        }
+        return sb.ToString();
+    };
+
+    int titleVal = int.TryParse(row["title"].ToString(), out int tv) ? tv : 0;
+    // สถานะการตรวจสอบ — normalize ผ่าน AgentStatus เพื่อให้ค่าเก่า (2 = อยู่ระหว่างตรวจสอบ) ตกมาที่ "กำลังตรวจสอบ"
+    // และตรงกับ dropdown ในหน้า Detail เสมอ
+    int approvedVal = AgentStatus.Normalize(row["approved"]);
+
+    // ------- ช่องรหัสทรัพย์ NPA -------
+    // จำนวนช่องมาจาก AdminMenu.NpaSlotCount ที่เดียว (ต้องตรงกับคอลัมน์ web_agent.npaid{n} ใน DB)
+    int npaSlots = AdminMenu.NpaSlotCount;
+    var npaValues = new string[npaSlots];
+    for (int i = 0; i < npaSlots; i++)
+        npaValues[i] = (row["npaid" + (i + 1)].ToString() ?? "").Trim();
+
+    // lookup ชื่อโครงการจาก tb_product2 ครั้งเดียวทุกช่อง (ไม่ใช่ยิงทีละช่อง)
+    Dictionary<string, string> npaProjects = ViewBag._db.GetNpaProjectNames(npaValues);
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        <h6 class="fw-bold mb-3 text-muted">ข้อมูลส่วนตัว</h6>
+        <div class="row">
+            <div class="col-lg-12 mb-3">
+                <label class="form-label">คำนำหน้า</label>
+                <div class="d-flex flex-wrap gap-4 mt-1">
+                    @{
+                        var titleOptions = new Dictionary<int, string> { { 1, "นาย" }, { 2, "นาง" }, { 3, "นางสาว" } };
+                    }
+                    @foreach (var opt in titleOptions)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="title" id="title_@opt.Key" value="@opt.Key" @(titleVal == opt.Key ? "checked" : "") required>
+                            <label class="form-check-label" for="title_@opt.Key">@opt.Value</label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-4 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อ", "name", (row["name"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-4 col-md-4 mb-3">
+                @Html.Raw(_admin.InputText("นามสกุล", "surname", (row["surname"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-4 col-md-4 mb-3">
+                @Html.Raw(_admin.InputText("เลขบัตรประชาชน/เลขผู้เสียภาษี", "idcard", (row["idcard"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("โทรศัพท์บ้าน", "cus_base_phone", (row["cus_base_phone"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("โทรศัพท์ติดต่อ", "cus_contact_phone", (row["cus_contact_phone"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+
+        <hr/>
+        <h6 class="fw-bold mb-3 text-muted">ที่อยู่ตามทะเบียนบ้าน</h6>
+        <div class="row">
+            <div class="col-lg-8 col-md-8 mb-3">
+                @Html.Raw(_admin.InputText("ที่อยู่", "cus_base_addr", (row["cus_base_addr"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-4 col-md-4 mb-3">
+                @Html.Raw(_admin.InputText("หมู่ที่", "cus_base_moo", (row["cus_base_moo"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ซอย", "cus_base_soi", (row["cus_base_soi"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ถนน", "cus_base_road", (row["cus_base_road"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <label class="form-label">จังหวัด</label>
+                <select class="form-select addr-province" name="cus_base_province" data-group="base">
+                    @Html.Raw(renderOptions(provinces, baseProvince))
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <label class="form-label">อำเภอ/เขต</label>
+                <select class="form-select addr-district" name="cus_base_amphur" data-group="base">
+                    @Html.Raw(renderOptions(baseDistricts, baseAmphur))
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <label class="form-label">ตำบล/แขวง</label>
+                <select class="form-select addr-subdistrict" name="cus_base_tambol" data-group="base">
+                    @Html.Raw(renderOptions(baseSubdistricts, baseTambol))
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("รหัสไปรษณีย์", "cus_base_zipcode", (row["cus_base_zipcode"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+
+        <hr/>
+        <h6 class="fw-bold mb-3 text-muted">ที่อยู่ติดต่อ</h6>
+        <div class="row">
+            <div class="col-lg-8 col-md-8 mb-3">
+                @Html.Raw(_admin.InputText("ที่อยู่", "cus_contact_arrr", (row["cus_contact_arrr"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-4 col-md-4 mb-3">
+                @Html.Raw(_admin.InputText("หมู่ที่", "cus_contact_moo", (row["cus_contact_moo"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ซอย", "cus_contact_soi", (row["cus_contact_soi"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ถนน", "cus_contact_road", (row["cus_contact_road"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <label class="form-label">จังหวัด</label>
+                <select class="form-select addr-province" name="cus_contact_province" data-group="contact">
+                    @Html.Raw(renderOptions(provinces, contactProvince))
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <label class="form-label">อำเภอ/เขต</label>
+                <select class="form-select addr-district" name="cus_contact_amphur" data-group="contact">
+                    @Html.Raw(renderOptions(contactDistricts, contactAmphur))
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <label class="form-label">ตำบล/แขวง</label>
+                <select class="form-select addr-subdistrict" name="cus_contact_tambol" data-group="contact">
+                    @Html.Raw(renderOptions(contactSubdistricts, contactTambol))
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("รหัสไปรษณีย์", "cus_contact_zipcode", (row["cus_contact_zipcode"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+
+        <hr/>
+        <h6 class="fw-bold mb-1 text-muted">ไฟล์แนบ</h6>
+        <p class="text-muted small mb-3">ไฟล์แนบถูกจัดการผ่านหน้าเว็บไซต์ (ผู้สมัครเป็นผู้อัปโหลด) ระบบหลังบ้านแสดงผลอย่างเดียว</p>
+        <div class="row">
+            @{
+                var upfileLabels = new Dictionary<string, string>
+                {
+                    { "upfile1", "ไฟล์แนบ 1" },
+                    { "upfile2", "ไฟล์แนบ 2" },
+                    { "upfile3", "ไฟล์แนบ 3" },
+                    { "upfile4", "ไฟล์แนบ 4" },
+                };
+                // uid ของ web_agent = id ของ web_member — ใช้เป็น parameter ส่งไปหน้าส่งอีเมล (AgentNews)
+                string agentUid = (row["uid"]?.ToString() ?? "").Trim();
+            }
+            @foreach (var upfile in upfileLabels)
+            {
+                string upfileVal = (row[upfile.Key].ToString() ?? "").Trim();
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label fw-semibold">@upfile.Value</label>
+                    <div class="form-control bg-light d-flex align-items-center justify-content-between gap-2" style="min-height:38px;">
+                        @if (!string.IsNullOrEmpty(upfileVal))
+                        {
+                            <a href="@_utility.frontURL("/uploads/agency/" + upfileVal)" target="_blank" rel="noopener" class="text-primary text-nowrap">
+                                <i class="fa-solid fa-file me-1"></i>เรียกดูไฟล์
+                            </a>
+                            @if (!string.IsNullOrEmpty(agentUid))
+                            {
+                                <a href="/Admin/AgentNews?uid=@agentUid" class="btn btn-sm btn-outline-primary text-nowrap" style="font-size:12px;">
+                                    <i class="fa-regular fa-envelope me-1"></i>แจ้งอีเมลสถานะเอกสาร
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted small">ไม่มีไฟล์</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <hr/>
+        <h6 class="fw-bold mb-3 text-muted">รหัส NPA</h6>
+        <div class="row">
+            @for (int i = 1; i <= npaSlots; i++)
+            {
+                string npaVal = npaValues[i - 1];
+                string label = (npaVal.Length > 0 && npaProjects.ContainsKey(npaVal)) ? npaProjects[npaVal] : "";
+                <div class="col-lg-3 col-md-4 mb-3">
+                    @* ค่าที่กรอกได้มีทั้ง "รหัสทรัพย์" และ "ข้อความอิสระ" (ฟอร์มฝั่ง front-end ปล่อยให้พิมพ์เองได้)
+                       maxlength ต้องเท่ากับความยาวคอลัมน์ web_agent.npaid{n} = varchar(200) ไม่ใช่ 255 ตาม default ของ InputText *@
+                    @Html.Raw(_admin.InputText("รหัส NPA " + i, "npaid" + i, npaVal, "", 200))
+                    @if (!string.IsNullOrEmpty(label))
+                    {
+                        <div class="small text-muted mt-1 npa-hint">@label</div>
+                    }
+                </div>
+            }
+        </div>
+
+        <hr/>
+        <h6 class="fw-bold mb-1 text-muted">สถานะ</h6>
+        <p class="text-muted small mb-3">
+            เลือก <strong>ผ่าน</strong> = ส่งอีเมลยินดีต้อนรับ และปรับสมาชิกเป็นตัวแทน (Agent) &nbsp;|&nbsp;
+            <strong>ไม่ผ่าน</strong> = ส่งอีเมลแจ้งผลไม่ผ่าน &nbsp;|&nbsp;
+            <strong>Black List</strong> = ไม่ส่งอีเมล และผู้ใช้จะสมัครเป็นตัวแทนไม่ได้อีก (ยังล็อกอินได้ตามปกติ)
+        </p>
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="d-flex flex-wrap gap-4">
+                    @foreach (var opt in AgentStatus.Options)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="approved" id="approved_@opt.Key" value="@opt.Key" @(approvedVal == opt.Key ? "checked" : "")>
+                            <label class="form-check-label" for="approved_@opt.Key">@opt.Value</label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@await Component.InvokeAsync("AddForm")
+
+@section Scripts
+{
+    <script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+
+    function sConfirmCustom(form) {
+        if ($('[name="title"]:checked').length === 0) {
+            Swal.fire({ icon: 'warning', title: 'กรุณาเลือกข้อมูล', text: 'กรุณาเลือกคำนำหน้าก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: { popup: 'animate__animated animate__bounceIn' },
+            hideClass: { popup: 'animate__animated animate__bounceOut' }
+        }).then((result) => {
+            if (result.isConfirmed) { form.submit(); } else { return false; }
+        });
+        return false;
+    }
+
+    // ------- cascading dropdown ที่อยู่ -------
+    function fillSelect($sel, items, placeholder) {
+        $sel.empty();
+        $sel.append('<option value="">' + (placeholder || '-- เลือก --') + '</option>');
+        items.forEach(function (it) {
+            $sel.append('<option value="' + it.code + '" data-zip="' + (it.zip || '') + '">' + it.name + '</option>');
+        });
+    }
+
+    $(document).ready(function() {
+        // เปลี่ยนจังหวัด -> โหลดอำเภอ, ล้างตำบล
+        $('.addr-province').on('change', function () {
+            var group = $(this).data('group');
+            var $district = $('.addr-district[data-group="' + group + '"]');
+            var $subdistrict = $('.addr-subdistrict[data-group="' + group + '"]');
+            var code = $(this).val();
+            fillSelect($district, []);
+            fillSelect($subdistrict, []);
+            if (!code) return;
+            $.getJSON('/Admin/AgentList/GetDistricts', { provinceCode: code }, function (data) {
+                fillSelect($district, data);
+            });
+        });
+
+        // เปลี่ยนอำเภอ -> โหลดตำบล
+        $('.addr-district').on('change', function () {
+            var group = $(this).data('group');
+            var $subdistrict = $('.addr-subdistrict[data-group="' + group + '"]');
+            var code = $(this).val();
+            fillSelect($subdistrict, []);
+            if (!code) return;
+            $.getJSON('/Admin/AgentList/GetSubdistricts', { districtCode: code }, function (data) {
+                fillSelect($subdistrict, data);
+            });
+        });
+
+        // เปลี่ยนตำบล -> เติมรหัสไปรษณีย์อัตโนมัติ
+        $('.addr-subdistrict').on('change', function () {
+            var group = $(this).data('group');
+            var zip = $(this).find('option:selected').data('zip');
+            if (zip) {
+                var zipName = group === 'base' ? 'cus_base_zipcode' : 'cus_contact_zipcode';
+                $('[name="' + zipName + '"]').val(zip);
+            }
+        });
+
+        checkLockedRow(modConfig, jsonRow);
+    });
+    </script>
+}

@@ -1,0 +1,249 @@
+@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+
+    long memberTotal        = (long)(ViewBag.MemberTotal ?? 0L);
+    long memberActive       = (long)(ViewBag.MemberActive ?? 0L);
+    long memberEmailConfirm = (long)(ViewBag.MemberEmailConfirm ?? 0L);
+    long memberType1        = (long)(ViewBag.MemberType1 ?? 0L);
+    long memberType2        = (long)(ViewBag.MemberType2 ?? 0L);
+    long memberToday        = (long)(ViewBag.MemberToday ?? 0L);
+    long memberMonth        = (long)(ViewBag.MemberMonth ?? 0L);
+
+    var memberTrend = (DataTable)ViewBag.MemberTrend;
+
+    var trendKeys = new System.Collections.Generic.SortedDictionary<string, long>();
+    foreach (DataRow r in memberTrend.Rows)
+    {
+        string ym = r["ym"].ToString();
+        trendKeys[ym] = Convert.ToInt64(r["cnt"]);
+    }
+    string chartLabels = string.Join(",", trendKeys.Keys.Select(k => $"'{k}'"));
+    string chartMember = string.Join(",", trendKeys.Values);
+}
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<style>
+    .mr-wrap { font-family: 'Segoe UI', sans-serif; padding-bottom: 48px; }
+    /* Header */
+    .mr-header { background: linear-gradient(135deg, #1a1f2e 0%, #2d3559 100%); border-radius: 14px; padding: 26px 32px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+    .mr-header-left h1 { color: #fff; font-size: 1.5rem; font-weight: 700; margin: 0 0 4px; }
+    .mr-header-left p { color: #9ca3af; font-size: 0.88rem; margin: 0; }
+    .mr-btn-refresh { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; padding: 8px 20px; font-size: 0.85rem; cursor: pointer; transition: all .2s; }
+    .mr-btn-refresh:hover { background: rgba(255,255,255,0.22); }
+    /* Top summary cards */
+    .mr-cards-top { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px; }
+    .mr-card-top { background: #fff; border-radius: 12px; padding: 22px 20px; box-shadow: 0 1px 6px rgba(0,0,0,.07); display: flex; align-items: center; gap: 16px; }
+    .mr-card-top-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .mr-card-top-icon.blue  { background: #eff6ff; }
+    .mr-card-top-icon.green { background: #f0fdf4; }
+    .mr-card-top-icon.amber { background: #fffbeb; }
+    .mr-card-top-icon.purple{ background: #faf5ff; }
+    .mr-card-top-body .val  { font-size: 2rem; font-weight: 700; color: #111827; line-height: 1.1; }
+    .mr-card-top-body .lbl  { font-size: 0.82rem; color: #6b7280; margin-top: 3px; }
+    .mr-card-top-body .sub  { font-size: 0.75rem; color: #9ca3af; margin-top: 1px; }
+    /* Section heading */
+    .mr-section-title { font-size: 1rem; font-weight: 700; color: #1a1f2e; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .mr-section-title span.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    /* Stat grids */
+    .mr-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .mr-stat-card { background: #fff; border-radius: 10px; padding: 18px 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); border-left: 4px solid transparent; }
+    .mr-stat-card.border-blue   { border-left-color: #3b82f6; }
+    .mr-stat-card.border-green  { border-left-color: #22c55e; }
+    .mr-stat-card.border-red    { border-left-color: #ef4444; }
+    .mr-stat-card.border-amber  { border-left-color: #f59e0b; }
+    .mr-stat-card.border-purple { border-left-color: #8b5cf6; }
+    .mr-stat-card.border-teal   { border-left-color: #14b8a6; }
+    .mr-stat-card.border-sky    { border-left-color: #0ea5e9; }
+    .mr-stat-card.border-rose   { border-left-color: #f43f5e; }
+    .mr-stat-num  { font-size: 1.7rem; font-weight: 700; color: #111827; }
+    .mr-stat-lbl  { font-size: 0.8rem; color: #6b7280; margin-top: 3px; }
+    .mr-stat-pct  { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+    /* Chart panel */
+    .mr-chart-panel { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 6px rgba(0,0,0,.07); margin-bottom: 28px; }
+    .mr-chart-panel canvas { max-height: 240px; }
+    /* Two column layout */
+    .mr-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 28px; }
+    /* Progress bar */
+    .mr-progress-wrap { margin-top: 8px; }
+    .mr-progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: #6b7280; margin-bottom: 4px; }
+    .mr-progress-bar-bg { background: #f3f4f6; border-radius: 99px; height: 8px; overflow: hidden; }
+    .mr-progress-bar-fill { height: 8px; border-radius: 99px; transition: width .6s ease; }
+    @@media (max-width: 992px) {
+        .mr-cards-top { grid-template-columns: repeat(2, 1fr); }
+        .mr-stat-grid  { grid-template-columns: repeat(2, 1fr); }
+        .mr-two-col    { grid-template-columns: 1fr; }
+    }
+    @@media (max-width: 560px) {
+        .mr-cards-top { grid-template-columns: 1fr 1fr; }
+        .mr-stat-grid  { grid-template-columns: 1fr 1fr; }
+    }
+</style>
+
+<div class="mr-wrap">
+ 
+    <!-- Top Summary Cards -->
+    <div class="mr-cards-top">
+        <div class="mr-card-top">
+            <div class="mr-card-top-icon blue">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="mr-card-top-body">
+                <div class="val">@memberTotal.ToString("N0")</div>
+                <div class="lbl">สมาชิกทั้งหมด</div>
+                <div class="sub">วันนี้ +@memberToday</div>
+            </div>
+        </div>
+        <div class="mr-card-top">
+            <div class="mr-card-top-icon amber">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="mr-card-top-body">
+                <div class="val">@memberMonth.ToString("N0")</div>
+                <div class="lbl">สมาชิกใหม่เดือนนี้</div>
+                <div class="sub">วันนี้ +@memberToday</div>
+            </div>
+        </div>
+    </div>
+<br><br>
+    <!-- Member Stats -->
+    <div>
+        <div class="mr-section-title">
+            <span class="dot" style="background:#3b82f6"></span>
+            <h3 style='font-family:"Noto Sans Thai"'>สถิติสมาชิก  </h3>
+        </div>
+        <div class="mr-stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="mr-stat-card border-blue">
+                <div class="mr-stat-num">@memberActive.ToString("N0")</div>
+                <div class="mr-stat-lbl">เปิดใช้งาน (active)</div>
+                @{
+                    double pctMemberActive = memberTotal > 0 ? Math.Round((double)memberActive / memberTotal * 100, 1) : 0;
+                }
+                <div class="mr-progress-wrap">
+                    <div class="mr-progress-label"><span>Active</span><span>@pctMemberActive%</span></div>
+                    <div class="mr-progress-bar-bg"><div class="mr-progress-bar-fill" style="width:@pctMemberActive%;background:#3b82f6"></div></div>
+                </div>
+            </div>
+            <div class="mr-stat-card border-red">
+                <div class="mr-stat-num">@((memberTotal - memberActive).ToString("N0"))</div>
+                <div class="mr-stat-lbl">ปิดใช้งาน (inactive)</div>
+                @{
+                    double pctMemberInactive = memberTotal > 0 ? Math.Round((double)(memberTotal - memberActive) / memberTotal * 100, 1) : 0;
+                }
+                <div class="mr-progress-wrap">
+                    <div class="mr-progress-label"><span>Inactive</span><span>@pctMemberInactive%</span></div>
+                    <div class="mr-progress-bar-bg"><div class="mr-progress-bar-fill" style="width:@pctMemberInactive%;background:#ef4444"></div></div>
+                </div>
+            </div>
+            <div class="mr-stat-card border-green">
+                <div class="mr-stat-num">@memberEmailConfirm.ToString("N0")</div>
+                <div class="mr-stat-lbl">ยืนยันอีเมลแล้ว</div>
+                @{
+                    double pctEmailConfirm = memberTotal > 0 ? Math.Round((double)memberEmailConfirm / memberTotal * 100, 1) : 0;
+                }
+                <div class="mr-progress-wrap">
+                    <div class="mr-progress-label"><span>Confirmed</span><span>@pctEmailConfirm%</span></div>
+                    <div class="mr-progress-bar-bg"><div class="mr-progress-bar-fill" style="width:@pctEmailConfirm%;background:#22c55e"></div></div>
+                </div>
+            </div>
+            <div class="mr-stat-card border-amber">
+                <div class="mr-stat-num">@((memberTotal - memberEmailConfirm).ToString("N0"))</div>
+                <div class="mr-stat-lbl">ยังไม่ยืนยันอีเมล</div>
+                @{
+                    double pctEmailUnconfirm = memberTotal > 0 ? Math.Round((double)(memberTotal - memberEmailConfirm) / memberTotal * 100, 1) : 0;
+                }
+                <div class="mr-progress-wrap">
+                    <div class="mr-progress-label"><span>Unconfirmed</span><span>@pctEmailUnconfirm%</span></div>
+                    <div class="mr-progress-bar-bg"><div class="mr-progress-bar-fill" style="width:@pctEmailUnconfirm%;background:#f59e0b"></div></div>
+                </div>
+            </div>
+            <div class="mr-stat-card border-sky">
+                <div class="mr-stat-num">@memberType1.ToString("N0")</div>
+                <div class="mr-stat-lbl">บุคคลธรรมดา (type=1)</div>
+                @{
+                    double pctType1 = memberTotal > 0 ? Math.Round((double)memberType1 / memberTotal * 100, 1) : 0;
+                }
+                <div class="mr-progress-wrap">
+                    <div class="mr-progress-label"><span>บุคคล</span><span>@pctType1%</span></div>
+                    <div class="mr-progress-bar-bg"><div class="mr-progress-bar-fill" style="width:@pctType1%;background:#0ea5e9"></div></div>
+                </div>
+            </div>
+            <div class="mr-stat-card border-purple">
+                <div class="mr-stat-num">@memberType2.ToString("N0")</div>
+                <div class="mr-stat-lbl">นิติบุคคล (type=2)</div>
+                @{
+                    double pctType2 = memberTotal > 0 ? Math.Round((double)memberType2 / memberTotal * 100, 1) : 0;
+                }
+                <div class="mr-progress-wrap">
+                    <div class="mr-progress-label"><span>นิติบุคคล</span><span>@pctType2%</span></div>
+                    <div class="mr-progress-bar-bg"><div class="mr-progress-bar-fill" style="width:@pctType2%;background:#8b5cf6"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Chart -->
+    @if (trendKeys.Count > 0)
+    {
+        <div class="mr-chart-panel">
+            <div class="mr-section-title" style="margin-bottom:18px">
+                <span class="dot" style="background:#6366f1"></span>
+                <h3 style='font-family:"Noto Sans Thai"'>แนวโน้มการสมัคร 6 เดือนล่าสุด</h3>
+            </div>
+            <canvas id="trendChart"></canvas>
+        </div>
+    }
+
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+    (function () {
+        var ctx = document.getElementById('trendChart');
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(chartLabels)],
+                datasets: [
+                    {
+                        label: 'สมาชิกใหม่',
+                        data: [@Html.Raw(chartMember)],
+                        backgroundColor: 'rgba(59,130,246,0.7)',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    })();
+    </script>
+}

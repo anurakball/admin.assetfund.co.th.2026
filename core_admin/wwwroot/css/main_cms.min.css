@@ -1,0 +1,56 @@
+﻿@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600&display=swap");@font-face{font-family:"db_helvethaica_x";src:url("../../fonts/db_helvethaica_x_li_v3.2.woff2") format("woff2"),url("../../fonts/db_helvethaica_x_li_v3.2.woff") format("woff");font-weight:normal;font-style:normal}@font-face{font-family:"db_helvethaica_x";src:url("../../fonts/db_helvethaica_x_v3.2.woff2") format("woff2"),url("../../fonts/db_helvethaica_x_v3.2.woff") format("woff");font-weight:bold;font-style:normal}
+:root {
+    --color-primary-50: #5ad990;
+    --color-primary-100: #4ebb7c;
+    --color-primary-200: #46a36d;
+    --color-primary-300: #3d8c5f;
+    --color-primary-400: #326a4a;
+    --color-primary-500: #286140;
+    --color-primary-600: #235438;
+    --color-primary-700: #1d442d;
+    --color-primary-800: #173524;
+    --color-primary-900: #11261a;
+    --color-secondary-50: #fdf3f4;
+    --color-secondary-100: #f4e1e3;
+    --color-secondary-200: #f0d2d5;
+    --color-secondary-300: #eac4c9;
+    --color-secondary-400: #e6b4ba;
+    --color-secondary-500: #e1a6ad;
+    --color-secondary-600: #d49199;
+    --color-secondary-700: #c07b84;
+    --color-secondary-800: #ab656e;
+    --color-secondary-900: #a05760;
+    --color-neutral-50: #ebedef;
+    --color-neutral-100: #c5cad3;
+    --color-neutral-200: #a9b0bc;
+    --color-neutral-300: #808b9d;
+    --color-neutral-400: #677489;
+    --color-neutral-500: #41516c;
+    --color-neutral-600: #3b4a63;
+    --color-neutral-700: #2f394c;
+    --color-neutral-800: #242d3d;
+    --color-neutral-900: #1d232f;
+    --color-gray-50: #f5f5f5;
+    --color-gray-100: #e3e3e3;
+    --color-gray-200: #d6d6d6;
+    --color-gray-300: #c2c2c2;
+    --color-gray-400: #b8b8b8;
+    --color-gray-500: #a6a6a6;
+    --color-gray-600: #969696;
+    --color-gray-700: #757575;
+    --color-gray-800: #5c5c5c;
+    --color-gray-900: #454545
+}
+.form-wrapper .input-group{margin-bottom:1rem}.form-wrapper .input-group .form-label{font-size:1.125rem}.form-wrapper .input-group .form-label--icon img{width:32px;margin-left:10px}.form-wrapper .input-group .form-control{width:100%;height:40px;font-size:1.25rem;line-height:1.5rem;font-weight:300;color:var(--color-neutral-500);border-radius:6px!important;background-color:#fff;border:2px solid var(--color-neutral-50)}.form-wrapper .input-group .form-control:focus{outline:0;box-shadow:none;border:2px solid var(--color-primary-500)}.form-wrapper .input-group .invalid-feedback{display:block;font-size:1.125rem}.form-wrapper .input-group__icon{position:relative}.form-wrapper .input-group__icon .icon-input{position:absolute;z-index:9;height:100%;padding:10px 12px;display:flex;align-items:center;justify-content:center}.form-wrapper .input-group__icon .icon-input img{width:18px}.form-wrapper .input-group__icon .icon-input-password{cursor:pointer;position:absolute;z-index:9;right:0;height:100%;padding:10px 12px;display:flex;align-items:center;justify-content:center}.form-wrapper .input-group__icon .icon-input-password img{width:18px}.form-wrapper .input-group__icon .form-control{padding-left:40px}.form-wrapper .form-select{width:100%;height:40px;font-size:1rem;line-height:1.5rem;font-weight:300;color:var(--color-neutral-500);border-radius:6px!important;background-color:#fff;border:2px solid var(--color-neutral-50)}.form-wrapper .form-select:focus{outline:0;box-shadow:none;border:2px solid var(--color-primary-500)}.form-wrapper .form-check .form-check-input{width:1.125rem;height:1.125rem;margin-top:.1875rem;border-color:#b8b8b8}.form-wrapper .form-check .form-check-input:focus{box-shadow:none}.form-wrapper .form-check .form-check-input:checked{box-shadow:none;background-color:var(--color-primary-500);border-color:var(--color-primary-500)}.form-wrapper .form-check .form-check-label{font-size:1rem;line-height:1.5rem;font-weight:300}.btn-group__full{width:100%}.btn-group .btn{width:100%;height:40px;border-radius:8px!important;font-family:"Noto Sans Thai",sans-serif;font-size:1rem;line-height:1.5rem;padding:.5rem 1.5rem;margin:0 1.5rem;color:#fff}.btn-group .btn.btn-icon i{font-size:1rem;display:flex;margin-right:10px}.btn-group .btn:focus{outline:0;box-shadow:none}.btn-group .btn.btn-primary-deep{background-color:var(--color-primary-800);border-color:var(--color-primary-800);transition:all .3s ease-out}.btn-group .btn.btn-primary-deep:hover{background-color:var(--color-secondary-800);border-color:var(--color-secondary-800);transition:all .3s ease-out}.btn-group .btn.btn-primary{background-color:var(--color-primary-500);border-color:var(--color-primary-500);transition:all .3s ease-out}.btn-group .btn.btn-primary:hover{background-color:var(--color-secondary-500);border-color:var(--color-secondary-500);transition:all .3s ease-out}.tooltip-arrow:before{border-right-color:var(--color-primary-500);border-bottom-color:var(--color-primary-500)!important}.tooltip-inner{text-align:left;font-family:"Noto Sans Thai",sans-serif;background-color:var(--color-primary-500);color:#fff}.icon-hover{cursor:pointer}.action-page{justify-content:space-between}.action-page .action-back .link{display:flex;align-items:center;font-family:"Noto Sans Thai",sans-serif;font-size:1rem;line-height:1.5rem;color:#000;text-decoration:none}.action-page .action-back .link i{font-size:20px;display:flex;margin-right:5px}body{position:relative;font-family:"Noto Sans Thai",sans-serif;font-weight:400}
+/*
+--color-secondary-50: #fff1e6;
+--color-secondary-100: #ffd5b2;
+--color-secondary-200: #ffbe8a;
+--color-secondary-300: #ffa257;
+--color-secondary-400: #ff8f33;
+--color-secondary-500: #ff7300;
+--color-secondary-600: #e96a01;
+--color-secondary-700: #b75301;
+--color-secondary-800: #8e4001;
+--color-secondary-900: #6b3000;
+*/

@@ -1,0 +1,9 @@
+/.vs
+/core_admin/bin
+/core_admin/Logs
+/core_admin/obj
+# --- Local secrets (real values live here, never committed) ---
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Production.json
+!appsettings.Development.json.example

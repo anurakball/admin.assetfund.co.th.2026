@@ -1,0 +1,161 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<script src="/js/spectrum.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/Admin/spectrum.min.css">
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group mb-3">
+            <label class="form-label">ค้นหา NPA <small class="text-muted">(พิมพ์อย่างน้อย 3 ตัวอักษร)</small></label>
+            <input type="text" id="product_search" class="form-control" placeholder="ค้นหา product_code / project..." autocomplete="off" style="background-color:#fff;">
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">เลือก NPA</label>
+            <select name="npa_id" id="npa_id_select" class="form-control" style="background-color:#fff;">
+                <option value="">-- กรุณาค้นหาและเลือกรายการ --</option>
+            </select>
+        </div>
+
+        <input type="hidden" name="title" id="title">
+
+        <input type="hidden" name="highlight_status" value="0">
+
+        <input type="hidden" name="suggest_status" value="0">
+
+        <div class="form-group mb-3">
+            <label class="form-label">ย่าน/ทำเล</label>
+            <select name="group_id" class="form-control" style="background-color:#fff;">
+                <option value="">-- เลือกย่าน/ทำเล --</option>
+                @if (ViewBag.NpaLocateList != null)
+                {
+                    foreach (System.Data.DataRow row in ((System.Data.DataTable)ViewBag.NpaLocateList).Rows)
+                    {
+                        <option value="@row["id"]">@row["title"]</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Facility</label>
+            <select name="facility_id" class="form-control" style="background-color:#fff;">
+                <option value="">-- เลือก Facility --</option>
+                @if (ViewBag.NpaFacilityList != null)
+                {
+                    foreach (System.Data.DataRow row in ((System.Data.DataTable)ViewBag.NpaFacilityList).Rows)
+                    {
+                        <option value="@row["id"]">@row["title"]</option>
+                    }
+                }
+            </select>
+        </div>
+
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+
+    function sConfirmCustom(form) 
+    {
+        var titleField = $('[name="npa_id"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', npa_id: 'กรุณากรอกข้อมูล', text: 'กรุณาเลือก NPA ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+         
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+
+    //----- Add fn addHouse
+    Date.prototype.addHours = function(h) {
+        this.setTime(this.getTime() + (h*60*60*1000));
+        return this;
+    }
+    Date.prototype.addMinutes = function(m) {
+        this.setTime(this.getTime() + (m*60*1000));
+        return this;
+    }
+
+    $(document).ready(function() {
+
+        var searchTimer = null;
+
+        $('#product_search').on('input', function() {
+            var q = $(this).val().trim();
+            clearTimeout(searchTimer);
+            if (q.length < 3) {
+                $('#npa_id_select').html('<option value="">-- กรุณาค้นหาและเลือกรายการ --</option>');
+                return;
+            }
+            searchTimer = setTimeout(function() {
+                $.getJSON('/Admin/NpaStatus/SearchProduct', { q: q }, function(data) {
+                    if (data.error) {
+                        $('#npa_id_select').html('<option value="">-- เกิดข้อผิดพลาด: ' + data.error + ' --</option>');
+                        return;
+                    }
+                    var opts = '<option value="">-- เลือกรายการ (' + data.length + ' รายการ) --</option>';
+                    $.each(data, function(i, item) {
+                        opts += '<option value="' + item.id + '">' + $('<div>').text(item.text).html() + '</option>';
+                    });
+                    $('#npa_id_select').html(opts);
+                });
+            }, 400);
+        });
+
+        $('#npa_id_select').on('change', function() {
+            var selected = $(this).find('option:selected');
+            if ($(this).val() !== '') {
+                $('#title').val(selected.text());
+            }
+        });
+
+         
+    });
+</script>
+}

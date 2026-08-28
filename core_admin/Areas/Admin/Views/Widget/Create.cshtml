@@ -1,0 +1,155 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+         
+        <div class="row">  
+            @{
+                string cat_id = _session.GetString("admin_" + mod.Name + "_search_" + mod_config.TableCateField) ?? "0";
+            }
+            @*@Html.Raw(_admin.InputSelectDB("กลุ่ม", "cat_id", cat_id, showAllOption: false,
+            "web_admin_access"))*@
+            <div class="col-12 mb-3">
+                @Html.Raw(
+                _admin.InputSelectDB(
+                mod_config.TableCateLabel,
+                mod_config.TableCateField,
+                cat_id,
+                showAllOption: true,
+                mod_config.TableCate,
+                value_field: "id",
+                text_field: mod_config.TableCateTitle,
+                order_by: mod_config.TableCateOrderby,
+                sort: mod_config.TableCateSort,
+                txtAllOption: "เลือก"
+                ))
+
+            </div>
+        </div>
+         
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ", "title", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("ICON", "img1", ""))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("Mod Name", "mod_name", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+            </div>
+        </div>
+
+        <div class="row">
+            @Html.Raw(_admin.InputTextArea2("HTML Code", "info", "<section class='page--section'>"+System.Environment.NewLine+System.Environment.NewLine+System.Environment.NewLine+"</section>", 20))
+        </div> 
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+
+    function sConfirmCustom(form) {
+
+        if (document.getElementById('id_issue_date_config_2').checked == true) {
+            if (
+                $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+                $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+            ) {
+                sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+                return false;
+            }
+        }
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+
+    //----- Add fn addHouse
+    Date.prototype.addHours = function(h) {
+        this.setTime(this.getTime() + (h*60*60*1000));
+        return this;
+    }
+    Date.prototype.addMinutes = function(m) {
+        this.setTime(this.getTime() + (m*60*1000));
+        return this;
+    }
+
+    $(document).ready(function() {
+        
+         
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0,
+                onClose: function(current_time, $input){
+                    //console.log('input value', $input.datetimepicker('getValue'));
+                    //console.log('new Date()', new Date().addHours(-1));
+                    if ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)) {
+                        $input.val('');
+                        sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ น้อยวันที่ปัจจุบันได้", "warning");
+                        //console.log('condition', ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)));
+                    }
+                },
+            });
+        },500);
+    });
+</script>
+}

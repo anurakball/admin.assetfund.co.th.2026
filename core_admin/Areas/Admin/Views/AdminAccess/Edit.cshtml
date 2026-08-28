@@ -1,0 +1,84 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var adminMenu = _admin.AdminMenu();
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfrim(this);" class="">
+        <div class="row">
+            @Html.AntiForgeryToken()
+
+            <div class="col-12 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ", "title", (row["title"].ToString() ?? "").Trim()))
+            </div>
+
+            @if (adminMenu != null && adminMenu.Count > 0) {
+
+                <div class="ms-auto mb-3" style="width: max-content;">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="checkALL" onclick="checkAccessAll($(this))">
+                        <label class="form-check-label" for="checkALL">ทั้งหมด</label>
+                    </div>
+                </div>
+            }
+
+            <div class="table-responsive">
+                <table class="table" id="table_access">
+                    <tbody>
+                        @foreach (var item in adminMenu)
+                        {
+                            @if (item.SubMenu != null && item.SubMenu.Count > 0)
+                            {
+                                <tr class="table-title">
+                                    <td colspan="9">
+                                        @item.Title
+                                    </td>
+                                </tr>
+                                foreach (var item2 in item.SubMenu)
+                                {
+                                    @await Component.InvokeAsync("AdminAccessRow", new { AdminMenuModel = item2, padding = "y", dataRow = _admin.getAccess(item2.ModuleName, Convert.ToInt32(row["id"])) })
+                                }
+                            }
+                            else
+                            {
+                                @await Component.InvokeAsync("AdminAccessRow", new { AdminMenuModel = item, padding = "", dataRow = _admin.getAccess(item.ModuleName, Convert.ToInt32(row["id"])) })
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+<br/>
+<br/>
+<br/>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    $(document).ready(function() {
+        checkLockedRow(modConfig, jsonRow);
+        
+    });
+</script>
+}

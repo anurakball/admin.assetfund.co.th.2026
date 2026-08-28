@@ -1,0 +1,145 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    ViewBag.Title = "รายละเอียด";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+
+    // ----- ข้อมูลสรุปของ submission -----
+    string formName = _admin.GetCatTitle("web_eform", row["cat_id"] + "");
+    if (string.IsNullOrWhiteSpace(formName)) { formName = "แบบฟอร์ม #" + row["cat_id"]; }
+    string ip = (row.Table.Columns.Contains("des") ? row["des"] + "" : "").Trim();
+    string createdAt = "";
+    try { createdAt = ((DateTime)row["created_at"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"); } catch { }
+
+    var pairs = EFormSubmitHelper.ParsePairs(row["info"] + "", row["en_info"] + "");
+    int answered = pairs.Count(p => !p.IsEmpty);
+
+    // ----- UTM (แสดงเฉพาะที่มีค่า) -----
+    var utmKeys = new (string Key, string Label)[]
+    {
+        ("utm_source","utm_source"), ("utm_medium","utm_medium"), ("utm_campaign","utm_campaign"),
+        ("utm_content","utm_content"), ("utm_term","utm_term"), ("utm_id","utm_id")
+    };
+    var utmRows = utmKeys
+        .Where(u => row.Table.Columns.Contains(u.Key) && !string.IsNullOrWhiteSpace(row[u.Key] + ""))
+        .Select(u => (u.Label, Value: (row[u.Key] + "").Trim()))
+        .ToList();
+}
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+<style>
+    .efd-card { border:1px solid #e5e7eb; border-radius:12px; background:#fff; box-shadow:0 2px 8px rgba(16,40,34,.05); margin-bottom:1.5rem; overflow:hidden; }
+    .efd-head { background:linear-gradient(135deg,#0b6b4f,#129d76); color:#fff; padding:1.1rem 1.4rem; }
+    .efd-head h3 { margin:0; font-size:1.25rem; font-weight:700; color:#fff; }
+    .efd-meta { display:flex; flex-wrap:wrap; gap:.5rem 1.75rem; padding:1rem 1.4rem; border-bottom:1px solid #eef1f4; }
+    .efd-meta .m-item { display:flex; flex-direction:column; }
+    .efd-meta .m-label { font-size:.74rem; color:#8a94a6; text-transform:uppercase; letter-spacing:.03em; }
+    .efd-meta .m-value { font-size:.95rem; color:#1f2a37; font-weight:600; }
+    .efd-utm { padding:.5rem 1.4rem 1rem; display:flex; flex-wrap:wrap; gap:.4rem; }
+    .efd-utm .badge { background:#eef2f7; color:#475569; font-weight:500; font-size:.78rem; }
+    .efd-answers { width:100%; border-collapse:collapse; }
+    .efd-answers th { background:#f8fafc; color:#475569; font-size:.82rem; text-align:left; padding:.7rem 1rem; border-bottom:2px solid #e5e7eb; }
+    .efd-answers td { padding:.7rem 1rem; border-bottom:1px solid #eef1f4; vertical-align:top; }
+    .efd-answers tr:last-child td { border-bottom:none; }
+    .efd-answers .q-no { width:44px; color:#94a3b8; text-align:center; font-size:.85rem; }
+    .efd-answers .q-label { width:38%; color:#334155; font-weight:600; }
+    .efd-answers .q-value { color:#1f2a37; white-space:normal; word-break:break-word; }
+    .efd-answers .q-empty { color:#b0b7c3; font-style:italic; }
+    .efd-file { display:inline-flex; align-items:center; gap:.4rem; padding:.28rem .7rem; margin:.15rem .3rem .15rem 0; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; color:#1d4ed8; text-decoration:none; font-size:.88rem; }
+    .efd-file:hover { background:#dbeafe; color:#1e40af; }
+    .efd-empty-note { padding:1.5rem; text-align:center; color:#94a3b8; }
+</style>
+
+<div class="efd-card">
+    <div class="efd-head">
+        <h3><i class="bi bi-clipboard-check"></i> @formName</h3>
+    </div>
+    <div class="efd-meta">
+        <div class="m-item"><span class="m-label">รหัสรายการ</span><span class="m-value">#@row["id"]</span></div>
+        <div class="m-item"><span class="m-label">วันที่-เวลาที่ส่ง</span><span class="m-value">@(string.IsNullOrEmpty(createdAt) ? "-" : createdAt)</span></div>
+        <div class="m-item"><span class="m-label">จำนวนช่องที่กรอก</span><span class="m-value">@answered ช่อง</span></div>
+        <div class="m-item"><span class="m-label">IP Address</span><span class="m-value">@(string.IsNullOrEmpty(ip) ? "-" : ip)</span></div>
+    </div>
+    @if (utmRows.Count > 0)
+    {
+        <div class="efd-utm">
+            @foreach (var u in utmRows)
+            {
+                <span class="badge">@u.Label: @u.Value</span>
+            }
+        </div>
+    }
+</div>
+
+<div class="efd-card">
+    @if (pairs.Count == 0)
+    {
+        <div class="efd-empty-note">ไม่พบข้อมูลที่กรอกในรายการนี้</div>
+    }
+    else
+    {
+        <table class="efd-answers">
+            <thead>
+                <tr>
+                    <th class="q-no">#</th>
+                    <th class="q-label">หัวข้อ / คำถาม</th>
+                    <th>คำตอบ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int no = 1; }
+                @foreach (var p in pairs)
+                {
+                    <tr>
+                        <td class="q-no">@no</td>
+                        <td class="q-label">@p.Label</td>
+                        <td class="q-value">
+                            @if (p.IsEmpty)
+                            {
+                                <span class="q-empty">— ไม่ได้กรอก —</span>
+                            }
+                            else if (EFormSubmitHelper.IsFileValue(p.Value))
+                            {
+                                foreach (var fname in EFormSubmitHelper.FileTokens(p.Value))
+                                {
+                                    <a class="efd-file" href="@_utility.frontURL("/uploads/eform/" + fname)" target="_blank" rel="noopener">
+                                        <i class="bi bi-paperclip"></i> @fname
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                @Html.Raw(EFormSubmitHelper.ValueToHtml(p.Value))
+                            }
+                        </td>
+                    </tr>
+                    no++;
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+
+    $(document).ready(function() {
+        checkLockedRow(modConfig, jsonRow);
+    });
+</script>
+}

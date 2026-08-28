@@ -1,0 +1,695 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@using System.Text.Json
+@using System.Text.RegularExpressions
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var _utility = (Utility)ViewBag._utility;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+
+    // ---------- helpers ----------
+    bool HasCol(string c) => row.Table.Columns.Contains(c);
+    string C(string c) => (HasCol(c) && row[c] != null) ? row[c].ToString() : "";
+
+    // form_json (jsonb) -> flat dictionary ("Sibling[0].Name", "Education[0].Gpa", ...)
+    var fj = new Dictionary<string, string>();
+    try
+    {
+        var raw = C("form_json");
+        if (!string.IsNullOrWhiteSpace(raw))
+        {
+            using var doc = JsonDocument.Parse(raw);
+            foreach (var p in doc.RootElement.EnumerateObject())
+            {
+                fj[p.Name] = p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() : p.Value.ToString();
+            }
+        }
+    }
+    catch { }
+
+    string J(string k) => fj.TryGetValue(k, out var v) ? (v ?? "") : "";
+    // authoritative DB column, fall back to form_json key
+    string G(string col, string jsonKey = null) { var v = C(col); return !string.IsNullOrWhiteSpace(v) ? v : (jsonKey != null ? J(jsonKey) : ""); }
+    string Val(string s) => string.IsNullOrWhiteSpace(s) ? "—" : s.Trim();
+
+    // collect indices for a repeatable group e.g. "Sibling" -> [0,1,...]
+    List<int> Idx(string prefix)
+    {
+        var set = new SortedSet<int>();
+        var re = new Regex("^" + Regex.Escape(prefix) + @"\[(\d+)\]\.");
+        foreach (var k in fj.Keys)
+        {
+            var m = re.Match(k);
+            if (m.Success) set.Add(int.Parse(m.Groups[1].Value));
+        }
+        return set.ToList();
+    }
+
+    string catTitle = C("job_title");
+    if (string.IsNullOrWhiteSpace(catTitle) && !string.IsNullOrWhiteSpace(C("cat_id")))
+    {
+        try
+        {
+            var a = ViewBag._db.ExecuteQuery("select title from web_core_news where id = @id", new Dictionary<string, object>() { { "id", C("cat_id") } });
+            if (a.Rows.Count > 0) catTitle = a.Rows[0]["title"].ToString();
+        }
+        catch { }
+    }
+
+    // file url builder (front-end uploads/job-apply-full)
+    Func<string, string> FileUrl = (name) => _utility.frontURL("/uploads/job-apply-full/" + name);
+
+    // document_files -> list of names (JSON array or comma string)
+    var docNames = new List<string>();
+    var docRaw = C("document_files");
+    if (!string.IsNullOrWhiteSpace(docRaw))
+    {
+        try
+        {
+            using var d = JsonDocument.Parse(docRaw);
+            if (d.RootElement.ValueKind == JsonValueKind.Array)
+                foreach (var e in d.RootElement.EnumerateArray()) docNames.Add(e.GetString());
+        }
+        catch { docNames.AddRange(docRaw.Split(',', StringSplitOptions.RemoveEmptyEntries)); }
+    }
+
+    string skillLevel(string v) => string.IsNullOrWhiteSpace(v) ? "—" : v;
+    string langLabel(string v)
+    {
+        var t = (v ?? "").Trim().ToLower();
+        if (t == "en") return "อังกฤษ (en)";
+        if (t == "th") return "ไทย (th)";
+        return v;
+    }
+    string applicantName = string.Join(" ", new[] { C("prefix") == "อื่นๆ" ? C("prefix_other") : C("prefix"), C("firstname_th"), C("lastname_th") }.Where(s => !string.IsNullOrWhiteSpace(s)));
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<style>
+    .jf { max-width: 1140px; margin: 0 auto; --jf-primary:#1f7a44; --jf-primary-dark:#155e33; --jf-border:#d9dee3; --jf-bg:#f6f8f9; --jf-head:#eef2f4; --jf-muted:#6b7580; }
+    .jf__card { background:#fff; border:1px solid var(--jf-border); border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,.05); padding:1.5rem; margin-bottom:1.25rem; }
+    .jf__card--head { border-top:4px solid var(--jf-primary); }
+    .jf__card--tint { background:var(--jf-bg); }
+    .jf__brand { font-size:1.1rem; font-weight:700; color:var(--jf-primary-dark); margin-bottom:.25rem; }
+    .jf__legend { display:flex; align-items:center; gap:.75rem; padding-bottom:.9rem; margin-bottom:1.25rem; border-bottom:2px solid var(--jf-border); }
+    .jf__num { display:inline-flex; align-items:center; justify-content:center; width:2.1rem; height:2.1rem; border-radius:50%; background:var(--jf-primary); color:#fff; font-weight:700; flex:0 0 auto; }
+    .jf__title { font-size:1.15rem; margin:0; color:#222; }
+    .jf__subtitle { font-size:1rem; color:var(--jf-primary-dark); margin:1.25rem 0 .6rem; font-weight:600; }
+    .jf__hint { color:var(--jf-muted); font-size:.85rem; font-weight:400; }
+    .jf__grid { display:grid; grid-template-columns:repeat(12,1fr); gap:.9rem 1rem; }
+    .jf__field { display:flex; flex-direction:column; gap:.3rem; }
+    .jf__field > label { font-size:.82rem; color:var(--jf-muted); font-weight:500; }
+    .jf__val { min-height:2.35rem; padding:.5rem .75rem; background:var(--jf-bg); border:1px solid var(--jf-border); border-radius:8px; color:#222; word-break:break-word; white-space:pre-wrap; }
+    .jf__val--empty { color:#adb5bd; }
+    .jf__divider { border:0; border-top:1px dashed var(--jf-border); margin:.4rem 0; grid-column:1/-1; }
+    .c1{grid-column:span 1}.c2{grid-column:span 2}.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c9{grid-column:span 9}.c12{grid-column:span 12}
+    @@media (max-width:767px){ .jf__grid > [class*="grid-column"], .jf__field{grid-column:1/-1 !important;} .jf__grid{grid-template-columns:1fr;} }
+    .jf__table-wrap { overflow-x:auto; }
+    .jf__table { width:100%; border-collapse:collapse; min-width:640px; }
+    .jf__table th { background:var(--jf-head); font-size:.82rem; font-weight:600; text-align:left; padding:.55rem .7rem; border:1px solid var(--jf-border); white-space:nowrap; }
+    .jf__table td { padding:.5rem .7rem; border:1px solid var(--jf-border); vertical-align:top; }
+    .jf__cell-label { font-weight:600; color:#333; white-space:nowrap; }
+    .jf__block { border:1px solid var(--jf-border); border-left:3px solid var(--jf-primary); border-radius:8px; padding:1.1rem; margin-bottom:1rem; background:var(--jf-bg); }
+    .jf__block-head { font-weight:600; color:var(--jf-primary-dark); margin-bottom:.75rem; }
+    .jf__photo { width:140px; aspect-ratio:3/4; object-fit:cover; border:1px solid var(--jf-border); border-radius:8px; background:var(--jf-head); }
+    .jf__photo-empty { width:140px; aspect-ratio:3/4; display:flex; align-items:center; justify-content:center; border:2px dashed var(--jf-border); border-radius:8px; color:#adb5bd; font-size:.8rem; text-align:center; background:var(--jf-head); }
+    .jf__legal { color:var(--jf-muted); font-size:.86rem; line-height:1.8; text-indent:2rem; }
+    .jf__legal-item { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem 1rem; padding:.6rem .85rem; background:#fff; border:1px solid var(--jf-border); border-radius:8px; margin-bottom:.5rem; }
+    .jf__legal-q { flex:1 1 320px; color:#333; }
+    .jf__badge { display:inline-block; padding:.15rem .6rem; border-radius:999px; font-size:.82rem; font-weight:600; }
+    .jf__badge--yes { background:#e7f4ec; color:var(--jf-primary-dark); }
+    .jf__badge--no { background:#f1f3f5; color:#6b7580; }
+    .jf__file { display:flex; align-items:center; gap:.6rem; padding:.55rem .8rem; background:var(--jf-bg); border:1px solid var(--jf-border); border-radius:8px; margin-bottom:.5rem; }
+    .jf__file a { font-weight:600; }
+    .jf__meta { font-size:.8rem; color:var(--jf-muted); word-break:break-all; }
+    .jf__actions { display:flex; justify-content:center; gap:1rem; margin:1.5rem 0 .5rem; }
+    .jf__print-head { display:none; }
+    .jf__print-btn { display:inline-flex; align-items:center; gap:.5rem; padding:.6rem 1.6rem; font-size:1rem; font-weight:600; color:#fff; background:var(--jf-primary); border:none; border-radius:8px; cursor:pointer; transition:background .15s; }
+    .jf__print-btn:hover { background:var(--jf-primary-dark); }
+
+    /* ---------- โหมดพิมพ์ ---------- */
+    @@media print {
+        /* ซ่อนส่วนของระบบหลังบ้าน ให้เหลือเฉพาะใบสมัคร */
+        .pcoded-navbar, .pcoded-header, .page-header, .navbar, header,
+        #relogin_section, .modal, .modal-backdrop, .loading, .jf__noprint { display:none !important; }
+        .pcoded-main-container { margin:0 !important; }
+        .pcoded-wrapper, .pcoded-content, .pcoded-inner-content { margin:0 !important; padding:0 !important; }
+        html, body { background:#fff !important; width:auto !important; height:auto !important; overflow:visible !important; }
+        .jf { max-width:100% !important; margin:0 !important; }
+        .jf__print-head { display:block !important; margin-bottom:1rem; padding-bottom:.6rem; border-bottom:2px solid var(--jf-primary); }
+        .jf__print-head h1 { font-size:1.35rem; margin:0 0 .2rem; color:var(--jf-primary-dark); }
+        .jf__print-head p { margin:0; font-size:.9rem; color:#333; }
+        .jf__card { box-shadow:none !important; border:1px solid #bbb !important; margin-bottom:.7rem; padding:.9rem 1rem; break-inside:auto; }
+        .jf__card--head { border-top:3px solid var(--jf-primary) !important; }
+        .jf__legend { margin-bottom:.8rem; padding-bottom:.5rem; break-after:avoid; }
+        .jf__num { width:1.8rem; height:1.8rem; }
+        .jf__title { font-size:1rem; }
+        .jf__subtitle { margin:.8rem 0 .4rem; break-after:avoid; }
+        /* หน่วยย่อยไม่ให้ถูกตัดกลางเวลาข้ามหน้า */
+        .jf__field, .jf__block, .jf__legal-item, .jf__file, .jf__table tr { break-inside:avoid; }
+        .jf__val { min-height:0; padding:.3rem .5rem; background:#f4f6f7 !important; font-size:.82rem; }
+        .jf__grid { gap:.5rem .7rem; }
+        .jf__field > label { font-size:.72rem; }
+        .jf__table { min-width:0 !important; font-size:.78rem; }
+        .jf__table th, .jf__table td { padding:.3rem .45rem; }
+        .jf__table-wrap { overflow:visible !important; }
+        .jf__photo, .jf__photo-empty { max-width:120px; }
+        a { text-decoration:none !important; color:#000 !important; }
+        a[href]::after { content:"" !important; }
+        /* คงสีพื้น/ป้ายให้เหมือนต้นฉบับตอนพิมพ์ */
+        * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+        @@page { size:A4; margin:10mm 8mm; }
+    }
+</style>
+
+@{
+    // reusable inline field renderer via local function producing HTML is awkward in Razor;
+    // instead we inline the label/value markup below.
+}
+
+<div class="jf">
+
+    @* ---------- หัวข้อสำหรับตอนพิมพ์ (แสดงเฉพาะเวลา print) ---------- *@
+    <div class="jf__print-head">
+        <h1>ใบสมัครงาน — รายชื่อผู้สมัครงาน(ครบ)</h1>
+        <p>ผู้สมัคร: @Val(applicantName) &nbsp;|&nbsp; ตำแหน่ง: @Val(catTitle) &nbsp;|&nbsp; รหัสใบสมัคร: @C("id")</p>
+    </div>
+
+    @* ---------- หัวใบสมัคร ---------- *@
+    <div class="jf__card jf__card--head">
+        <div class="jf__grid">
+            <div class="c9">
+                <p class="jf__brand">บริษัท บริหารสินทรัพย์สุขุมวิท จำกัด (บสส.)</p>
+                <div class="jf__grid" style="margin-top:.5rem">
+                    <div class="jf__field c12">
+                        <label>ตำแหน่งที่สมัคร</label>
+                        <div class="jf__val">@Val(catTitle)</div>
+                    </div>
+                    @* ตำแหน่งลำดับที่ 2/3 — ผู้สมัครเลือกก็ได้ ไม่เลือกก็ได้ *@
+                    <div class="jf__field c6">
+                        <label>ตำแหน่งที่สมัคร (ลำดับที่ 2)</label>
+                        <div class="jf__val">@Val(C("job_title2"))</div>
+                    </div>
+                    <div class="jf__field c6">
+                        <label>ตำแหน่งที่สมัคร (ลำดับที่ 3)</label>
+                        <div class="jf__val">@Val(C("job_title3"))</div>
+                    </div>
+                    <div class="jf__field c6">
+                        <label>ภาษาที่กรอกใบสมัคร</label>
+                        <div class="jf__val">@Val(langLabel(G("job_lang", "job_lang")))</div>
+                    </div>
+                    <div class="jf__field c6">
+                        <label>เงินเดือนที่ต้องการ (บาท)</label>
+                        <div class="jf__val">@Val(G("expected_salary", "ExpectedSalary"))</div>
+                    </div>
+                    <div class="jf__field c3">
+                        <label>วันที่เริ่มงานได้</label>
+                        <div class="jf__val">@Val(G("available_date", "AvailableDate"))</div>
+                    </div>
+                    <div class="jf__field c3">
+                        <label>วันที่สมัคร</label>
+                        <div class="jf__val">@Val(G("apply_date", "ApplyDate"))</div>
+                    </div>
+                </div>
+            </div>
+            <div class="c3">
+                <div class="jf__field">
+                    <label>รูปถ่าย</label>
+                    @if (!string.IsNullOrWhiteSpace(C("photo_file")))
+                    {
+                        <a href="@FileUrl(C("photo_file"))" target="_blank" rel="noopener">
+                            <img class="jf__photo" src="@FileUrl(C("photo_file"))" alt="รูปถ่ายผู้สมัคร" />
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="jf__photo-empty">ไม่มีรูปถ่าย</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ---------- 1. รายละเอียดส่วนบุคคล ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">1</span><h2 class="jf__title">รายละเอียดส่วนบุคคล</h2></div>
+        <div class="jf__grid">
+            <div class="jf__field c3"><label>คำนำหน้า</label><div class="jf__val">@Val(G("prefix", "Prefix"))</div></div>
+            <div class="jf__field c3"><label>คำนำหน้า (อื่นๆ)</label><div class="jf__val">@Val(G("prefix_other", "PrefixOther"))</div></div>
+            <div class="jf__divider"></div>
+            <div class="jf__field c3"><label>ชื่อ (ภาษาไทย)</label><div class="jf__val">@Val(G("firstname_th", "FirstNameTh"))</div></div>
+            <div class="jf__field c3"><label>นามสกุล (ภาษาไทย)</label><div class="jf__val">@Val(G("lastname_th", "LastNameTh"))</div></div>
+            <div class="jf__field c3"><label>First Name (English)</label><div class="jf__val">@Val(G("firstname_en", "FirstNameEn"))</div></div>
+            <div class="jf__field c3"><label>Last Name (English)</label><div class="jf__val">@Val(G("lastname_en", "LastNameEn"))</div></div>
+            <div class="jf__field c4"><label>วัน เดือน ปีเกิด</label><div class="jf__val">@Val(G("birth_date", "BirthDate"))</div></div>
+            <div class="jf__field c4"><label>อายุ</label><div class="jf__val">@Val(G("age", "Age"))</div></div>
+            <div class="jf__field c4"><label>สัญชาติ</label><div class="jf__val">@Val(G("nationality", "Nationality"))</div></div>
+            <div class="jf__field c3"><label>ส่วนสูง (ซม.)</label><div class="jf__val">@Val(G("height", "Height"))</div></div>
+            <div class="jf__field c3"><label>น้ำหนัก (กก.)</label><div class="jf__val">@Val(G("weight", "Weight"))</div></div>
+            <div class="jf__field c3"><label>ชื่อเล่น</label><div class="jf__val">@Val(G("nickname", "Nickname"))</div></div>
+            <div class="jf__field c3"><label>โทรศัพท์ (มือถือ)</label><div class="jf__val">@Val(G("mobile", "Mobile"))</div></div>
+            <div class="jf__field c6"><label>อีเมล</label><div class="jf__val">@Val(G("email", "Email"))</div></div>
+            <div class="jf__divider"></div>
+            <div class="jf__field c6"><label>ที่อยู่ปัจจุบัน (ที่สามารถติดต่อได้)</label><div class="jf__val">@Val(G("current_address", "CurrentAddress"))</div></div>
+            <div class="jf__field c3"><label>รหัสไปรษณีย์</label><div class="jf__val">@Val(G("current_zip", "CurrentZip"))</div></div>
+            <div class="jf__field c3"><label>โทรศัพท์</label><div class="jf__val">@Val(G("current_phone", "CurrentPhone"))</div></div>
+            <div class="jf__field c6"><label>ที่อยู่ตามทะเบียนบ้าน</label><div class="jf__val">@Val(G("registered_address", "RegisteredAddress"))</div></div>
+            <div class="jf__field c3"><label>รหัสไปรษณีย์</label><div class="jf__val">@Val(G("registered_zip", "RegisteredZip"))</div></div>
+            <div class="jf__field c3"><label>โทรศัพท์</label><div class="jf__val">@Val(G("registered_phone", "RegisteredPhone"))</div></div>
+            <div class="jf__divider"></div>
+            <div class="jf__field c4"><label>สถานภาพทางทหาร</label><div class="jf__val">@Val(G("military_status", "MilitaryStatus"))</div></div>
+            <div class="jf__field c4"><label>สถานภาพทางทหาร (อื่นๆ)</label><div class="jf__val">@Val(G("military_status_other", "MilitaryStatusOther"))</div></div>
+            <div class="jf__divider"></div>
+            <div class="jf__field c3"><label>เลขที่บัตรประชาชน</label><div class="jf__val">@Val(G("idcard", "IdCard"))</div></div>
+            <div class="jf__field c3"><label>วันออกบัตร</label><div class="jf__val">@Val(G("id_issue_date", "IdIssueDate"))</div></div>
+            <div class="jf__field c3"><label>วันหมดอายุ</label><div class="jf__val">@Val(G("id_expiry_date", "IdExpiryDate"))</div></div>
+            <div class="jf__field c3"><label>ออกให้ ณ อำเภอ / เขต</label><div class="jf__val">@Val(G("id_issue_place", "IdIssuePlace"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- 2. รายละเอียดครอบครัว ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">2</span><h2 class="jf__title">รายละเอียดครอบครัว</h2></div>
+
+        <h3 class="jf__subtitle">บิดา</h3>
+        <div class="jf__grid">
+            <div class="jf__field c5"><label>ชื่อ - นามสกุล</label><div class="jf__val">@Val(J("FatherName"))</div></div>
+            <div class="jf__field c2"><label>อายุ (ปี)</label><div class="jf__val">@Val(J("FatherAge"))</div></div>
+            <div class="jf__field c3"><label>อาชีพ</label><div class="jf__val">@Val(J("FatherJob"))</div></div>
+            <div class="jf__field c2"><label>สถานะ</label><div class="jf__val">@Val(J("FatherStatus"))</div></div>
+            <div class="jf__field c9"><label>ที่อยู่</label><div class="jf__val">@Val(J("FatherAddress"))</div></div>
+            <div class="jf__field c3"><label>โทรศัพท์</label><div class="jf__val">@Val(J("FatherPhone"))</div></div>
+        </div>
+
+        <h3 class="jf__subtitle">มารดา</h3>
+        <div class="jf__grid">
+            <div class="jf__field c5"><label>ชื่อ - นามสกุล</label><div class="jf__val">@Val(J("MotherName"))</div></div>
+            <div class="jf__field c2"><label>อายุ (ปี)</label><div class="jf__val">@Val(J("MotherAge"))</div></div>
+            <div class="jf__field c3"><label>อาชีพ</label><div class="jf__val">@Val(J("MotherJob"))</div></div>
+            <div class="jf__field c2"><label>สถานะ</label><div class="jf__val">@Val(J("MotherStatus"))</div></div>
+            <div class="jf__field c9"><label>ที่อยู่</label><div class="jf__val">@Val(J("MotherAddress"))</div></div>
+            <div class="jf__field c3"><label>โทรศัพท์</label><div class="jf__val">@Val(J("MotherPhone"))</div></div>
+        </div>
+
+        <h3 class="jf__subtitle">พี่น้อง</h3>
+        <div class="jf__grid" style="margin-bottom:.75rem">
+            <div class="jf__field c3"><label>จำนวนพี่น้อง (คน)</label><div class="jf__val">@Val(J("SiblingCount"))</div></div>
+            <div class="jf__field c3"><label>ท่านเป็นบุตรคนที่</label><div class="jf__val">@Val(J("SiblingOrder"))</div></div>
+        </div>
+        @{ var sibs = Idx("Sibling"); }
+        @if (sibs.Count > 0)
+        {
+            <div class="jf__table-wrap">
+                <table class="jf__table">
+                    <thead><tr><th style="width:60px">ลำดับ</th><th>ชื่อ - สกุล</th><th style="width:80px">อายุ</th><th>อาชีพ</th><th>สถานศึกษา / สถานที่ทำงาน</th><th>เบอร์โทรศัพท์</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in sibs)
+                        {
+                            <tr>
+                                <td>@(sibs.IndexOf(i) + 1)</td>
+                                <td>@Val(J($"Sibling[{i}].Name"))</td>
+                                <td>@Val(J($"Sibling[{i}].Age"))</td>
+                                <td>@Val(J($"Sibling[{i}].Job"))</td>
+                                <td>@Val(J($"Sibling[{i}].Place"))</td>
+                                <td>@Val(J($"Sibling[{i}].Phone"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีข้อมูลพี่น้อง —</div> }
+
+        <h3 class="jf__subtitle">สถานภาพสมรส</h3>
+        <div class="jf__grid">
+            <div class="jf__field c4"><label>สถานภาพสมรส</label><div class="jf__val">@Val(G("marital_status", "MaritalStatus"))</div></div>
+            <div class="jf__divider"></div>
+            <div class="jf__field c5"><label>ชื่อ - นามสกุล คู่สมรส</label><div class="jf__val">@Val(J("SpouseName"))</div></div>
+            <div class="jf__field c2"><label>อายุ (ปี)</label><div class="jf__val">@Val(J("SpouseAge"))</div></div>
+            <div class="jf__field c2"><label>อาชีพ</label><div class="jf__val">@Val(J("SpouseJob"))</div></div>
+            <div class="jf__field c3"><label>ตำแหน่ง</label><div class="jf__val">@Val(J("SpousePosition"))</div></div>
+            <div class="jf__field c8"><label>สถานที่ทำงาน</label><div class="jf__val">@Val(J("SpouseWorkplace"))</div></div>
+            <div class="jf__field c4"><label>โทรศัพท์</label><div class="jf__val">@Val(J("SpousePhone"))</div></div>
+        </div>
+
+        <h3 class="jf__subtitle">บุตร</h3>
+        <div class="jf__grid" style="margin-bottom:.75rem">
+            <div class="jf__field c3"><label>จำนวนบุตร (คน)</label><div class="jf__val">@Val(J("ChildCount"))</div></div>
+            <div class="jf__field c3"><label>เพศชาย (คน)</label><div class="jf__val">@Val(J("ChildMale"))</div></div>
+            <div class="jf__field c3"><label>เพศหญิง (คน)</label><div class="jf__val">@Val(J("ChildFemale"))</div></div>
+        </div>
+        @{ var kids = Idx("Child"); }
+        @if (kids.Count > 0)
+        {
+            <div class="jf__table-wrap">
+                <table class="jf__table">
+                    <thead><tr><th style="width:60px">ลำดับ</th><th>ชื่อ - สกุล</th><th style="width:80px">อายุ</th><th>อาชีพ</th><th>สถานศึกษา / สถานที่ทำงาน</th><th>เบอร์โทรศัพท์</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in kids)
+                        {
+                            <tr>
+                                <td>@(kids.IndexOf(i) + 1)</td>
+                                <td>@Val(J($"Child[{i}].Name"))</td>
+                                <td>@Val(J($"Child[{i}].Age"))</td>
+                                <td>@Val(J($"Child[{i}].Job"))</td>
+                                <td>@Val(J($"Child[{i}].Place"))</td>
+                                <td>@Val(J($"Child[{i}].Phone"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีข้อมูลบุตร —</div> }
+    </div>
+
+    @* ---------- 3. ประวัติการศึกษา ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">3</span><h2 class="jf__title">ประวัติการศึกษา</h2></div>
+        @* ผู้สมัครเลือกระดับการศึกษาเองรายแถว (form_json เก็บเฉพาะแถวที่กรอก → Idx คืนเฉพาะแถวที่มีข้อมูล) *@
+        @{ var edus = Idx("Education"); }
+        @if (edus.Count > 0)
+        {
+            <div class="jf__table-wrap">
+                <table class="jf__table">
+                    <thead><tr><th style="width:180px">ระดับการศึกษา</th><th>สถาบันการศึกษา</th><th>คณะ / สาขา</th><th style="width:110px">เกรดเฉลี่ย</th><th style="width:130px">ปีที่สำเร็จ</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in edus)
+                        {
+                            <tr>
+                                <td class="jf__cell-label">@Val(J($"Education[{i}].Level"))</td>
+                                <td>@Val(J($"Education[{i}].Institute"))</td>
+                                <td>@Val(J($"Education[{i}].Major"))</td>
+                                <td>@Val(J($"Education[{i}].Gpa"))</td>
+                                <td>@Val(J($"Education[{i}].GraduatedYear"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีข้อมูลประวัติการศึกษา —</div> }
+    </div>
+
+    @* ---------- 4. คุณวุฒิวิชาชีพ / คุณวุฒิพิเศษ / การฝึกอบรม / ดูงาน ---------- *@
+    @* (ย้ายขึ้นมาจากลำดับ 5 เดิม ให้ตรงกับหน้าฟอร์มฝั่ง front-end + รวมใบอนุญาตประกอบวิชาชีพจากข้อ 10 เดิม) *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">4</span><h2 class="jf__title">คุณวุฒิวิชาชีพ / คุณวุฒิพิเศษ / การฝึกอบรม / ดูงาน</h2></div>
+        @{ var trains = Idx("Training"); }
+        @if (trains.Count > 0)
+        {
+            <div class="jf__table-wrap">
+                <table class="jf__table">
+                    <thead><tr><th>หลักสูตร / คุณวุฒิ</th><th>สถาบัน</th><th style="width:160px">วัน / เดือน / ปี ที่อบรม</th><th style="width:120px">ระยะเวลา</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in trains)
+                        {
+                            <tr>
+                                <td>@Val(J($"Training[{i}].Course"))</td>
+                                <td>@Val(J($"Training[{i}].Institute"))</td>
+                                <td>@Val(J($"Training[{i}].Date"))</td>
+                                <td>@Val(J($"Training[{i}].Duration"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีข้อมูลการฝึกอบรม —</div> }
+
+        <h3 class="jf__subtitle">ใบอนุญาตประกอบวิชาชีพ</h3>
+        <div class="jf__grid">
+            <div class="jf__field c5"><label>ใบอนุญาตประกอบวิชาชีพ</label><div class="jf__val">@Val(G("license_name", "LicenseName"))</div></div>
+            <div class="jf__field c4"><label>หมายเลข</label><div class="jf__val">@Val(G("license_no", "LicenseNo"))</div></div>
+            <div class="jf__field c3"><label>วันหมดอายุ</label><div class="jf__val">@Val(G("license_expiry", "LicenseExpiry"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- 5. ประวัติการทำงาน ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">5</span><h2 class="jf__title">ประวัติการทำงาน</h2><span class="jf__hint">เรียงจากล่าสุด</span></div>
+        @{ var works = Idx("Work"); }
+        @if (works.Count > 0)
+        {
+            @foreach (var i in works)
+            {
+                var no = works.IndexOf(i);
+                <div class="jf__block">
+                    <div class="jf__block-head">@(no == 0 ? "ที่ทำงานล่าสุด" : $"ที่ทำงานลำดับที่ {no + 1}")</div>
+                    <div class="jf__grid">
+                        <div class="jf__field c7"><label>ชื่อสถานประกอบการ</label><div class="jf__val">@Val(J($"Work[{i}].Company"))</div></div>
+                        <div class="jf__field c5"><label>ประเภทกิจการ</label><div class="jf__val">@Val(J($"Work[{i}].BusinessType"))</div></div>
+                        <div class="jf__field c6"><label>ที่ตั้ง</label><div class="jf__val">@Val(J($"Work[{i}].Location"))</div></div>
+                        <div class="jf__field c3"><label>โทรศัพท์</label><div class="jf__val">@Val(J($"Work[{i}].Phone"))</div></div>
+                        <div class="jf__field c3"><label>สังกัด / หน่วยงาน</label><div class="jf__val">@Val(J($"Work[{i}].Department"))</div></div>
+                        <div class="jf__field c3"><label>วันที่เริ่มงาน</label><div class="jf__val">@Val(J($"Work[{i}].StartDate"))</div></div>
+                        <div class="jf__field c3"><label>วันที่สิ้นสุด</label><div class="jf__val">@Val(J($"Work[{i}].EndDate"))</div></div>
+                        <div class="jf__field c3"><label>อายุงาน (ปี)</label><div class="jf__val">@Val(J($"Work[{i}].Years"))</div></div>
+                        <div class="jf__field c3"><label>โบนัส (เดือน)</label><div class="jf__val">@Val(J($"Work[{i}].Bonus"))</div></div>
+                        <div class="jf__field c6"><label>ตำแหน่งเริ่มต้น</label><div class="jf__val">@Val(J($"Work[{i}].StartPosition"))</div></div>
+                        <div class="jf__field c6"><label>ตำแหน่งปัจจุบัน / สุดท้าย</label><div class="jf__val">@Val(J($"Work[{i}].LastPosition"))</div></div>
+                        <div class="jf__field c4"><label>เงินเดือนเริ่มต้น (บาท)</label><div class="jf__val">@Val(J($"Work[{i}].StartSalary"))</div></div>
+                        <div class="jf__field c4"><label>เงินเดือนปัจจุบัน / สุดท้าย (บาท)</label><div class="jf__val">@Val(J($"Work[{i}].LastSalary"))</div></div>
+                        <div class="jf__field c4"><label>รายได้อื่นๆ</label><div class="jf__val">@Val(J($"Work[{i}].OtherIncome"))</div></div>
+                        <div class="jf__field c12"><label>ลักษณะงานที่ทำ</label><div class="jf__val">@Val(J($"Work[{i}].JobDescription"))</div></div>
+                        <div class="jf__field c12"><label>สาเหตุที่ลาออก</label><div class="jf__val">@Val(J($"Work[{i}].ResignReason"))</div></div>
+                    </div>
+                </div>
+            }
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีข้อมูลประวัติการทำงาน —</div> }
+    </div>
+
+    @* ---------- 6. ภาษา + คอมพิวเตอร์ ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">6</span><h2 class="jf__title">ความสามารถทางภาษา และโปรแกรมคอมพิวเตอร์</h2></div>
+
+        <h3 class="jf__subtitle">ภาษาต่างประเทศ</h3>
+        @{ var langs = Idx("Language"); }
+        @if (langs.Count > 0)
+        {
+            <div class="jf__table-wrap">
+                <table class="jf__table">
+                    <thead><tr><th style="width:180px">ภาษา</th><th>ฟัง</th><th>พูด</th><th>อ่าน</th><th>เขียน</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in langs)
+                        {
+                            <tr>
+                                <td class="jf__cell-label">@Val(J($"Language[{i}].Name"))</td>
+                                <td>@skillLevel(J($"Language[{i}].Listening"))</td>
+                                <td>@skillLevel(J($"Language[{i}].Speaking"))</td>
+                                <td>@skillLevel(J($"Language[{i}].Reading"))</td>
+                                <td>@skillLevel(J($"Language[{i}].Writing"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีข้อมูลภาษา —</div> }
+
+        <h3 class="jf__subtitle">โปรแกรมคอมพิวเตอร์</h3>
+        <div class="jf__table-wrap">
+            <table class="jf__table">
+                <thead><tr><th style="width:220px">โปรแกรม</th><th>ระดับความสามารถ</th></tr></thead>
+                <tbody>
+                    @foreach (var prog in new[] { ("Word", "Microsoft Word"), ("Excel", "Microsoft Excel"), ("PowerPoint", "Microsoft PowerPoint"), ("AITools", "การใช้งานเครื่องมือ AI") })
+                    {
+                        <tr><td class="jf__cell-label">@prog.Item2</td><td>@skillLevel(J($"Computer.{prog.Item1}"))</td></tr>
+                    }
+                    @* แถวที่ผู้สมัครกดปุ่ม "เพิ่มโปรแกรมอื่น" เพิ่มเอง *@
+                    @foreach (var i in Idx("ComputerExtra"))
+                    {
+                        <tr><td class="jf__cell-label">@Val(J($"ComputerExtra[{i}].Name"))</td><td>@skillLevel(J($"ComputerExtra[{i}].Level"))</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="jf__grid" style="margin-top:.75rem">
+            <div class="jf__field c8"><label>โปรแกรมอื่นๆ</label><div class="jf__val">@Val(J("ComputerOther"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- 7. ความสามารถพิเศษ ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">7</span><h2 class="jf__title">ความสามารถพิเศษ</h2></div>
+        <div class="jf__field c12"><label>กีฬา, ดนตรี, งานอดิเรก, อื่นๆ</label><div class="jf__val">@Val(G("special_skill", "SpecialSkill"))</div></div>
+    </div>
+
+    @* ---------- 8. บุคคลอ้างอิง ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">8</span><h2 class="jf__title">บุคคลอ้างอิง</h2><span class="jf__hint">เพื่อรับรองประวัติการทำงาน/ประวัติการศึกษา (กรณีจบใหม่)</span></div>
+        <div class="jf__grid">
+            <div class="jf__field c5"><label>ชื่อ - ชื่อสกุล</label><div class="jf__val">@Val(J("ReferenceName"))</div></div>
+            <div class="jf__field c3"><label>ความสัมพันธ์</label><div class="jf__val">@Val(J("ReferenceRelation"))</div></div>
+            <div class="jf__field c4"><label>อาชีพ</label><div class="jf__val">@Val(J("ReferenceJob"))</div></div>
+            <div class="jf__field c5"><label>สถานที่ทำงาน</label><div class="jf__val">@Val(J("ReferenceWorkplace"))</div></div>
+            <div class="jf__field c3"><label>ตำแหน่ง</label><div class="jf__val">@Val(J("ReferencePosition"))</div></div>
+            <div class="jf__field c4"><label>โทรศัพท์ (มือถือ)</label><div class="jf__val">@Val(J("ReferenceMobile"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- 9. ติดต่อกรณีเร่งด่วน ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">9</span><h2 class="jf__title">บุคคลที่ติดต่อได้กรณีเร่งด่วน</h2></div>
+        <div class="jf__grid">
+            <div class="jf__field c6"><label>ชื่อ - ชื่อสกุล</label><div class="jf__val">@Val(J("EmergencyName"))</div></div>
+            <div class="jf__field c6"><label>ความสัมพันธ์</label><div class="jf__val">@Val(J("EmergencyRelation"))</div></div>
+            <div class="jf__field c4"><label>โทรศัพท์ (บ้าน)</label><div class="jf__val">@Val(J("EmergencyHomePhone"))</div></div>
+            <div class="jf__field c4"><label>โทรศัพท์ (ที่ทำงาน)</label><div class="jf__val">@Val(J("EmergencyWorkPhone"))</div></div>
+            <div class="jf__field c4"><label>โทรศัพท์ (มือถือ)</label><div class="jf__val">@Val(J("EmergencyMobile"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- 10. ข้อมูลอื่นๆ ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num">10</span><h2 class="jf__title">ข้อมูลอื่นๆ</h2></div>
+        <div class="jf__grid">
+            <div class="jf__field c4"><label>ปฏิบัติงานได้</label><div class="jf__val">@Val(G("work_area", "WorkArea"))</div></div>
+            <div class="jf__field c8"><label>ระบุจังหวัด</label><div class="jf__val">@Val(G("work_area_province", "WorkAreaProvince"))</div></div>
+            <div class="jf__field c4"><label>ความถี่ที่สามารถเดินทางไปปฏิบัติงานต่างจังหวัด</label><div class="jf__val">@Val(G("travel_frequency", "TravelFrequency"))</div></div>
+            @* ใบอนุญาตประกอบวิชาชีพย้ายไปอยู่ข้อ 4 (คุณวุฒิวิชาชีพ / คุณวุฒิพิเศษ / การฝึกอบรม / ดูงาน) แล้ว *@
+            <div class="jf__divider"></div>
+            <div class="jf__field c5"><label>ทราบข่าวการสมัครงานจากแหล่งใด</label><div class="jf__val">@Val(G("news_source", "Source"))</div></div>
+            <div class="jf__field c7"><label>รายละเอียดแหล่งข่าว</label><div class="jf__val">@Val(C("source_detail"))</div></div>
+            <div class="jf__divider"></div>
+            <div class="jf__field c4"><label>มีญาติ/คนรู้จักปฏิบัติงานที่ บสส.</label><div class="jf__val">@Val(G("has_relative_in_sam", "HasRelativeInSam"))</div></div>
+            <div class="jf__field c4"><label>ชื่อ - นามสกุล (ญาติ)</label><div class="jf__val">@Val(G("relative_name", "RelativeName"))</div></div>
+            <div class="jf__field c4"><label>ความสัมพันธ์</label><div class="jf__val">@Val(G("relative_relation", "RelativeRelation"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- เอกสารแนบ ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num"><em class="bi bi-paperclip"></em></span><h2 class="jf__title">เอกสารแนบ</h2></div>
+        <h3 class="jf__subtitle">เรซูเม่ / ประวัติส่วนตัว</h3>
+        @if (!string.IsNullOrWhiteSpace(C("resume_file")))
+        {
+            <div class="jf__file">
+                <em class="bi bi-file-earmark-text"></em>
+                <a href="@FileUrl(C("resume_file"))" target="_blank" rel="noopener">เปิด/ดาวน์โหลดเรซูเม่</a>
+                <span class="jf__meta">(@C("resume_file"))</span>
+            </div>
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีไฟล์เรซูเม่ —</div> }
+
+        <h3 class="jf__subtitle">เอกสารประกอบอื่นๆ</h3>
+        @if (docNames.Count > 0)
+        {
+            @foreach (var dn in docNames)
+            {
+                <div class="jf__file">
+                    <em class="bi bi-file-earmark"></em>
+                    <a href="@FileUrl(dn)" target="_blank" rel="noopener">เปิด/ดาวน์โหลดเอกสาร</a>
+                    <span class="jf__meta">(@dn)</span>
+                </div>
+            }
+        }
+        else { <div class="jf__val jf__val--empty">— ไม่มีเอกสารประกอบ —</div> }
+    </div>
+
+    @* ---------- คำรับรอง ---------- *@
+    <div class="jf__card jf__card--tint">
+        <h2 class="jf__title" style="margin-bottom:.75rem">คำรับรองของผู้สมัคร</h2>
+        <div class="jf__grid">
+            <div class="jf__field c4">
+                <label>ยอมรับคำรับรอง</label>
+                <div class="jf__val">
+                    @if (C("certify") == "1") { <span class="jf__badge jf__badge--yes">✓ ยอมรับ</span> } else { <span class="jf__badge jf__badge--no">ไม่ได้ยืนยัน</span> }
+                </div>
+            </div>
+            <div class="jf__field c4"><label>ลงชื่อผู้สมัคร</label><div class="jf__val">@Val(G("signature", "Signature"))</div></div>
+            <div class="jf__field c4"><label>วันที่</label><div class="jf__val">@Val(G("sign_date", "SignDate"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- ข้อมูลอ่อนไหว ---------- *@
+    <div class="jf__card jf__card--tint">
+        <h2 class="jf__title" style="margin-bottom:.75rem">ข้อมูลเพิ่มเติม (ข้อมูลส่วนบุคคลที่มีความอ่อนไหว)</h2>
+        <div class="jf__grid">
+            <div class="jf__field c4">
+                <label>ความยินยอม</label>
+                <div class="jf__val">@Val(G("sensitive_consent", "SensitiveConsent"))</div>
+            </div>
+        </div>
+
+        @{
+            var consented = (G("sensitive_consent", "SensitiveConsent") == "ยินยอม");
+            var legalItems = new (string Key, string Label)[]
+            {
+                ("Disciplinary", "เคยถูกสอบสวนทางวินัย"),
+                ("Terminated", "เคยถูกเลิกจ้าง ไล่ออก ปลดออก หรือให้ออกจากงาน"),
+                ("LaborDispute", "เคยมีข้อพิพาท หรือคดีความด้านแรงงาน"),
+                ("DebtLawsuit", "เคยถูกธนาคาร/สถาบันการเงินฟ้องให้ชำระหนี้"),
+                ("Imprisoned", "เคยได้รับโทษจำคุกในคดีอาญา"),
+                ("DrunkDriving", "เคยถูกฟ้องในคดีเมาแล้วขับ"),
+                ("CriminalRecord", "เคยมีประวัติอาชญากรรม"),
+                ("Bankrupt", "เคยถูกพิพากษาให้เป็นบุคคลล้มละลาย"),
+            };
+        }
+        @* หมายเหตุ: ศาสนา / กรุ๊ปเลือด / ข้อมูลสุขภาพ ถูกถอดออกจากใบสมัครแล้ว จึงไม่แสดงในหน้านี้ *@
+        @if (consented)
+        {
+            <h3 class="jf__subtitle">ประวัติการสอบสวนทางวินัย หรือคดีความทางกฎหมาย</h3>
+            @foreach (var item in legalItems)
+            {
+                var ans = J($"Legal.{item.Key}");
+                var detail = J($"Legal.{item.Key}Detail");
+                <div class="jf__legal-item">
+                    <span class="jf__legal-q">@item.Label</span>
+                    @if (ans == "เคย") { <span class="jf__badge jf__badge--yes">เคย</span> }
+                    else if (ans == "ไม่เคย") { <span class="jf__badge jf__badge--no">ไม่เคย</span> }
+                    else { <span class="jf__badge jf__badge--no">—</span> }
+                    @if (!string.IsNullOrWhiteSpace(detail))
+                    {
+                        <span class="jf__meta" style="flex:1 1 100%">รายละเอียด: @detail</span>
+                    }
+                </div>
+            }
+
+            <div class="jf__grid" style="margin-top:1rem">
+                <div class="jf__field c6"><label>ลงชื่อผู้ให้ความยินยอม</label><div class="jf__val">@Val(G("consent_signature", "ConsentSignature"))</div></div>
+                <div class="jf__field c6"><label>วันที่</label><div class="jf__val">@Val(G("consent_date", "ConsentDate"))</div></div>
+            </div>
+        }
+    </div>
+
+    @* ---------- ข้อมูลระบบ ---------- *@
+    <div class="jf__card">
+        <div class="jf__legend"><span class="jf__num"><em class="bi bi-info-circle"></em></span><h2 class="jf__title">ข้อมูลการบันทึก</h2></div>
+        <div class="jf__grid">
+            <div class="jf__field c3"><label>รหัสใบสมัคร</label><div class="jf__val">@Val(C("id"))</div></div>
+            <div class="jf__field c3">
+                <label>วันที่สมัคร</label>
+                <div class="jf__val">
+                    @{
+                        string createdAt = C("created_at");
+                        try { createdAt = ((DateTime)row["created_at"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"); } catch { }
+                    }
+                    @Val(createdAt)
+                </div>
+            </div>
+            <div class="jf__field c3"><label>IP Address</label><div class="jf__val">@Val(C("ip_address"))</div></div>
+            <div class="jf__field c3"><label>รหัสตำแหน่ง (cat_id)</label><div class="jf__val">@Val(C("cat_id"))</div></div>
+            <div class="jf__field c12"><label>Referer</label><div class="jf__val jf__meta">@Val(C("referer"))</div></div>
+            <div class="jf__field c12"><label>User Agent</label><div class="jf__val jf__meta">@Val(C("user_agent"))</div></div>
+        </div>
+    </div>
+
+    @* ---------- ปุ่มพิมพ์ ---------- *@
+    <div class="jf__actions jf__noprint">
+        <button type="button" class="jf__print-btn" onclick="window.print()">
+            <em class="bi bi-printer"></em> พิมพ์หน้านี้
+        </button>
+    </div>
+
+</div>
+@section Scripts{
+    <link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+}

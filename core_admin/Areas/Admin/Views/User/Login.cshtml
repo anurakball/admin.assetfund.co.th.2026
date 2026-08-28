@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminNotLoginLayout.cshtml";
+    ViewBag.Title = "Admin";
+}
+
+<style>
+    body {
+        background-color: #0047B6;
+    }
+
+    .form .form-peice.switched {
+        background-color: #0047B6;
+    }
+
+    .btn-group .btn--login.btn-primary {
+        background-color: #0047B6;
+        border-color: #0047B6;
+    }
+
+    /* Change the white to any color */
+    /*input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px white inset !important;
+    }*/
+</style>
+<div class="container">
+    <section id="formHolder">
+
+        <div class="row justify-content-md-center">
+
+            <!-- Brand Box -->
+            <div class="col-lg-6 brand d-none d-lg-block">
+                <a href="#" class="logo">
+                    <img src="~/assets/images/icon/icon-logo.svg" />
+                </a>
+                <div class="heading">
+                    <h2>SAM</h2>
+                    <p></p>
+                </div>
+
+                <div class="appVersion d-none d-lg-block">V @ViewBag.appVersion</div>
+            </div>
+
+
+            <!-- Form Box -->
+            <div class="col-lg-6 col-md-8 form">
+                <!-- Signup Form -->
+                <div class="signup form-peice switched">
+
+                </div><!-- End Signup Form -->
+
+                <!-- Login Form -->
+                <div class="login form-peice ">
+                    <form class="login-form" action="#" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="logo d-md-block d-lg-none mb-3">
+                            <img src="~/assets/images/logo/logo.svg" />
+                        </div>
+
+                        <div class="form-group">
+                            @*<label for="username">Username</label>*@
+                            <input type="text" name="username" id="username" class="form-control" placeholder="Username"
+                                value="@TempData["guest_username"]" required>
+                        </div>
+
+                        <div class="form-group">
+                            @*<label for="inputPassword">Password</label>*@
+                            <input type="password" name="password" id="inputPassword" class="form-control"
+                                placeholder="Password" required>
+                        </div>
+
+                        <div class="btn-center mt-5">
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-primary btn--login">Login</button>
+                            </div>
+                        </div>
+
+                        @if (TempData["alert_message"] != null)
+                        {
+                            string alerClass = (TempData["alert_class"] != null) ? (TempData["alert_class"] + "") :
+                            "alert-warning";
+                            <br />
+                            <div class="alert @alerClass">
+                                @TempData["alert_message"]
+                            </div>
+                        }
+
+
+                    </form>
+
+                    <div class="appVersion d-md-block d-lg-none">V @ViewBag.appVersion</div>
+                </div><!-- End Login Form -->
+
+            </div>
+        </div>
+
+    </section>
+</div>
+
+@section Scripts{
+<script>
+    $(document).ready(function () {
+        $("#username").focus();
+    });
+</script>
+}

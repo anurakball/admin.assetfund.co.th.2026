@@ -1,0 +1,535 @@
+@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+}
+
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+@{
+    var _q = HttpContextAccessor.HttpContext!.Request.Query;
+    string Q(string key) => _q.ContainsKey(key) ? (_q[key].ToString() ?? "").Trim() : "";
+
+    var qMember     = Q("q_member");
+    var qCode       = Q("q_code");
+    var qAccept     = Q("q_accept");
+    var qVersion    = Q("q_version");
+    var qIp         = Q("q_ip");
+    var qDateStart  = Q("q_date_start");
+    var qDateEnd    = Q("q_date_end");
+
+    int curPage = int.TryParse(Q("page"),    out var _cp) && _cp > 0 ? _cp : 1;
+    int perPage = int.TryParse(Q("perpage"), out var _pp) && _pp >= 5 ? _pp : 20;
+    int offset  = (curPage - 1) * perPage;
+
+    var where = new System.Text.StringBuilder("WHERE 1=1");
+    var prms  = new Dictionary<string, object>();
+
+    if (!string.IsNullOrEmpty(qMember)) {
+        where.Append(" AND (CAST(c.member_id AS VARCHAR) = @p_mid OR m.username ILIKE @p_mlike OR m.email ILIKE @p_mlike OR c.email ILIKE @p_mlike)");
+        prms["p_mid"] = qMember; prms["p_mlike"] = "%" + qMember + "%";
+    }
+    if (!string.IsNullOrEmpty(qCode))    { where.Append(" AND c.consent_code = @p_code");           prms["p_code"]    = qCode; }
+    if (!string.IsNullOrEmpty(qVersion)) { where.Append(" AND c.policy_version = @p_version");       prms["p_version"] = qVersion; }
+    if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND c.ip_address ILIKE @p_ip");            prms["p_ip"]      = "%" + qIp + "%"; }
+
+    if (qAccept == "1")       { where.Append(" AND c.is_accept = TRUE"); }
+    else if (qAccept == "0")  { where.Append(" AND c.is_accept = FALSE"); }
+
+    if (!string.IsNullOrEmpty(qDateStart)) {
+        try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND c.consent_at >= @p_ds"); prms["p_ds"] = d; } catch {}
+    }
+    if (!string.IsNullOrEmpty(qDateEnd)) {
+        try { var p = qDateEnd.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])).AddDays(1); where.Append(" AND c.consent_at < @p_de"); prms["p_de"] = d; } catch {}
+    }
+
+    var w = where.ToString();
+
+    var dtCount = _db.ExecuteQuery($@"
+        SELECT COUNT(*) AS cnt
+        FROM web_pdpa_consent c
+        LEFT JOIN web_member m ON c.member_id = m.id
+        {w}", prms);
+    long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
+    int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
+
+    var dtLogs = _db.ExecuteQuery($@"
+        SELECT c.id, c.member_id, c.email,
+               c.consent_code, c.consent_title, c.is_accept,
+               c.consent_at, c.ip_address, c.user_agent,
+               c.policy_version, c.created_at,
+               m.username
+        FROM web_pdpa_consent c
+        LEFT JOIN web_member m ON c.member_id = m.id
+        {w}
+        ORDER BY c.consent_at DESC NULLS LAST, c.id DESC
+        LIMIT {perPage} OFFSET {offset}", prms);
+
+    // distinct consent codes สำหรับ dropdown ค้นหา
+    var dtCodes = _db.ExecuteQuery(
+        "SELECT DISTINCT consent_code FROM web_pdpa_consent ORDER BY consent_code");
+
+    // distinct policy_version สำหรับ dropdown ค้นหา
+    var dtVersions = _db.ExecuteQuery(
+        "SELECT DISTINCT policy_version FROM web_pdpa_consent WHERE policy_version IS NOT NULL ORDER BY policy_version");
+
+    // Stats
+    var dtStats = _db.ExecuteQuery($@"
+        SELECT
+            COUNT(*) FILTER (WHERE c.is_accept = TRUE)  AS cnt_accept,
+            COUNT(*) FILTER (WHERE c.is_accept = FALSE) AS cnt_reject,
+            COUNT(DISTINCT c.member_id) FILTER (WHERE c.member_id IS NOT NULL) AS cnt_members,
+            COUNT(*) FILTER (WHERE c.consent_at >= NOW() - INTERVAL '24 hours') AS cnt_today
+        FROM web_pdpa_consent c
+        LEFT JOIN web_member m ON c.member_id = m.id
+        {w}", prms);
+
+    long cntAccept  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_accept"])  : 0;
+    long cntReject  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_reject"])  : 0;
+    long cntMembers = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_members"]) : 0;
+    long cntToday   = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_today"])   : 0;
+
+    // Build query string สำหรับ pagination และ export
+    var qsParts = new List<string>();
+    if (!string.IsNullOrEmpty(qMember))    qsParts.Add("q_member="    + Uri.EscapeDataString(qMember));
+    if (!string.IsNullOrEmpty(qCode))      qsParts.Add("q_code="      + Uri.EscapeDataString(qCode));
+    if (!string.IsNullOrEmpty(qAccept))    qsParts.Add("q_accept="    + Uri.EscapeDataString(qAccept));
+    if (!string.IsNullOrEmpty(qVersion))   qsParts.Add("q_version="   + Uri.EscapeDataString(qVersion));
+    if (!string.IsNullOrEmpty(qIp))        qsParts.Add("q_ip="        + Uri.EscapeDataString(qIp));
+    if (!string.IsNullOrEmpty(qDateStart)) qsParts.Add("q_date_start="+ Uri.EscapeDataString(qDateStart));
+    if (!string.IsNullOrEmpty(qDateEnd))   qsParts.Add("q_date_end="  + Uri.EscapeDataString(qDateEnd));
+    qsParts.Add("perpage=" + perPage);
+    var baseQs   = string.Join("&", qsParts);
+    var exportQs = string.Join("&", qsParts.Where(p => !p.StartsWith("perpage=")));
+
+    int rowNum = offset + 1;
+
+    // สร้าง data map สำหรับ modal detail
+    var consentDataMap = new Dictionary<string, object>();
+    foreach (DataRow lr in dtLogs.Rows) {
+        var _at  = lr["consent_at"]  != DBNull.Value ? Convert.ToDateTime(lr["consent_at"])  : DateTime.MinValue;
+        var _cat = lr["created_at"]  != DBNull.Value ? Convert.ToDateTime(lr["created_at"])  : DateTime.MinValue;
+        consentDataMap[lr["id"].ToString()] = new {
+            id             = lr["id"]?.ToString(),
+            member_id      = lr["member_id"]?.ToString() ?? "-",
+            username       = lr["username"]?.ToString() ?? "",
+            email          = lr["email"]?.ToString() ?? "",
+            consent_code   = lr["consent_code"]?.ToString() ?? "",
+            consent_title  = lr["consent_title"]?.ToString() ?? "",
+            is_accept      = Convert.ToBoolean(lr["is_accept"]),
+            ip_address     = lr["ip_address"]?.ToString() ?? "",
+            user_agent     = lr["user_agent"]?.ToString() ?? "",
+            policy_version = lr["policy_version"]?.ToString() ?? "",
+            consent_at     = _at  != DateTime.MinValue ? _at.ToString("dd/MM/yyyy HH:mm:ss")  : "",
+            created_at     = _cat != DateTime.MinValue ? _cat.ToString("dd/MM/yyyy HH:mm:ss") : ""
+        };
+    }
+    var consentDataJson = Newtonsoft.Json.JsonConvert.SerializeObject(consentDataMap);
+}
+
+@* ===================== SEARCH FORM ===================== *@
+<div class="form-wrapper mb-4">
+    <form method="get" id="formSearch" class="form" autocomplete="off">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">สมาชิก (ID / Username / Email)</label>
+                    <input type="text" name="q_member" value="@qMember" class="form-control" placeholder="ค้นหา..." />
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">Consent Code</label>
+                    <select name="q_code" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        @foreach (DataRow r in dtCodes.Rows) {
+                            var code = r["consent_code"].ToString();
+                            <option value="@code" @(qCode == code ? "selected" : "")>@code</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">สถานะการยินยอม</label>
+                    <select name="q_accept" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        <option value="1" @(qAccept == "1" ? "selected" : "")>ยินยอม (Accept)</option>
+                        <option value="0" @(qAccept == "0" ? "selected" : "")>ไม่ยินยอม (Reject)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">Policy Version</label>
+                    <select name="q_version" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        @foreach (DataRow r in dtVersions.Rows) {
+                            var ver = r["policy_version"].ToString();
+                            <option value="@ver" @(qVersion == ver ? "selected" : "")>@ver</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">IP Address</label>
+                    <input type="text" name="q_ip" value="@qIp" class="form-control" placeholder="192.168.x.x" />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">แสดงหน้าละ</label>
+                    <select name="perpage" class="form-select">
+                        @foreach (var n in new[] { 10, 20, 50, 100 }) {
+                            <option value="@n" @(perPage == n ? "selected" : "")>@n รายการ</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 mb-3">
+                <div class="field">
+                    <label class="form-label">ช่วงวันที่ให้ความยินยอม</label>
+                    <div class="input-group input-daterange">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="text" id="date_timepicker_start" name="q_date_start" value="@qDateStart" class="form-control" placeholder="วันเริ่มต้น" readonly />
+                        <span class="input-group-text">ถึง</span>
+                        <input type="text" id="date_timepicker_end" name="q_date_end" value="@qDateEnd" class="form-control" placeholder="วันสิ้นสุด" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group mt-1">
+            <button type="submit" class="btn btn--primary">
+                <span class="btn-icon"><i class="bi bi-search"></i></span>
+                <span class="btn-text">ค้นหา</span>
+            </button>
+
+            @{
+                if(Context.Request.Query["perpage"]+"" != "")
+                {
+                    <a href="?page=1" class="btn btn--gray">
+                        <span class="btn-icon"><i class="bi bi-x-circle"></i></span>
+                        <span class="btn-text">ล้างค่า</span>
+                    </a>
+                }
+            }
+             
+        </div>
+    </form>
+</div>
+
+@* ===================== SUMMARY CARDS ===================== *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-primary">@totalRows.ToString("N0")</div>
+                <div class="small text-muted">รายการทั้งหมด</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-success">@cntAccept.ToString("N0")</div>
+                <div class="small text-muted">ยินยอม</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-danger">@cntReject.ToString("N0")</div>
+                <div class="small text-muted">ไม่ยินยอม</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-info">@cntToday.ToString("N0")</div>
+                <div class="small text-muted">วันนี้</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ===================== TABLE ===================== *@
+<div class="card shadow-sm">
+    <div class="card-header d-flex align-items-center py-2">
+        <span class="fw-semibold"><i class="bi bi-shield-check me-1"></i> รายการให้ความยินยอม PDPA</span>
+        <span class="text-muted small ms-auto me-4">ทั้งหมด @totalRows.ToString("N0") รายการ &bull; หน้า @curPage / @(totalPages == 0 ? 1 : totalPages)</span>
+        <a href="/Admin/LogsPDPA/ExportExcel@(string.IsNullOrEmpty(exportQs) ? "" : "?" + exportQs)"
+           class="btn btn-sm" style="background-color:#217346;color:#fff;border-color:#217346"
+           title="Export ผลลัพธ์การค้นหาเป็น Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped-custom mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width:50px">#</th>
+                        <th style="width:155px">วันที่ให้ความยินยอม</th>
+                        <th>สมาชิก</th>
+                        <th>Consent</th>
+                        <th style="width:90px" class="text-center">สถานะ</th>
+                        <th style="width:80px">Version</th>
+                        <th style="width:130px">IP Address</th>
+                        <th style="width:60px" class="text-center">รายละเอียด</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (dtLogs.Rows.Count == 0) {
+                    <tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>ไม่พบข้อมูล</td></tr>
+                }
+                @foreach (DataRow row in dtLogs.Rows) {
+                    var isAccept    = row["is_accept"] != DBNull.Value && Convert.ToBoolean(row["is_accept"]);
+                    var consentAt   = row["consent_at"] != DBNull.Value ? Convert.ToDateTime(row["consent_at"]) : DateTime.MinValue;
+                    var uname       = row["username"]?.ToString() ?? "";
+                    var email       = row["email"]?.ToString() ?? "";
+                    var memberLabel = !string.IsNullOrEmpty(uname) ? uname : (!string.IsNullOrEmpty(email) ? email : "ID:" + row["member_id"]);
+                    var ipAddr      = row["ip_address"]?.ToString() ?? "";
+                    var version     = row["policy_version"]?.ToString() ?? "";
+
+                    <tr data-id="@row["id"]">
+                        <td class="text-center text-muted small">@rowNum</td>
+                        <td class="small">
+                            @if (consentAt != DateTime.MinValue) {
+                                <span class="d-block">@consentAt.ToString("dd/MM/yyyy")</span>
+                                <span class="text-muted">@consentAt.ToString("HH:mm:ss")</span>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="fw-semibold small">@memberLabel</div>
+                            @if (!string.IsNullOrEmpty(email) && uname != email) {
+                                <div class="text-muted" style="font-size:.75rem">@email</div>
+                            }
+                            @if (row["member_id"] != DBNull.Value) {
+                                <div class="text-muted" style="font-size:.75rem">ID: @row["member_id"]</div>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-25 text-dark border mb-1" style="font-size:.7rem">@row["consent_code"]</span>
+                            <div class="small">@row["consent_title"]</div>
+                        </td>
+                        <td class="text-center">
+                            @if (isAccept) {
+                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>ยินยอม</span>
+                            } else {
+                                <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>ไม่ยินยอม</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@(string.IsNullOrEmpty(version) ? "-" : version)</td>
+                        <td class="small">
+                            @if (!string.IsNullOrEmpty(ipAddr)) {
+                                <code class="small">@ipAddr</code>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn--outline--primary btn-consent-detail"
+                                    data-consent-id="@row["id"]">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    rowNum++;
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (totalPages > 1) {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="small text-muted">
+                แสดง @(offset + 1)–@(Math.Min(offset + perPage, (int)totalRows)) จาก @totalRows.ToString("N0") รายการ
+            </span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    @{ int pgStart = Math.Max(1, curPage - 2); int pgEnd = Math.Min(totalPages, curPage + 2); }
+                    @if (curPage > 1) {
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=1"><i class="bi bi-chevron-double-left"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@(curPage-1)"><i class="bi bi-chevron-left"></i></a></li>
+                    }
+                    @for (int p = pgStart; p <= pgEnd; p++) {
+                        <li class="page-item @(p == curPage ? "active" : "")">
+                            <a class="page-link" href="?@baseQs&page=@p">@p</a>
+                        </li>
+                    }
+                    @if (curPage < totalPages) {
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@(curPage+1)"><i class="bi bi-chevron-right"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@totalPages"><i class="bi bi-chevron-double-right"></i></a></li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@* ===================== DETAIL MODAL ===================== *@
+<div class="modal fade" id="modalConsentDetail" tabindex="-1" aria-labelledby="modalConsentDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalConsentDetailLabel">
+                    <i class="bi bi-shield-check me-2"></i>รายละเอียดการให้ความยินยอม PDPA
+                    <span id="mdlBadgeAccept" class="badge ms-2"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-person me-1"></i>ข้อมูลสมาชิก</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr><td class="text-muted" style="width:100px">Member ID</td><td id="mdlMemberId" class="fw-semibold"></td></tr>
+                                <tr><td class="text-muted">Username</td><td id="mdlUsername"></td></tr>
+                                <tr><td class="text-muted">Email</td><td id="mdlEmail"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-file-earmark-text me-1"></i>ข้อมูล Consent</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr><td class="text-muted" style="width:100px">Code</td><td><code id="mdlCode"></code></td></tr>
+                                <tr><td class="text-muted">หัวข้อ</td><td id="mdlTitle"></td></tr>
+                                <tr><td class="text-muted">Version</td><td id="mdlVersion"></td></tr>
+                                <tr><td class="text-muted">วันที่ยินยอม</td><td id="mdlConsentAt"></td></tr>
+                                <tr><td class="text-muted">บันทึกเมื่อ</td><td id="mdlCreatedAt"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-hdd-network me-1"></i>ข้อมูลเครือข่าย</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr>
+                                    <td class="text-muted" style="width:100px">IP Address</td>
+                                    <td>
+                                        <code id="mdlIp"></code>
+                                        <button class="btn btn-sm p-0 ms-1 text-muted" id="btnCopyIp" title="Copy IP">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">User Agent</td>
+                                    <td><span id="mdlUserAgent" class="text-break" style="font-size:.78rem;word-break:break-all"></span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto">Record ID: <code id="mdlLogId"></code></span>
+                <button type="button" class="btn btn--gray" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <style>
+    body.modal-open { overflow: hidden !important; padding-right: 0 !important; }
+    #modalConsentDetail .modal-body { overflow-y: auto; scrollbar-width: none; }
+    #modalConsentDetail .modal-body::-webkit-scrollbar { display: none; }
+    </style>
+    <script>
+    var __consentData = @Html.Raw(consentDataJson);
+    $(document).ready(function () {
+
+        // ---- Date Pickers ----
+        if ($.fn.datetimepicker) {
+            $('#date_timepicker_start').datetimepicker({ timepicker: false, format: 'd/m/Y',
+                onSelectDate: function (dp, $i) {
+                    var d = $i.val();
+                    $('#date_timepicker_end').datetimepicker('setOptions', { minDate: d });
+                }
+            });
+            $('#date_timepicker_end').datetimepicker({ timepicker: false, format: 'd/m/Y',
+                onSelectDate: function (dp, $i) {
+                    var d = $i.val();
+                    $('#date_timepicker_start').datetimepicker('setOptions', { maxDate: d });
+                }
+            });
+        }
+
+        // ---- Detail Modal ----
+        $(document).on('click', '.btn-consent-detail', function () {
+            var d = __consentData[$(this).data('consent-id')];
+            if (!d) return;
+
+            $('#mdlLogId').text(d.id);
+            $('#mdlMemberId').text(d.member_id || '-');
+            $('#mdlUsername').text(d.username  || '-');
+            $('#mdlEmail').text(d.email        || '-');
+            $('#mdlCode').text(d.consent_code  || '-');
+            $('#mdlTitle').text(d.consent_title || '-');
+            $('#mdlVersion').text(d.policy_version || '-');
+            $('#mdlConsentAt').text(d.consent_at   || '-');
+            $('#mdlCreatedAt').text(d.created_at   || '-');
+            $('#mdlIp').text(d.ip_address      || '-');
+            $('#mdlUserAgent').text(d.user_agent   || '-');
+
+            var $badge = $('#mdlBadgeAccept').removeClass().addClass('badge');
+            if (d.is_accept) {
+                $badge.addClass('bg-success').html('<i class="bi bi-check-lg me-1"></i>ยินยอม');
+            } else {
+                $badge.addClass('bg-danger').html('<i class="bi bi-x-lg me-1"></i>ไม่ยินยอม');
+            }
+
+            $('#modalConsentDetail').modal('show');
+        });
+
+        // ---- Modal dismiss ----
+        $(document).on('click', '[data-dismiss="modal"]', function () {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // ---- Copy IP ----
+        $('#btnCopyIp').on('click', function () {
+            var ip = $('#mdlIp').text().trim();
+            if (ip && ip !== '-' && navigator.clipboard) {
+                navigator.clipboard.writeText(ip).then(function () {
+                    $('#btnCopyIp i').removeClass('bi-clipboard').addClass('bi-clipboard-check');
+                    setTimeout(function () {
+                        $('#btnCopyIp i').removeClass('bi-clipboard-check').addClass('bi-clipboard');
+                    }, 1500);
+                });
+            }
+        });
+
+    });
+    </script>
+}

@@ -1,0 +1,314 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+         
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ ", "title", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("URL ", "url", ""))
+                <button class="btn btn-success mt-3" type="button" onclick="checkURL()">ตรวจสอบ URL <i class="bi bi-check2-circle"></i></button>
+            </div>
+        </div>
+
+        <div class="row pb-5">
+            <div class="col-lg-6 col-md-6 mb-3">
+            @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", System.DateTime.Now.ToString("dd/MM/yyyy HH:mm")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+            @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", System.DateTime.Now.AddYears(10).ToString("dd/MM/yyyy HH:mm")))
+            </div>            
+        </div>
+
+        <hr/>
+
+        <h3 class="pt-5" style="color: #0047b6;">ผู้ใช้งานเริ่มต้น <i class="bi bi-person-fill-gear"></i></h3>
+        <p>*** ใช้สำหรับเข้าใช้งาน Microsite ที่สร้าง</p>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อ", "name", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("สกุล", "surname", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("สังกัด", "section", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputEmail("อีเมล", "email", ""))
+            </div>
+
+            <!--
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label mb-2">เปิดใช้งานการเข้าสู่ระบบ Two Factor Authentication</label>
+                    <div class="row">
+
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check form-switch" style="color:red;">
+                                <input class="form-check-input" type="radio" name="use_otp" id="use_otp_0" value="0"
+                                       checked>
+                                <label class="form-check-label" for="use_otp_0">ปิดการใช้งาน</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check form-switch" style="color:green;">
+                                <input class="form-check-input" type="radio" name="use_otp" id="use_otp_1" value="1">
+                                <label class="form-check-label" for="use_otp_1">เปิดการใช้งาน</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            -->
+
+            <input type="hidden" name="use_otp" value="0" />
+
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("Username", "username", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputPassword("รหัสผ่าน", "password", ""))
+                <div class="condition--password">
+                    <div class="alert alert-info alert-passsword" role="alert">
+                        <h4 class="alert-heading">เงื่อนไขการตั้งรหัสผ่าน</h4>
+                        <ul>
+                            <li>มีจำนวน 8-20 ตัวอักษร</li>
+                            <li>ต้องมีตัวอักษรภาษาอังกฤษพิมพ์เล็ก และ พิมพ์ใหญ่</li>
+                            <li>ต้องมีตัวเลข</li>
+                            <li>ต้องมีอักษระพิเศษ เช่น <var>! @@ # $ % ^ & ? - _</var></li>
+                            <li>ไม่มีช่องว่างระหว่างรหัสผ่าน</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputPassword("ยืนยันรหัสผ่าน", "confirm_password", ""))
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    function clsAlphaNoOnly(e) {  // Accept only alpha numerics, no special characters 
+        var regex = new RegExp("^[a-zA-Z0-9]+$");
+        var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+        if (regex.test(str)) {
+            return true;
+        }
+        e.preventDefault();
+        return false;
+    }
+    function isSlugValid(input) {
+        // Define a regular expression pattern for a valid slug
+        const pattern = /^[a-z0-9-]+$/;
+
+        // Use RegExp.test to check if the input matches the pattern
+        return pattern.test(input);
+    }
+
+    function generateSlug(phrase) {
+        let str = removeAccent(phrase).toLowerCase();
+
+        // Remove invalid characters
+        str = str.replace(/[^a-z0-9\s-]/g, "");
+
+        // Convert multiple spaces into one space
+        str = str.replace(/\s+/g, " ").trim();
+
+        // Cut and trim
+        str = str.substring(0, Math.min(str.length, 45)).trim();
+
+        // Replace spaces with hyphens
+        str = str.replace(/\s/g, "-");
+
+        return str;
+    }
+
+    function removeAccent(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function checkURL() {
+        preload('show');
+        setTimeout(function(){
+            $.ajax({
+                type: "POST",
+                url: '/Admin/Microsite/CheckURL',
+                data: $('#fm_cms').serialize(),
+                success: function (msg) {
+                    console.log(msg);
+                    sAlert('ผลการตรวจสอบ', msg.message, msg.status == 1 ? 'success' : 'error');
+                    preload('hide');
+                },
+                error: function (xhr, status, error) {
+                    console.log('status', status);
+                    console.log('error', error);
+                    sAlert('ไม่สามารถทำรายการได้ในขณะนี้', '', 'error');
+                    preload('hide');
+                }
+            });
+        }, 500);
+    }
+
+    function sConfirmCustom(form) {
+
+        if (
+            $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+            $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+        ) {
+            sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+            return false;
+        }
+
+        var a = document.getElementById('id_password').value;
+
+        if (document.getElementById('id_password').value.length < 8 || document.getElementById('id_password').value.length > 20) {
+            sAlert('มีจำนวน 8-20 ตัวอักษร');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+
+        var arr_s = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+        if (searchStringInArray(arr_s, a) == -1) {
+            sAlert('ต้องมีตัวอักษรภาษาอังกฤษพิมพ์เล็ก อย่างน้อย 1 ตัวอักษร');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+        var arr_l = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+        if (searchStringInArray(arr_l, a) == -1) {
+            sAlert('ต้องมีตัวอักษรภาษาอังกฤษพิมพ์ใหญ่ อย่างน้อย 1 ตัวอักษร');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+
+        var regexTH = /[ก-๙]/;
+        if (a.search(regexTH) > -1) {
+            sAlert('รหัสผ่านต้องไม่มีภาษาไทย');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+
+        var arr = ["!", "@@", "#", "$", "%", "^", "&", "?", "-", "_"];
+        if (searchStringInArray(arr, a) == -1) {
+            sAlert('รหัสผ่านต้องมีอักษระพิเศษ เช่น ! @@ # $ % ^ & ? - _');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+
+        var arr = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        if (searchStringInArray(arr, a) == -1) {
+            sAlert('รหัสผ่านต้องมีตัวเลข 0 - 9');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+
+        if (searchStringInArray([" "], a) > -1) {
+            sAlert('รหัสผ่านต้องไม่มีช่องว่าง');
+            document.getElementById('id_password').focus();
+            return false;
+        }
+
+        if (document.getElementById('id_password').value != document.getElementById('id_confirm_password').value) {
+            sAlert('ยืนยันรหัสผ่าน ไม่ถูกต้อง');
+            document.getElementById('id_confirm_password').focus();
+            return false;
+        }
+
+
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+
+    //----- Add fn addHouse
+    Date.prototype.addHours = function(h) {
+        this.setTime(this.getTime() + (h*60*60*1000));
+        return this;
+    }
+    Date.prototype.addMinutes = function(m) {
+        this.setTime(this.getTime() + (m*60*1000));
+        return this;
+    }
+
+    $(document).ready(function() {
+
+        $(":input[name='url']").on("keyup change blur", function () {
+            var v = $(this).val();
+            $(this).val(generateSlug(v));
+        });
+
+        //$(":input[name='title'],:input[name='url'],:input[name='issue_date'],:input[name='expiry_date']").prop("required", true);
+
+        $(":input[name='username'],:input[name='password'],:input[name='confirm_password'],:input[name='name'],:input[name='surname'],:input[name='email'],:input[name='access_id']").prop("required", true);
+        $(":input[name='username']").attr("onkeypress", "clsAlphaNoOnly(event)").attr("onpaste", "return false;");
+
+        $("#id_password").focus(function () {
+            $('.condition--password').stop(true, false).slideDown();
+        });
+        $("#id_password").focusout(function () {
+            $('.condition--password').stop(true, false).slideUp();
+        });
+
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0,
+                onClose: function(current_time, $input){
+                    //console.log('input value', $input.datetimepicker('getValue'));
+                    //console.log('new Date()', new Date().addHours(-1));
+                    if ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)) {
+                        $input.val('');
+                        sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ น้อยวันที่ปัจจุบันได้", "warning");
+                        //console.log('condition', ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)));
+                    }
+                },
+            });
+        },500);
+    });
+</script>
+}

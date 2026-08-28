@@ -1,0 +1,444 @@
+@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+
+    var rp = (AgentReportData)ViewBag.Report;
+    int topN = (int)(ViewBag.TopN ?? 10);
+
+    var _q = HttpContextAccessor.HttpContext!.Request.Query;
+    string Q(string key) => _q.ContainsKey(key) ? (_q[key].ToString() ?? "").Trim() : "";
+
+    var qDateStart = Q("q_date_start");
+    var qDateEnd   = Q("q_date_end");
+    var qApproved  = Q("q_approved");
+    var qStatus    = Q("q_status");
+
+    //----- query string ส่งต่อให้ปุ่ม Export เพื่อให้ไฟล์ตรงกับที่เห็นบนหน้าจอ
+    var exportQs = string.Join("&", AgentReportHelper.QueryKeys
+        .Where(k => !string.IsNullOrEmpty(Q(k)))
+        .Select(k => k + "=" + Uri.EscapeDataString(Q(k))));
+
+    bool hasFilter = AgentReportHelper.QueryKeys.Any(k => !string.IsNullOrEmpty(Q(k)));
+
+    //----- ตัวช่วยแสดงผลตัวเลข
+    Func<long, string> N     = (v) => v.ToString("N0");
+    Func<decimal, string> NV = (v) => v.ToString("N0");
+}
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<style>
+    /* ---- ตารางรายงานสไตล์เดียวกับไฟล์ Excel ที่ใช้งานอยู่ ---- */
+    .ar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px 22px; align-items: start; }
+    .ar-col  { display: flex; flex-direction: column; gap: 26px; }
+
+    .ar-table { width: 100%; border-collapse: collapse; font-size: .875rem; background: #fff; }
+    .ar-table caption { caption-side: top; text-align: center; font-weight: 600; color: #1f3864; padding: 7px 8px; border: 1px solid #a6a6a6; border-bottom: none; background: #fff; font-size: .93rem; }
+    .ar-table th, .ar-table td { border: 1px solid #a6a6a6; padding: 5px 9px; line-height: 1.45; }
+    .ar-table thead th { background: #d9d9d9; color: #1a1a1a; font-weight: 600; text-align: center; white-space: nowrap; }
+    .ar-table tbody td { background: #e2efda; }
+    .ar-table tbody tr:hover td { background: #cfe6c2; }
+    .ar-table td.ar-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ar-table tfoot td { background: #fff; font-weight: 700; }
+    .ar-table tfoot td.ar-num { text-align: right; }
+    .ar-table .ar-empty { background: #fff; color: #9ca3af; text-align: center; font-style: italic; }
+    .ar-rank { width: 34px; text-align: center; color: #6b7280; }
+
+    /* ---- แถบสรุปด้านบน ---- */
+    /* auto-fit เพื่อให้การ์ดทุกใบอยู่แถวเดียวกันเมื่อพื้นที่พอ และไหลลงบรรทัดใหม่เองเมื่อจอแคบ */
+    .ar-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 14px; margin-bottom: 26px; }
+    .ar-card { background: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.07); border-left: 4px solid #3b82f6; }
+    .ar-card.c-green  { border-left-color: #22c55e; }
+    .ar-card.c-teal   { border-left-color: #14b8a6; }
+    .ar-card.c-amber  { border-left-color: #f59e0b; }
+    .ar-card.c-rose   { border-left-color: #f43f5e; }
+    .ar-card .v { font-size: 1.55rem; font-weight: 700; color: #111827; line-height: 1.2; }
+    .ar-card .l { font-size: .78rem; color: #6b7280; margin-top: 2px; }
+
+    @@media (max-width: 1400px) { .ar-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 900px)  { .ar-grid { grid-template-columns: 1fr; } }
+</style>
+
+@* ===================== ตัวกรอง ===================== *@
+<div class="form-wrapper mb-4">
+    <form method="get" id="formSearch" class="form" autocomplete="off">
+        <div class="row">
+            <div class="col-lg-5 col-md-12 mb-3">
+                <div class="field">
+                    <label class="form-label">ช่วงวันที่สมัคร</label>
+                    <div class="input-group input-daterange">
+                        <span class="input-group-text">จากวันที่</span>
+                        <input type="text" class="form-control" id="date_timepicker_start" name="q_date_start" value="@qDateStart" placeholder="dd/mm/yyyy" autocomplete="off">
+                        <span class="input-group-text">ถึงวันที่</span>
+                        <input type="text" class="form-control" id="date_timepicker_end" name="q_date_end" value="@qDateEnd" placeholder="dd/mm/yyyy" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">สถานะ</label>
+                    @* ตัวเลือกมาจาก AgentStatus ที่เดียวกับหน้ารายชื่อผู้สมัคร — เพิ่มสถานะที่นั่นแล้วที่นี่ตามอัตโนมัติ *@
+                    <select name="q_approved" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        @foreach (var opt in AgentStatus.Options)
+                        {
+                            <option value="@opt.Key" @(qApproved == opt.Key.ToString() ? "selected" : "")>@opt.Value</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">สถานะการใช้งาน</label>
+                    <select name="q_status" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        <option value="1" @(qStatus == "1" ? "selected" : "")>เปิดใช้งาน</option>
+                        <option value="0" @(qStatus == "0" ? "selected" : "")>ปิดใช้งาน</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group mt-1">
+            <button type="submit" class="btn btn--primary" id="btnSearch">
+                <span class="btn-icon"><i class="bi bi-search"></i></span>
+                <span class="btn-text">ค้นหา</span>
+            </button>
+            @if (hasFilter)
+            {
+                <a href="/Admin/AgentReport" class="btn btn--gray">
+                    <span class="btn-icon"><i class="bi bi-x-circle"></i></span>
+                    <span class="btn-text">ล้างค่า</span>
+                </a>
+            }
+            <a href="/Admin/AgentReport/ExportExcel@(string.IsNullOrEmpty(exportQs) ? "" : "?" + exportQs)"
+               class="btn" style="background-color:#217346;color:#fff;border-color:#217346"
+               title="Export รายงานตามเงื่อนไขที่กรองอยู่เป็น Excel">
+                <span class="btn-icon"><i class="bi bi-file-earmark-excel"></i></span>
+                <span class="btn-text">Export Excel</span>
+            </a>
+        </div>
+    </form>
+</div>
+
+@if (!string.IsNullOrEmpty(rp.AssetSourceError))
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        <strong>อ่านฐานข้อมูลทรัพย์ NPA (MySQL) ไม่สำเร็จ</strong> —
+        ตาราง “จังหวัดที่มีนายหน้าลงทะเบียนขาย”, “แยกตามประเภท” และคอลัมน์มูลค่าจึงยังไม่มีข้อมูล
+        (ตัวเลขฝั่ง Agent ยังถูกต้อง)
+        <div class="small text-muted mt-1">@rp.AssetSourceError</div>
+    </div>
+}
+
+@* ===================== สรุปภาพรวม ===================== *@
+<div class="ar-cards">
+    <div class="ar-card">
+        <div class="v">@N(rp.AgentTotal)</div>
+        <div class="l">Agent ทั้งหมด</div>
+    </div>
+    <div class="ar-card c-green">
+        <div class="v">@N(rp.AgentWithAsset)</div>
+        <div class="l">Agent ที่ลงทะเบียนทรัพย์</div>
+    </div>
+    <div class="ar-card c-teal">
+        <div class="v">@N(rp.AssetDistinct)</div>
+        <div class="l">ทรัพย์ที่ลงทะเบียน (ตัดซ้ำ)</div>
+    </div>
+    <div class="ar-card c-amber">
+        <div class="v">@N(rp.AssetClaimTotal)</div>
+        <div class="l">จำนวนครั้งที่แจ้งทรัพย์ (ไม่ตัดซ้ำ)</div>
+    </div>
+    <div class="ar-card c-rose">
+        <div class="v">@NV(rp.AssetValueTotal)</div>
+        <div class="l">มูลค่าทรัพย์รวม (บาท)</div>
+    </div>
+    @* ค่าที่ Agent พิมพ์เป็นข้อความอิสระ — แยกออกจากตัวเลขทรัพย์ด้านบนทั้งหมด *@
+    <div class="ar-card">
+        <div class="v">@N(rp.FreeTextDistinct)</div>
+        <div class="l">แจ้งเป็นข้อความ (ตัดซ้ำ)</div>
+    </div>
+</div>
+
+@* ===================== ตารางรายงาน ===================== *@
+<div class="ar-grid">
+
+    @* ---------- คอลัมน์ที่ 1 ---------- *@
+    <div class="ar-col">
+
+        @* 1) จำนวน Agent แยกตามปีที่สมัคร *@
+        <table class="ar-table">
+            <caption>ข้อมูลจำนวน Agent ทั้งหมด</caption>
+            <thead>
+                <tr><th>ปี</th><th>จำนวน</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.ByYear.Count == 0)
+                {
+                    <tr><td colspan="2" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @foreach (var r in rp.ByYear)
+                {
+                    <tr><td>@r.Label</td><td class="ar-num">@N(r.Count)</td></tr>
+                }
+            </tbody>
+            @if (rp.ByYear.Count > 0)
+            {
+                <tfoot>
+                    <tr><td>Grand Total</td><td class="ar-num">@N(rp.ByYear.Sum(x => x.Count))</td></tr>
+                </tfoot>
+            }
+        </table>
+
+        @* 2) แยกตามเพศ / ประเภทผู้สมัคร *@
+        <table class="ar-table">
+            <caption>จำนวน Agent แยกตามเพศ / ประเภทผู้สมัคร</caption>
+            <thead>
+                <tr><th>ประเภท</th><th>จำนวน</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.ByPersonType.Count == 0)
+                {
+                    <tr><td colspan="2" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @foreach (var r in rp.ByPersonType)
+                {
+                    <tr><td>@r.Label</td><td class="ar-num">@N(r.Count)</td></tr>
+                }
+            </tbody>
+            @if (rp.ByPersonType.Count > 0)
+            {
+                <tfoot>
+                    <tr><td>Grand Total</td><td class="ar-num">@N(rp.ByPersonType.Sum(x => x.Count))</td></tr>
+                </tfoot>
+            }
+        </table>
+
+        @* 3) Top 10 จังหวัดของตัวแทน *@
+        <table class="ar-table">
+            <caption>Top @topN จำนวน Agent แยกตามจังหวัด</caption>
+            <thead>
+                <tr><th class="ar-rank">#</th><th>จังหวัด</th><th>จำนวน Agent</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.AgentByProvince.Count == 0)
+                {
+                    <tr><td colspan="3" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @{ int rank1 = 0; }
+                @foreach (var r in rp.AgentByProvince.Take(topN))
+                {
+                    rank1++;
+                    <tr><td class="ar-rank">@rank1</td><td>@r.Label</td><td class="ar-num">@N(r.Count)</td></tr>
+                }
+            </tbody>
+            @if (rp.AgentByProvince.Count > 0)
+            {
+                <tfoot>
+                    <tr>
+                        <td colspan="2">รวมทุกจังหวัด (@N(rp.AgentByProvince.Count) จังหวัด)</td>
+                        <td class="ar-num">@N(rp.AgentByProvince.Sum(x => x.Count))</td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+
+    @* ---------- คอลัมน์ที่ 2 ---------- *@
+    <div class="ar-col">
+
+        @* 4) Top 10 จังหวัดที่มีนายหน้าลงทะเบียนขาย *@
+        <table class="ar-table">
+            <caption>Top @topN จังหวัดที่มีนายหน้าลงทะเบียนขาย</caption>
+            <thead>
+                <tr><th class="ar-rank">#</th><th>จังหวัด</th><th>จำนวนทรัพย์</th><th>ราคาประเมิน</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.AssetByProvince.Count == 0)
+                {
+                    <tr><td colspan="4" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @{ int rank2 = 0; }
+                @foreach (var r in rp.AssetByProvince.Take(topN))
+                {
+                    rank2++;
+                    <tr>
+                        <td class="ar-rank">@rank2</td>
+                        <td>@r.Label</td>
+                        <td class="ar-num">@N(r.Count)</td>
+                        <td class="ar-num">@NV(r.Value)</td>
+                    </tr>
+                }
+            </tbody>
+            @if (rp.AssetByProvince.Count > 0)
+            {
+                <tfoot>
+                    <tr>
+                        <td colspan="2">รวมทุกจังหวัด (@N(rp.AssetByProvince.Count) จังหวัด)</td>
+                        <td class="ar-num">@N(rp.AssetByProvince.Sum(x => x.Count))</td>
+                        <td class="ar-num">@NV(rp.AssetByProvince.Sum(x => x.Value))</td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+
+        @* 5) Top 10 รหัสทรัพย์ที่มีคนแจ้งซ้ำมากที่สุด *@
+        <table class="ar-table">
+            <caption>Top @topN รหัสทรัพย์ ที่มีคนแจ้งรายการทรัพย์ซ้ำมากที่สุด</caption>
+            <thead>
+                <tr><th class="ar-rank">#</th><th>รหัสทรัพย์</th><th>จำนวน Agent</th><th>มูลค่า</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.TopDuplicateAsset.Count == 0)
+                {
+                    <tr><td colspan="4" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @{ int rank3 = 0; }
+                @foreach (var r in rp.TopDuplicateAsset.Take(topN))
+                {
+                    rank3++;
+                    <tr>
+                        <td class="ar-rank">@rank3</td>
+                        <td>
+                            @r.Label
+                            @* ป้าย "ไม่พบทรัพย์" ใช้เฉพาะตอนที่อ่านฐานข้อมูลทรัพย์ได้จริง ๆ แล้วไม่เจอรหัสนี้ *@
+                            @if (!r.Found && string.IsNullOrEmpty(rp.AssetSourceError))
+                            {
+                                <span class="badge bg-secondary ms-1" title="ไม่พบรหัสนี้ในฐานข้อมูลทรัพย์ NPA">ไม่พบทรัพย์</span>
+                            }
+                        </td>
+                        <td class="ar-num">@N(r.Count)</td>
+                        <td class="ar-num">@(r.Found ? NV(r.Value) : "-")</td>
+                    </tr>
+                }
+            </tbody>
+            @if (rp.TopDuplicateAsset.Count > 0)
+            {
+                <tfoot>
+                    <tr>
+                        <td colspan="2">รวมทุกรหัสทรัพย์ (@N(rp.AssetDistinct) รายการ)</td>
+                        <td class="ar-num">@N(rp.AssetClaimTotal)</td>
+                        <td class="ar-num">@NV(rp.AssetValueTotal)</td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+
+    @* ---------- คอลัมน์ที่ 3 ---------- *@
+    <div class="ar-col">
+
+        @* 6) Top 10 ประเภททรัพย์ (ตัดซ้ำ) *@
+        <table class="ar-table">
+            <caption>Top @topN แยกตามประเภท ตัดซ้ำ</caption>
+            <thead>
+                <tr><th class="ar-rank">#</th><th>ประเภททรัพย์</th><th>จำนวน</th><th>มูลค่า</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.AssetByType.Count == 0)
+                {
+                    <tr><td colspan="4" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @{ int rank4 = 0; }
+                @foreach (var r in rp.AssetByType.Take(topN))
+                {
+                    rank4++;
+                    <tr>
+                        <td class="ar-rank">@rank4</td>
+                        <td>@r.Label</td>
+                        <td class="ar-num">@N(r.Count)</td>
+                        <td class="ar-num">@NV(r.Value)</td>
+                    </tr>
+                }
+            </tbody>
+            @if (rp.AssetByType.Count > 0)
+            {
+                <tfoot>
+                    <tr>
+                        <td colspan="2">รวมทุกประเภท (@N(rp.AssetByType.Count) ประเภท)</td>
+                        <td class="ar-num">@N(rp.AssetByType.Sum(x => x.Count))</td>
+                        <td class="ar-num">@NV(rp.AssetByType.Sum(x => x.Value))</td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+
+        @* 7) ข้อความอิสระที่ Agent พิมพ์เอง — แยกตารางไว้ ไม่นับรวมในสถิติทรัพย์ *@
+        <table class="ar-table">
+            <caption>Top @topN ข้อความที่ Agent แจ้งเอง (ไม่ใช่รหัสทรัพย์)</caption>
+            <thead>
+                <tr><th class="ar-rank">#</th><th>ข้อความที่แจ้ง</th><th>จำนวน Agent</th></tr>
+            </thead>
+            <tbody>
+                @if (rp.TopFreeText.Count == 0)
+                {
+                    <tr><td colspan="3" class="ar-empty">ไม่มีข้อมูล</td></tr>
+                }
+                @{ int rank5 = 0; }
+                @foreach (var r in rp.TopFreeText.Take(topN))
+                {
+                    rank5++;
+                    <tr>
+                        <td class="ar-rank">@rank5</td>
+                        <td>@r.Label</td>
+                        <td class="ar-num">@N(r.Count)</td>
+                    </tr>
+                }
+            </tbody>
+            @if (rp.TopFreeText.Count > 0)
+            {
+                <tfoot>
+                    <tr>
+                        <td colspan="2">รวมทุกข้อความ (@N(rp.FreeTextDistinct) รายการ จาก Agent @N(rp.AgentWithFreeText) ราย)</td>
+                        <td class="ar-num">@N(rp.FreeTextClaimTotal)</td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            if (typeof $.datetimepicker !== 'undefined') { $.datetimepicker.setLocale('th'); }
+
+            jQuery('#date_timepicker_start').datetimepicker({
+                format: 'd/m/Y',
+                onShow: function () {
+                    this.setOptions({
+                        maxDate: jQuery('#date_timepicker_end').val() ? jQuery('#date_timepicker_end').val() : '0',
+                        formatDate: 'd/m/Y'
+                    });
+                },
+                timepicker: false
+            });
+
+            jQuery('#date_timepicker_end').datetimepicker({
+                format: 'd/m/Y',
+                onShow: function () {
+                    this.setOptions({
+                        minDate: jQuery('#date_timepicker_start').val() ? jQuery('#date_timepicker_start').val() : false,
+                        formatDate: 'd/m/Y',
+                        maxDate: '0'
+                    });
+                },
+                timepicker: false
+            });
+        });
+    </script>
+}

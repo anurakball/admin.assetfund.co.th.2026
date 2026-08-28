@@ -1,0 +1,446 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+}
+
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+
+
+@if ((mod_config.FieldSearch != null && mod_config.FieldSearch.Count > 0) || mod_config.EnableDateSearch == true || (!string.IsNullOrEmpty(mod_config.TableCate) && !string.IsNullOrEmpty(mod_config.TableCateField)))
+{
+    <div class="form-wrapper">
+        <form action="" method="get" autocomplete="off" id="formSearch" class="form">
+            <div class="row">
+
+                @if (mod_config.FieldSearch.Count > 0 && mod_config.FieldSearch.Where(c => c.Key == "text").ToList().Count() > 0)
+                {
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        @Html.Raw(_admin.InputText("ค้นหา", "text", (searchInputVal.ContainsKey("text") && !string.IsNullOrEmpty(searchInputVal["text"]) ? searchInputVal["text"] : ""), "คำค้นหา"))
+                    </div>
+                }
+             
+                @if (!string.IsNullOrEmpty(mod_config.TableCate) && !string.IsNullOrEmpty(mod_config.TableCateField))
+                {
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        @Html.Raw(
+                        _admin.InputSelectDB(
+                        mod_config.TableCateLabel,
+                        mod_config.TableCateField,
+                        (searchInputVal.ContainsKey(mod_config.TableCateField) && !string.IsNullOrEmpty(searchInputVal[mod_config.TableCateField]) ? searchInputVal[mod_config.TableCateField] : ""),
+                        showAllOption: true,
+                        mod_config.TableCate,
+                        value_field: "id",
+                        text_field: mod_config.TableCateTitle,
+                        order_by: mod_config.TableCateOrderby,
+                        sort: mod_config.TableCateSort
+                        ))
+                    </div>
+
+                }
+
+                @*@Html.Raw(_admin.InputText("Username", "username", (searchInputVal.ContainsKey("username") && !string.IsNullOrEmpty(searchInputVal["username"]) ? searchInputVal["username"] : ""), "Username"))*@
+
+                @if (mod_config.EnableDateSearch == true)
+                {
+                    <div class="col-lg-8 col-md-6 mb-3">
+                        <div class="field">
+                            <label for="date_after" class="form-label">ค้นหาวันที่</label>
+                            <div class="input-group input-daterange mb-3">
+                                <span class="input-group-text">จากวันที่</span>
+                                <input type="text" class="form-control" id="date_timepicker_start" name="after" value="@ViewBag.after" placeholder="dd/mm/yyyy">
+                                <span class="input-group-text">ถึงวันที่</span>
+                                <input type="text" class="form-control" id="date_timepicker_end" name="before" value="@ViewBag.before" placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn btn--primary" id="btnSearch" title="ค้นหา" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <span class="btn-icon"><i class="bi bi-search"></i> </span>
+                    <span class="btn-text">Search</span>
+                </button> 
+                    <button id="this_main_clear_btn" type="button" class="btn btn--gray" onclick="$('form#formSearch :input').val('').trigger('change').trigger('blur'); $('#btnSearch').trigger('click')" title="Clear" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <span class="btn-icon"><i class="bi bi-x-lg"></i></span>
+                    <span class="btn-text">Clear</span>
+                </button> 
+            </div>
+        </form>
+    </div>  
+}
+
+<hr class="navbar-divider">
+
+<div class="btn-group btn-group-mob-icon d-flex ms-auto mb-4">
+
+    @if (mod_config.CanAdd == true)
+    {
+        <button type="button" class="btn btn--outline--primary" onclick="window.location.href='/Admin/@mod.Name/Create'" title="เพิ่ม" data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-icon"><i class="bi bi-plus-lg"></i></span>
+            <span class="btn-text">Create new</span>
+        </button>
+    }
+
+    @if (mod_config.CanExport == true)
+    {
+        <button type="button" class="btn btn--outline--green BTN_Export" onclick="exportData($(this), '@(mod.Name)')" data-query="@ViewBag.sqlQuery" data-totalrows="@string.Format("{0:n0}", ViewBag.totalRecord)" data-exportid="" title="Export" data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-icon"><i class="bi bi-filetype-xlsx"></i></span>
+            <span class="btn-text">Export</span>
+        </button>
+    }
+
+    @if (mod_config.CanDelete == true)
+    {
+        <button type="button" class="btn btn--outline--red" onclick="deleteMultiple('@mod.Name');" title="ลบ" data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-icon"><i class="bi bi-trash"></i> </span>
+            <span class="btn-text">Delete</span>
+        </button>
+    }
+
+    @if (mod_config.CanMove == true)
+    {
+        <button type="button" id="btnMoveTools" data-showMoveTools='@((bool)ViewBag.showMoveTools ? "1" : "")'
+            class="btn @((bool)ViewBag.showMoveTools ? "btn--secondary" : "btn--outline--secondary")"
+            onclick="checkSort($(this), '@(mod_config.TableCateField ?? "")')" title="จัดเรียง" data-bs-toggle="tooltip" data-bs-placement="top" >
+            <span class="btn-icon"><i class="bi bi-arrow-down-up"></i></span>
+            <span class="btn-text">จัดเรียง</span>
+        </button>
+    }
+
+</div>
+
+<div class="table-responsive mb-4">
+    <table class="table table-striped-custom">
+        <thead>
+            <tr>
+                @if (mod_config.CanDelete == true || mod_config.CanExport == true) 
+                {
+                <th class="text-center chk" >
+                    <div class="field">
+                        <div class="form-check">
+                            <input type="checkbox" id="checkAll" class="form-check-input">
+                        </div>
+                    </div>
+                </th>
+                }
+                <th class="text-center order">#</th>
+
+                
+                @if (mod_config.CanEdit == true || mod_config.CanStatus == true || mod_config.CanDelete == true)
+                {
+                    <th class="text-center">Action</th>
+                }
+                @if (mod_config.CanMove == true && (bool)ViewBag.showMoveTools == true)
+                {
+                    <th class="text-center"><span class="text-active">จัดเรียง </span></th>
+                }
+                @foreach (var head in mod_config.ListData)
+                {
+                <th class="">
+                    <span class="@(mod_config.OrderBy==head.Key?"text-active":"")">@head.Value </span>
+                    @if (head.Key.ToLower() != "sort" && !head.Key.ToLower().StartsWith("img"))
+                    {
+                    <a href="javascript:;" title="จากมากไปน้อย" data-bs-toggle="tooltip" data-bs-placement="top" onclick="let url = updateQueryStringParameter(window.location.href, 'orderby', '@head.Key'); window.location.href = updateQueryStringParameter(url, 'sort', 'desc');" class="@(mod_config.OrderBy==head.Key && !string.IsNullOrWhiteSpace(mod_config.Sort) && mod_config.Sort.ToLower() == "desc"?"text-active":"text-white")">
+                        <i class="bi bi-sort-down"></i>
+                    </a>
+                    <a href="javascript:;" title="จากน้อยไปมาก" data-bs-toggle="tooltip" data-bs-placement="top" onclick="let url = updateQueryStringParameter(window.location.href, 'orderby', '@head.Key'); window.location.href = updateQueryStringParameter(url, 'sort', 'asc');" class="@(mod_config.OrderBy==head.Key && !string.IsNullOrWhiteSpace(mod_config.Sort) && mod_config.Sort.ToLower() == "asc"?"text-active":"text-white")">
+                        <i class="bi bi-sort-up-alt"></i>
+                    </a>
+                    }
+                </th>
+                }
+                @if (mod_config.EnableViewDetail == true)
+                {
+                    <th class="text-center">รายละเอียด</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+        @{
+            int rows = (int)ViewBag.startRows;
+        }
+        @if(ViewBag.listData != null){
+            foreach (DataRow item in (DataRowCollection)ViewBag.listData)
+            {
+            <tr data-id="@item["id"]">
+                @if (mod_config.CanDelete == true || mod_config.CanExport == true)
+                {
+                <td class="text-center chk">
+                    <div class="field">
+                        <div class="form-check">
+                            <input type="checkbox" name="_id" value="@item["id"]" id="_id_@item["id"]" class="form-check-input">
+                        </div>
+                    </div>
+                </td>     
+                }
+                <td class="text-center order" scope="row">
+                    <span class="ps-2">@String.Format("{0:n0}", rows) </span>
+                </td>
+                @if (mod_config.CanEdit == true || mod_config.CanStatus == true || mod_config.CanDelete == true)
+                {
+                    <td class="text-center" >
+                        <div class="btn-group btn-group--icon">
+                            @if (mod_config.CanEdit == true) {
+                            <button type="button" class="btn btn--edit" onclick="window.location.href='/Admin/@(mod.Name)/Edit/@(item["id"])'" title="แก้ไข" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>      
+                            }
+
+                            @if (mod_config.CanStatus == true && item["status"] != null && !string.IsNullOrEmpty(item["status"].ToString())) {
+                            <button type="button" class="btn @((item["status"].ToString() ?? "") == "1" ? "btn--success" : "btn--lightred")" onclick="statusRow('@mod.Name', '@item["id"]', '@((item["status"].ToString() ?? "") == "1" ? "0" : "1")')" title="@((item["status"].ToString() ?? "") == "1" ? "ปิด" : "เปิด")" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi @((item["status"].ToString() ?? "") == "1" ? "bi-check-circle" : "bi-x-circle-fill")"></i>
+                            </button>
+                            }
+                    
+                            @if (mod_config.CanDelete == true) {
+                            <button type="button" class="btn btn--red" onclick="deleteRow('@mod.Name', '@item["id"]')" title="ลบ" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-trash"></i>
+                            </button>   
+                            }
+                        </div>
+                    </td>
+                }
+                @if (mod_config.CanMove == true && (bool)ViewBag.showMoveTools == true)
+                {
+                    <td class="text-center">
+                        <div class="btn-group btn-group--icon">
+                            <div class="btn btn--secondary move_handle" title="ลากเพื่อเลื่อน" data-bs-toggle="tooltip" data-bs-placement="top" style="cursor: move; display:none;">
+                                <i class="bi bi-arrow-down-up"></i>
+                            </div>
+                            <button type="button" class="btn btn--secondary" onclick="moveRow('@mod.Name', '@item["id"]', 'up')" title="เลื่อนขึ้น" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-arrow-up"></i>
+                            </button>
+                            <button type="button" class="btn btn--secondary" onclick="moveRow('@mod.Name', '@item["id"]', 'down')" title="เลื่อนลง" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-arrow-down"></i>
+                            </button>  
+                        </div>
+                    </td>
+                }
+                @foreach (var head in mod_config.ListData)
+                {
+                    @if (string.IsNullOrEmpty(item[head.Key].ToString()))
+                    {
+                        <td>-</td>  
+                    }
+                    else if (
+                        head.Key == "created_at" ||
+                        head.Key == "updated_at" ||
+                        (head.Key).EndsWith("_date")
+                    )
+                    {
+                        <td>@(((DateTime)item[head.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</td>
+                    }
+                    else if (head.Key == "pb_status")
+                    {
+                        <td>
+                        @{
+                            if (item[head.Key].ToString() == "1")
+                            {
+                                    <h6><span class="badge bg-success">Published (by user)</span></h6>
+                            }
+                            else if (item[head.Key].ToString() == "0" && mod_config.CanApprove == true)
+                            {
+                                    @if (item["show_front"].ToString() == "0")
+                                {
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn--primary" onclick="approveRow('@mod.Name', '@item["id"]', '1')" title="อนุมัติและเผยแพร่เนื้อหา" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        Approve and public
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn--success" onclick="approveRow('@mod.Name', '@item["id"]', '1')" title="อนุมัติ" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        Approve
+                                        </button>
+                                        <button type="button" class="btn btn--red" onclick="approveRow('@mod.Name', '@item["id"]', '0')" title="ไม่อนุมัติ" data-bs-toggle="tooltip" data-bs-placement="top">
+                                        Unapprove
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                    <h6><span class="badge bg-info text-dark">Wait for approval...</span></h6>
+                            }
+                        }
+                        </td>
+                    }
+                    else if (head.Key.StartsWith("img") == true)
+                    {
+                                <td><img  class='img-thumbnail' src='@(_utility.rootURL() + "/" + item[head.Key])' data-holder-rendered='true' style='max-width: 230px;'></td>
+                            }
+                    else if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && head.Key == "title" && !string.IsNullOrEmpty(item["page_type"].ToString()) && item["page_type"].ToString() == "group" )
+                    {
+                        string childCount = string.Format("{0:n0}", _admin.getChildCount(mod, Convert.ToInt32(item["id"])));
+                        <td data-child-count="@childCount" data-title="@item[head.Key]">@item[head.Key] <a href="javascript:;" onclick="var _url = updateQueryStringParameter(window.location.href, '@mod_config.FieldCMSPage', '@item["id"]');_url = updateQueryStringParameter(_url, 'text', '');_url = updateQueryStringParameter(_url, 'page', '1');window.location.href = _url;"><span class="badge bg-warning text-dark"><strong>@childCount</strong> รายการ</span></a></td>
+                    }
+                    else
+                    {
+                        <td>@item[head.Key]</td>
+                    }
+                }
+                
+                @if (mod_config.EnableViewDetail == true)
+                {
+                    <td class="text-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn--secondary" onclick="window.location.href='/Admin/@(mod.Name)/Detail/@(item["id"])'" title="ดูรายละเอียด" data-bs-toggle="tooltip" data-bs-placement="top">
+                                ดู
+                            </button>
+                        </div>
+                    </td>
+                }
+            </tr>
+                rows++;
+            }
+        }
+        </tbody>
+    </table>
+    @if ((int)ViewBag.totalRecord > 0) 
+    {
+        <p class="text-end">@String.Format("แสดง {0} ถึง {1} จาก {2:n0} รายการ", ViewBag.startRows, rows-1, ViewBag.totalRecord)</p>
+    }else{
+        <p class="text-end">0 รายการ</p>
+    }
+</div>
+
+<div class="row flex-column flex-lg-row justify-content-between">
+    <div class="col-lg-9 mb-4 mb-lg-0">
+        @Html.Raw(ViewBag.pageHtml)
+    </div>
+    <div class="col-auto">
+        @await Component.InvokeAsync("AdminPerPage", new { Perpage = mod_config.PerPage })
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+    $(document).ready(function() {
+
+        if ($("#btnMoveTools").length == 1 && $("#btnMoveTools").data('showmovetools') == 1) {
+            dragRow('@mod.Name');
+        }
+
+        $("#checkAll").click(function() {
+            if ($("#checkAll:checked").length == 1) {
+                $(":input[name='_id']").prop('checked', true);
+            } else {
+                $(":input[name='_id']").prop('checked', false);
+            }
+
+            if($(":input[name='_id']:checked").length > 0)
+            {
+                var List_ID = [];
+                $(":input[name='_id']:checked").each(function(){
+                    List_ID.push($(this).val());
+                });
+                if (List_ID.length > 0) {
+                    $(".BTN_Export").data("exportid", List_ID.join(','));
+                }
+                else{
+                    $(".BTN_Export").data("exportid","");
+                }
+            }
+            else{
+                $(".BTN_Export").data("exportid","");
+            }
+        });
+        $(":input[name='_id']").click(function() {
+            if ($(":input[name='_id']:checked").length == 0) {
+                $("#checkAll").prop('checked', false);
+                    $(".BTN_Export").data("exportid", "");
+            }
+            else
+            {
+                var List_ID = [];
+                $(":input[name='_id']:checked").each(function(){
+                    List_ID.push($(this).val());
+                });
+                if (List_ID.length > 0) {
+                    $(".BTN_Export").data("exportid", List_ID.join(','));
+                }
+                else{
+                    $(".BTN_Export").data("exportid","");
+                }
+            }                
+        });
+
+        //$('.input-daterange').datepicker({
+        //    format: "dd/mm/yyyy",
+        //    weekStart: 1,
+        //    todayBtn: "linked",
+        //    language: "th",
+        //    clearBtn: true,
+        //});
+
+        $.datetimepicker.setLocale('th');
+
+        jQuery('#date_timepicker_start').datetimepicker({
+            format:'d/m/Y',
+            onShow: function (ct) {
+                this.setOptions({
+                    maxDate: jQuery('#date_timepicker_end').val() ? jQuery('#date_timepicker_end').val() : '0',
+                    formatDate:'d/m/Y',
+                })
+            },
+            onClose: function(current_time, $input){
+                if ($input.datetimepicker('getValue') > new Date()) {
+                    $input.val('');
+                    sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ มากกว่าวันที่ปัจจุบันได้", "warning");
+                }
+            },
+            timepicker: false
+        });
+        jQuery('#date_timepicker_end').datetimepicker({
+            format:'d/m/Y',
+            onShow: function (ct) {
+                this.setOptions({
+                    minDate: jQuery('#date_timepicker_start').val() ? jQuery('#date_timepicker_start').val() : false,
+                    formatDate:'d/m/Y',
+                    maxDate: '0'
+                })
+            },
+            onClose: function(current_time, $input){
+                if ($input.datetimepicker('getValue') > new Date()) {
+                    $input.val('');
+                    sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ มากกว่าวันที่ปัจจุบันได้", "warning");
+                }
+            },
+            timepicker: false
+        });
+   
+        if(document.getElementById('id_text').value == '')
+        {
+            document.getElementById('this_main_clear_btn').style.display = 'none';
+        }
+        else
+        {
+            document.getElementById('this_main_clear_btn').style.display = '';
+        } 
+   
+    });
+
+</script>
+}

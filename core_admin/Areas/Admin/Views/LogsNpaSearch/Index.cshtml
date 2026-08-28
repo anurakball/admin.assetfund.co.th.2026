@@ -1,0 +1,740 @@
+@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+@{
+    var _q = HttpContextAccessor.HttpContext!.Request.Query;
+    string Q(string key) => _q.ContainsKey(key) ? (_q[key].ToString() ?? "").Trim() : "";
+
+    var qKw        = Q("q_kw");
+    var qHasKw     = Q("q_haskw");
+    var qMode      = Q("q_mode");
+    var qLang      = Q("q_lang");
+    var qResult    = Q("q_result");
+    var qFKey      = Q("q_fkey");
+    var qIp        = Q("q_ip");
+    var qDateStart = Q("q_date_start");
+    var qDateEnd   = Q("q_date_end");
+
+    int curPage = int.TryParse(Q("page"),    out var _cp) && _cp > 0 ? _cp : 1;
+    int perPage = int.TryParse(Q("perpage"), out var _pp) && _pp >= 5 ? _pp : 20;
+    int offset  = (curPage - 1) * perPage;
+
+    //----- เงื่อนไขค้นหา สร้างจากตัวช่วยกลาง (ใช้ชุดเดียวกับ ExportExcel เพื่อให้ผลลัพธ์ตรงกันเสมอ)
+    var prms = new Dictionary<string, object>();
+    var w = NpaSearchLogHelper.BuildWhere(Q, prms);
+
+    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM api_npa_search_log l {w}", prms);
+    long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
+    int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
+
+    var dtLogs = _db.ExecuteQuery($@"
+        SELECT l.id, l.created_at, l.keyword, l.search_mode, l.lang,
+               l.filters, l.sort, l.page, l.result_count,
+               l.query_string, l.client_ip, l.user_agent, l.referer
+        FROM api_npa_search_log l
+        {w}
+        ORDER BY l.created_at DESC
+        LIMIT {perPage} OFFSET {offset}", prms);
+
+    //----- สรุปตัวเลขของ "ชุดผลลัพธ์ที่กำลังกรองอยู่"
+    var dtStats = _db.ExecuteQuery($@"
+        SELECT
+            COUNT(DISTINCT btrim(l.keyword)) FILTER (WHERE l.keyword IS NOT NULL AND btrim(l.keyword) <> '') AS cnt_distinct_kw,
+            COUNT(*) FILTER (WHERE COALESCE(l.result_count, 0) = 0)                                          AS cnt_zero,
+            COUNT(*) FILTER (WHERE l.keyword IS NULL OR btrim(l.keyword) = '')                                AS cnt_nokw,
+            COUNT(*) FILTER (WHERE l.created_at >= NOW() - INTERVAL '24 hours')                               AS cnt_today
+        FROM api_npa_search_log l {w}", prms);
+
+    long cntDistinctKw = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_distinct_kw"]) : 0;
+    long cntZero       = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_zero"])        : 0;
+    long cntNoKw       = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_nokw"])        : 0;
+    long cntToday      = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_today"])       : 0;
+
+    //----- คำค้นหายอดนิยม / คำค้นหาที่ไม่พบผลลัพธ์ (ตามเงื่อนไขค้นหาปัจจุบัน)
+    var dtTopKw = _db.ExecuteQuery($@"
+        SELECT btrim(l.keyword) AS kw, COUNT(*) AS cnt,
+               COALESCE(AVG(l.result_count), 0)::BIGINT AS avg_result,
+               MAX(l.created_at) AS last_at
+        FROM api_npa_search_log l
+        {w} AND l.keyword IS NOT NULL AND btrim(l.keyword) <> ''
+        GROUP BY btrim(l.keyword)
+        ORDER BY cnt DESC, last_at DESC
+        LIMIT 10", prms);
+
+    var dtZeroKw = _db.ExecuteQuery($@"
+        SELECT btrim(l.keyword) AS kw, COUNT(*) AS cnt, MAX(l.created_at) AS last_at
+        FROM api_npa_search_log l
+        {w} AND l.keyword IS NOT NULL AND btrim(l.keyword) <> ''
+          AND COALESCE(l.result_count, 0) = 0
+        GROUP BY btrim(l.keyword)
+        ORDER BY cnt DESC, last_at DESC
+        LIMIT 10", prms);
+
+    //----- ตัวเลือกใน dropdown อ่านจากข้อมูลจริง (ไม่ผูกกับเงื่อนไขค้นหา จะได้ไม่หายไปหลังกรอง)
+    var dtModes = _db.ExecuteQuery("SELECT DISTINCT search_mode FROM api_npa_search_log WHERE search_mode IS NOT NULL AND search_mode <> '' ORDER BY search_mode");
+    var dtLangs = _db.ExecuteQuery("SELECT DISTINCT lang FROM api_npa_search_log WHERE lang IS NOT NULL AND lang <> '' ORDER BY lang");
+
+    //----- query string สำหรับลิงก์แบ่งหน้า / ปุ่ม Export
+    var qsParts = new List<string>();
+    foreach (var k in NpaSearchLogHelper.QueryKeys)
+    {
+        var v = Q(k);
+        if (!string.IsNullOrEmpty(v)) qsParts.Add(k + "=" + Uri.EscapeDataString(v));
+    }
+    var exportQs = string.Join("&", qsParts);
+    qsParts.Add("perpage=" + perPage);
+    var baseQs = string.Join("&", qsParts);
+
+    //----- ลิงก์ "เจาะดูคำค้นหานี้" ในตารางอันดับ — คงเงื่อนไขอื่นที่กรองอยู่ไว้ เปลี่ยนเฉพาะคำค้นหา
+    Func<string, string, string> kwLink = (kw, extra) =>
+    {
+        var parts = new List<string>();
+        foreach (var k in NpaSearchLogHelper.QueryKeys)
+        {
+            if (k == "q_kw" || (extra == "q_result=notfound" && k == "q_result")) continue;
+            var v = Q(k);
+            if (!string.IsNullOrEmpty(v)) parts.Add(k + "=" + Uri.EscapeDataString(v));
+        }
+        parts.Insert(0, "q_kw=" + Uri.EscapeDataString(kw));
+        if (!string.IsNullOrEmpty(extra)) parts.Add(extra);
+        parts.Add("perpage=" + perPage);
+        return "?" + string.Join("&", parts);
+    };
+
+    //----- คำค้นหาที่มีอักขระแท็ก HTML ส่งกลับเป็น query string ไม่ได้ (ตัวกรอง [XssValidate] จะตอบ "Request denied")
+    //      จึงแสดงเป็นข้อความเฉย ๆ ไม่ทำเป็นลิงก์ กันผู้ใช้กดแล้วเจอหน้าปฏิเสธ
+    Func<string, bool> kwLinkable = (kw) => !kw.Contains('<') && !kw.Contains('>');
+
+    int rowNum = offset + 1;
+
+    //----- ไฮไลต์คำที่ค้นหาในคอลัมน์คำค้นหา (encode ก่อนเสมอ แล้วค่อยแทรก <mark>)
+    Func<string, string> highlight = (text) =>
+    {
+        var enc = System.Net.WebUtility.HtmlEncode(text ?? "");
+        if (string.IsNullOrEmpty(qKw)) return enc;
+        var encTerm = System.Net.WebUtility.HtmlEncode(qKw);
+        return System.Text.RegularExpressions.Regex.Replace(
+            enc,
+            System.Text.RegularExpressions.Regex.Escape(encTerm),
+            m => "<mark class=\"p-0\">" + m.Value + "</mark>",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    };
+
+    //----- ข้อมูลของ modal รายละเอียด
+    var logDataMap = new Dictionary<string, object>();
+    foreach (DataRow lr in dtLogs.Rows)
+    {
+        var _at  = lr["created_at"]   != DBNull.Value ? Convert.ToDateTime(lr["created_at"]) : DateTime.MinValue;
+        var _cnt = lr["result_count"] != DBNull.Value ? Convert.ToInt64(lr["result_count"]) : -1;
+        var _pg  = lr["page"]         != DBNull.Value ? Convert.ToInt32(lr["page"]) : 0;
+        logDataMap[lr["id"].ToString()] = new
+        {
+            id           = lr["id"]?.ToString(),
+            created_at   = _at != DateTime.MinValue ? _at.ToString("dd/MM/yyyy HH:mm:ss") : "",
+            keyword      = lr["keyword"]?.ToString() ?? "",
+            search_mode  = lr["search_mode"]?.ToString() ?? "",
+            lang         = lr["lang"]?.ToString() ?? "",
+            filters      = lr["filters"]?.ToString() ?? "",
+            filters_text = NpaSearchLogHelper.Summary(lr["filters"]?.ToString()),
+            sort         = lr["sort"]?.ToString() ?? "",
+            page         = _pg,
+            result_count = _cnt,
+            query_string = lr["query_string"]?.ToString() ?? "",
+            client_ip    = lr["client_ip"]?.ToString() ?? "",
+            user_agent   = lr["user_agent"]?.ToString() ?? "",
+            referer      = lr["referer"]?.ToString() ?? ""
+        };
+    }
+    //----- EscapeHtml: คำค้นหาเป็นข้อความที่ผู้ใช้พิมพ์เข้ามาเอง อาจมี "</script>" หรือแท็ก HTML ปนมา
+    //      ถ้า serialize ตรง ๆ จะไปปิด <script> ของหน้านี้กลางคัน (สคริปต์พังทั้งหน้า + เป็นช่องโหว่ XSS)
+    var logDataJson = Newtonsoft.Json.JsonConvert.SerializeObject(logDataMap,
+        new Newtonsoft.Json.JsonSerializerSettings { StringEscapeHandling = Newtonsoft.Json.StringEscapeHandling.EscapeHtml });
+}
+
+@* ===================== SEARCH FORM ===================== *@
+<div class="form-wrapper mb-4">
+    <form method="get" id="formSearch" class="form" autocomplete="off">
+        <div class="row">
+            <div class="col-lg-6 col-md-12 mb-3">
+                <div class="field">
+                    <label class="form-label fw-semibold"><i class="bi bi-search me-1"></i>ข้อความค้นหา (คำที่ผู้ใช้พิมพ์)</label>
+                    <input type="text" name="q_kw" id="q_kw" value="@qKw" class="form-control form-control-lg"
+                           placeholder="พิมพ์คำ/บางส่วนของคำที่ต้องการค้นหา เช่น ทาวเวอร์" />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">มีข้อความค้นหาหรือไม่</label>
+                    <select name="q_haskw" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        <option value="1" @(qHasKw == "1" ? "selected" : "")>เฉพาะที่มีข้อความค้นหา</option>
+                        <option value="0" @(qHasKw == "0" ? "selected" : "")>เฉพาะที่ไม่ระบุข้อความ (กรองอย่างเดียว)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ผลลัพธ์ที่ได้</label>
+                    <select name="q_result" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        <option value="found"    @(qResult == "found"    ? "selected" : "")>พบผลลัพธ์</option>
+                        <option value="notfound" @(qResult == "notfound" ? "selected" : "")>ไม่พบผลลัพธ์ (0 รายการ)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ประเภทการค้นหา</label>
+                    <select name="q_mode" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        @foreach (DataRow r in dtModes.Rows) {
+                            var m = r["search_mode"].ToString();
+                            <option value="@m" @(qMode == m ? "selected" : "")>@m</option>
+                        }
+                        <option value="__none__" @(qMode == "__none__" ? "selected" : "")>(ไม่ระบุ)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ภาษา</label>
+                    <select name="q_lang" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        @foreach (DataRow r in dtLangs.Rows) {
+                            var lg = r["lang"].ToString();
+                            <option value="@lg" @(qLang == lg ? "selected" : "")>@(lg == "th" ? "ไทย (th)" : lg == "en" ? "อังกฤษ (en)" : lg)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ตัวกรองที่ใช้</label>
+                    <select name="q_fkey" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        <option value="__any__"  @(qFKey == "__any__"  ? "selected" : "")>มีการใช้ตัวกรอง</option>
+                        <option value="__none__" @(qFKey == "__none__" ? "selected" : "")>ไม่ใช้ตัวกรองเลย</option>
+                        @foreach (var f in NpaSearchLogHelper.FilterKeys) {
+                            <option value="@f.Key" @(qFKey == f.Key ? "selected" : "")>ใช้ตัวกรอง: @f.Value</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">Client IP</label>
+                    <input type="text" name="q_ip" value="@qIp" class="form-control" placeholder="192.168.x.x" />
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">แสดงหน้าละ</label>
+                    <select name="perpage" class="form-select">
+                        @foreach (var n in new[] { 10, 20, 50, 100 }) {
+                            <option value="@n" @(perPage == n ? "selected" : "")>@n รายการ</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-12 mb-3">
+                <div class="field">
+                    <label class="form-label">ช่วงวันที่</label>
+                    <div class="input-group input-daterange">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="text" id="date_timepicker_start" name="q_date_start" value="@qDateStart" class="form-control" placeholder="วันเริ่มต้น" readonly />
+                        <span class="input-group-text">ถึง</span>
+                        <input type="text" id="date_timepicker_end" name="q_date_end" value="@qDateEnd" class="form-control" placeholder="วันสิ้นสุด" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group mt-1">
+            <button type="submit" class="btn btn--primary">
+                <span class="btn-icon"><i class="bi bi-search"></i></span>
+                <span class="btn-text">ค้นหา</span>
+            </button>
+
+            @* ปุ่มล้างค่าโผล่เมื่อมีเงื่อนไขค้นหาใด ๆ อยู่ (รวมกรณีมากันจากลิงก์ในตารางอันดับคำค้นหา) *@
+            @if (NpaSearchLogHelper.QueryKeys.Any(k => !string.IsNullOrEmpty(Q(k))) || !string.IsNullOrEmpty(Q("perpage")))
+            {
+                <a href="?page=1" class="btn btn--gray">
+                    <span class="btn-icon"><i class="bi bi-x-circle"></i></span>
+                    <span class="btn-text">ล้างค่า</span>
+                </a>
+            }
+        </div>
+    </form>
+</div>
+
+@* ===================== SUMMARY CARDS ===================== *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-primary">@totalRows.ToString("N0")</div>
+                <div class="small text-muted">การค้นหาทั้งหมด</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-success">@cntDistinctKw.ToString("N0")</div>
+                <div class="small text-muted">คำค้นหาไม่ซ้ำ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-danger">@cntZero.ToString("N0")</div>
+                <div class="small text-muted">ค้นแล้วไม่พบผลลัพธ์</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-warning">@cntToday.ToString("N0")</div>
+                <div class="small text-muted">24 ชั่วโมงล่าสุด</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ===================== TOP KEYWORDS ===================== *@
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header py-2">
+                <span class="fw-semibold"><i class="bi bi-fire me-1 text-danger"></i>คำค้นหายอดนิยม 10 อันดับ</span>
+                <span class="text-muted small ms-2">(ตามเงื่อนไขที่กรองอยู่)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:45px" class="text-center">#</th>
+                            <th>คำค้นหา</th>
+                            <th style="width:90px" class="text-center">จำนวนครั้ง</th>
+                            <th style="width:110px" class="text-center">ผลลัพธ์เฉลี่ย</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (dtTopKw.Rows.Count == 0) {
+                        <tr><td colspan="4" class="text-center py-4 text-muted small">ไม่มีข้อมูลคำค้นหา</td></tr>
+                    }
+                    @{ int tnum = 1; }
+                    @foreach (DataRow r in dtTopKw.Rows) {
+                        var kw    = r["kw"].ToString() ?? "";
+                        var kwCnt = Convert.ToInt64(r["cnt"]);
+                        var kwAvg = Convert.ToInt64(r["avg_result"]);
+                        <tr>
+                            <td class="text-center text-muted small">@tnum</td>
+                            <td class="kw-cell">
+                                @if (kwLinkable(kw)) {
+                                    <a href="@kwLink(kw, "")" class="fw-semibold text-decoration-none" title="@kw">@(kw.Length > 60 ? kw.Substring(0, 60) + "…" : kw)</a>
+                                } else {
+                                    <span class="fw-semibold" title="@kw">@(kw.Length > 60 ? kw.Substring(0, 60) + "…" : kw)</span>
+                                }
+                            </td>
+                            <td class="text-center"><span class="badge bg-primary">@kwCnt.ToString("N0")</span></td>
+                            <td class="text-center small @(kwAvg == 0 ? "text-danger fw-semibold" : "text-muted")">@kwAvg.ToString("N0")</td>
+                        </tr>
+                        tnum++;
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header py-2">
+                <span class="fw-semibold"><i class="bi bi-emoji-frown me-1 text-danger"></i>คำค้นหาที่ไม่พบผลลัพธ์</span>
+                <span class="text-muted small ms-2">(ควรพิจารณาเพิ่มข้อมูล/คำพ้อง)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:45px" class="text-center">#</th>
+                            <th>คำค้นหา</th>
+                            <th style="width:90px" class="text-center">จำนวนครั้ง</th>
+                            <th style="width:110px" class="text-center">ล่าสุด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (dtZeroKw.Rows.Count == 0) {
+                        <tr><td colspan="4" class="text-center py-4 text-muted small">ไม่มีคำค้นหาที่ค้นแล้วไม่พบ</td></tr>
+                    }
+                    @{ int znum = 1; }
+                    @foreach (DataRow r in dtZeroKw.Rows) {
+                        var kw     = r["kw"].ToString() ?? "";
+                        var kwCnt  = Convert.ToInt64(r["cnt"]);
+                        var lastAt = r["last_at"] != DBNull.Value ? Convert.ToDateTime(r["last_at"]) : DateTime.MinValue;
+                        <tr>
+                            <td class="text-center text-muted small">@znum</td>
+                            <td class="kw-cell">
+                                @if (kwLinkable(kw)) {
+                                    <a href="@kwLink(kw, "q_result=notfound")" class="fw-semibold text-decoration-none" title="@kw">@(kw.Length > 60 ? kw.Substring(0, 60) + "…" : kw)</a>
+                                } else {
+                                    <span class="fw-semibold" title="@kw">@(kw.Length > 60 ? kw.Substring(0, 60) + "…" : kw)</span>
+                                }
+                            </td>
+                            <td class="text-center"><span class="badge bg-danger">@kwCnt.ToString("N0")</span></td>
+                            <td class="text-center small text-muted">@(lastAt != DateTime.MinValue ? lastAt.ToString("dd/MM/yy HH:mm") : "-")</td>
+                        </tr>
+                        znum++;
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ===================== TABLE ===================== *@
+<div class="card shadow-sm">
+    <div class="card-header d-flex align-items-center py-2">
+        <span class="fw-semibold"><i class="fa-solid fa-magnifying-glass-location me-1"></i> รายการค้นหาทรัพย์ NPA</span>
+        <span class="text-muted small ms-auto me-4">
+            ทั้งหมด @totalRows.ToString("N0") รายการ &bull; หน้า @curPage / @(totalPages == 0 ? 1 : totalPages)
+            @if (cntNoKw > 0) { <text>&bull; ไม่ระบุคำค้นหา @cntNoKw.ToString("N0") รายการ</text> }
+        </span>
+        <a href="/Admin/LogsNpaSearch/ExportExcel@(string.IsNullOrEmpty(exportQs) ? "" : "?" + exportQs)"
+           class="btn btn-sm" style="background-color:#217346;color:#fff;border-color:#217346"
+           title="Export ผลลัพธ์การค้นหาเป็น Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped-custom mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width:50px">#</th>
+                        <th style="width:110px">วันที่ / เวลา</th>
+                        <th>ข้อความค้นหา</th>
+                        <th style="width:200px">ตัวกรองที่ใช้</th>
+                        <th style="width:90px" class="text-center">ประเภท / ภาษา</th>
+                        <th style="width:95px" class="text-center">ผลลัพธ์</th>
+                        <th style="width:120px">Client IP</th>
+                        <th style="width:60px" class="text-center">รายละเอียด</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (dtLogs.Rows.Count == 0) {
+                    <tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>ไม่พบข้อมูล</td></tr>
+                }
+                @foreach (DataRow row in dtLogs.Rows) {
+                    var createdAt  = row["created_at"]   != DBNull.Value ? Convert.ToDateTime(row["created_at"]) : DateTime.MinValue;
+                    var keyword    = row["keyword"]?.ToString() ?? "";
+                    var searchMode = row["search_mode"]?.ToString() ?? "";
+                    var lang       = row["lang"]?.ToString() ?? "";
+                    var resultCnt  = row["result_count"] != DBNull.Value ? Convert.ToInt64(row["result_count"]) : -1;
+                    var pageNo     = row["page"]         != DBNull.Value ? Convert.ToInt32(row["page"]) : 0;
+                    var clientIp   = row["client_ip"]?.ToString() ?? "";
+                    var userAgent  = row["user_agent"]?.ToString() ?? "";
+                    var filterList = NpaSearchLogHelper.Parse(row["filters"]?.ToString());
+
+                    //----- คำค้นหาที่ยาวผิดปกติ (ผู้ใช้พิมพ์รัวไม่มีเว้นวรรค) ต้องตัดก่อน ไม่งั้นตารางจะดันหน้าจอกว้างเกิน
+                    var kwShort    = keyword.Length > 120 ? keyword.Substring(0, 120) + "…" : keyword;
+
+                    <tr data-id="@row["id"]">
+                        <td class="text-center text-muted small">@rowNum</td>
+                        <td class="small">
+                            @if (createdAt != DateTime.MinValue) {
+                                <span class="d-block">@createdAt.ToString("dd/MM/yyyy")</span>
+                                <span class="text-muted">@createdAt.ToString("HH:mm:ss")</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(keyword)) {
+                                <div class="fw-semibold kw-cell" style="font-size:.95rem" title="@keyword">@Html.Raw(highlight(kwShort))</div>
+                            } else {
+                                <span class="text-muted fst-italic small">(ไม่ระบุคำค้นหา — ค้นจากตัวกรองอย่างเดียว)</span>
+                            }
+                            @if (pageNo > 1) {
+                                <div class="text-muted" style="font-size:.72rem">หน้าผลลัพธ์ที่ @pageNo</div>
+                            }
+                        </td>
+                        <td class="filter-cell">
+                            @if (filterList.Count == 0) {
+                                <span class="text-muted small">-</span>
+                            } else {
+                                @foreach (var f in filterList) {
+                                    <span class="badge bg-light text-dark border me-1 mb-1" style="font-size:.68rem">@f.Key: <span class="fw-semibold">@f.Value</span></span>
+                                }
+                            }
+                        </td>
+                        <td class="text-center small">
+                            @if (!string.IsNullOrEmpty(searchMode)) {
+                                <span class="badge bg-secondary" style="font-size:.68rem">@searchMode</span>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                            @if (!string.IsNullOrEmpty(lang)) {
+                                <div class="text-muted mt-1" style="font-size:.72rem">@lang</div>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (resultCnt > 0) {
+                                <span class="badge bg-success" style="font-size:.75rem">@resultCnt.ToString("N0")</span>
+                            } else if (resultCnt == 0) {
+                                <span class="badge bg-danger" style="font-size:.75rem">ไม่พบ</span>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td class="small">
+                            @if (!string.IsNullOrEmpty(clientIp)) {
+                                <code class="small">@clientIp</code>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                            @if (!string.IsNullOrEmpty(userAgent)) {
+                                <div class="text-muted text-truncate" style="font-size:.7rem;max-width:120px" title="@userAgent">@userAgent</div>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn--outline--primary btn-log-detail" data-log-id="@row["id"]">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    rowNum++;
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (totalPages > 1) {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="small text-muted">
+                แสดง @(offset + 1)–@(Math.Min(offset + perPage, (int)totalRows)) จาก @totalRows.ToString("N0") รายการ
+            </span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    @{ int pgStart = Math.Max(1, curPage - 2); int pgEnd = Math.Min(totalPages, curPage + 2); }
+                    @if (curPage > 1) {
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=1"><i class="bi bi-chevron-double-left"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@(curPage-1)"><i class="bi bi-chevron-left"></i></a></li>
+                    }
+                    @for (int p = pgStart; p <= pgEnd; p++) {
+                        <li class="page-item @(p == curPage ? "active" : "")">
+                            <a class="page-link" href="?@baseQs&page=@p">@p</a>
+                        </li>
+                    }
+                    @if (curPage < totalPages) {
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@(curPage+1)"><i class="bi bi-chevron-right"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@totalPages"><i class="bi bi-chevron-double-right"></i></a></li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@* ===================== DETAIL MODAL ===================== *@
+<div class="modal fade" id="modalLogDetail" tabindex="-1" aria-labelledby="modalLogDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLogDetailLabel">
+                    <i class="fa-solid fa-magnifying-glass-location me-2"></i>รายละเอียดการค้นหาทรัพย์ NPA
+                    <span id="mdlBadgeResult" class="badge ms-2"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                @* คำค้นหา — ข้อมูลหลักของหน้านี้ *@
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <div class="small fw-semibold text-muted mb-1"><i class="bi bi-search me-1"></i>ข้อความที่ผู้ใช้ค้นหา</div>
+                    <div id="mdlKeyword" class="fs-5 fw-semibold text-break"></div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-sliders me-1"></i>เงื่อนไขการค้นหา</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr><td class="text-muted" style="width:130px">ประเภทการค้นหา</td><td id="mdlMode"></td></tr>
+                                <tr><td class="text-muted">ภาษา</td><td id="mdlLang"></td></tr>
+                                <tr><td class="text-muted">การเรียงลำดับ</td><td id="mdlSort"></td></tr>
+                                <tr><td class="text-muted">หน้าผลลัพธ์</td><td id="mdlPage"></td></tr>
+                                <tr><td class="text-muted">จำนวนผลลัพธ์</td><td id="mdlResult" class="fw-semibold"></td></tr>
+                                <tr><td class="text-muted">วันที่/เวลา</td><td id="mdlCreatedAt"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-hdd-network me-1"></i>ข้อมูลผู้ค้นหา</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr><td class="text-muted" style="width:110px">Client IP</td>
+                                    <td><code id="mdlClientIp"></code>
+                                        <button class="btn btn-sm p-0 ms-1 text-muted" id="btnCopyIp" title="Copy"><i class="bi bi-clipboard"></i></button>
+                                    </td></tr>
+                                <tr><td class="text-muted">User Agent</td><td id="mdlUserAgent" class="text-break" style="font-size:.75rem"></td></tr>
+                                <tr><td class="text-muted">Referer</td><td id="mdlReferer" class="text-break" style="font-size:.75rem"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="small fw-semibold text-muted mb-1"><i class="bi bi-funnel me-1"></i>ตัวกรองที่ใช้</div>
+                    <div id="mdlFiltersText" class="border rounded p-2 small bg-light"></div>
+                </div>
+
+                @* JSON Tabs *@
+                <ul class="nav nav-tabs" id="jsonTabs" role="tablist">
+                    <li class="nav-item"><button class="nav-link active" data-toggle="tab" data-target="#tabFilters">Filters (JSON)</button></li>
+                    <li class="nav-item"><button class="nav-link"        data-toggle="tab" data-target="#tabQuery">Query String</button></li>
+                </ul>
+                <div class="tab-content border border-top-0 rounded-bottom p-0">
+                    <div class="tab-pane fade show active" id="tabFilters">
+                        <pre id="mdlFilters" class="m-0 p-3 bg-light rounded-bottom small" style="max-height:250px;overflow:auto;font-size:.78rem"></pre>
+                    </div>
+                    <div class="tab-pane fade" id="tabQuery">
+                        <pre id="mdlQueryString" class="m-0 p-3 bg-light rounded-bottom small" style="max-height:250px;overflow:auto;font-size:.78rem;white-space:pre-wrap;word-break:break-all"></pre>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto">Log ID: <code id="mdlLogId"></code></span>
+                <button type="button" class="btn btn--gray" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <style>
+    body.modal-open { overflow: hidden !important; padding-right: 0 !important; }
+    #modalLogDetail .modal-body { overflow-y: auto; scrollbar-width: none; }
+    #modalLogDetail .modal-body::-webkit-scrollbar { display: none; }
+    mark { background-color: #fff3a3; }
+    /* คำค้นหาเป็นข้อความอิสระ อาจยาวติดกันไม่มีช่องว่าง — บังคับตัดบรรทัดกันตารางดันหน้ากว้างเกินจอ
+       (ธีมหลังบ้านตั้ง td เป็น white-space:nowrap จึงต้อง override ด้วย !important) */
+    .kw-cell, .kw-cell a { white-space: normal !important; word-break: break-all; overflow-wrap: anywhere; }
+    .kw-cell { max-width: 360px; }
+    /* ป้ายตัวกรองมีได้หลายอัน — ให้ตัดขึ้นบรรทัดใหม่แทนที่จะดันคอลัมน์ให้กว้าง */
+    .filter-cell { white-space: normal !important; max-width: 230px; }
+    </style>
+    <script>
+    var __logData = @Html.Raw(logDataJson);
+    $(document).ready(function () {
+
+        // ---- Date Pickers ----
+        if ($.fn.datetimepicker) {
+            $('#date_timepicker_start').datetimepicker({ timepicker: false, format: 'd/m/Y',
+                onSelectDate: function (dp, $i) {
+                    var d = $i.val();
+                    $('#date_timepicker_end').datetimepicker('setOptions', { minDate: d });
+                }
+            });
+            $('#date_timepicker_end').datetimepicker({ timepicker: false, format: 'd/m/Y',
+                onSelectDate: function (dp, $i) {
+                    var d = $i.val();
+                    $('#date_timepicker_start').datetimepicker('setOptions', { maxDate: d });
+                }
+            });
+        }
+
+        // ---- Tooltips ----
+        $('[data-toggle="tooltip"]').tooltip({ trigger: 'hover', placement: 'top', offset: [0, 0] });
+
+        function prettyJson(str) {
+            if (!str || str.trim() === '' || str.trim() === 'null' || str.trim() === '{}') return '(ไม่มีตัวกรอง)';
+            try   { return JSON.stringify(JSON.parse(str), null, 2); }
+            catch { return str; }
+        }
+
+        // ---- Detail Modal ----
+        $(document).on('click', '.btn-log-detail', function () {
+            var d = __logData[$(this).data('log-id')];
+
+            $('#mdlLogId').text(d.id);
+
+            var kw = (d.keyword || '').trim();
+            if (kw === '') {
+                $('#mdlKeyword').html('<span class="text-muted fst-italic fs-6">(ไม่ระบุคำค้นหา — ค้นจากตัวกรองอย่างเดียว)</span>');
+            } else {
+                $('#mdlKeyword').text(kw);
+            }
+
+            $('#mdlMode').text(d.search_mode || '-');
+            $('#mdlLang').text(d.lang || '-');
+            $('#mdlSort').text(d.sort || '-');
+            $('#mdlPage').text(d.page > 0 ? d.page : '-');
+            $('#mdlCreatedAt').text(d.created_at || '-');
+            $('#mdlClientIp').text(d.client_ip || '-');
+            $('#mdlUserAgent').text(d.user_agent || '-');
+            $('#mdlReferer').text(d.referer || '-');
+
+            var rc = d.result_count;
+            $('#mdlResult').html(rc >= 0
+                ? (rc > 0 ? '<span class="text-success">' + rc.toLocaleString() + ' รายการ</span>'
+                          : '<span class="text-danger">ไม่พบผลลัพธ์</span>')
+                : '-');
+
+            var $b = $('#mdlBadgeResult').removeClass().addClass('badge');
+            if (rc > 0)       { $b.addClass('bg-success').text('พบ ' + rc.toLocaleString() + ' รายการ'); }
+            else if (rc === 0){ $b.addClass('bg-danger').text('ไม่พบผลลัพธ์'); }
+            else              { $b.addClass('bg-secondary').text('-'); }
+
+            $('#mdlFiltersText').text(d.filters_text || '(ไม่มีตัวกรอง)');
+            $('#mdlFilters').text(prettyJson(d.filters));
+            $('#mdlQueryString').text(d.query_string || '(ไม่มี)');
+
+            // Reset to first tab
+            $('#jsonTabs .nav-link').removeClass('active');
+            $('#jsonTabs .nav-link:first').addClass('active');
+            $('.tab-pane').removeClass('show active');
+            $('#tabFilters').addClass('show active');
+
+            $('#modalLogDetail').modal('show');
+        });
+
+        // ---- Modal dismiss ----
+        $(document).on('click', '[data-dismiss="modal"]', function () {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // ---- Copy IP ----
+        $('#btnCopyIp').on('click', function () {
+            var ip = $('#mdlClientIp').text().trim();
+            if (ip && navigator.clipboard) {
+                navigator.clipboard.writeText(ip).then(function () {
+                    $('#btnCopyIp i').removeClass('bi-clipboard').addClass('bi-clipboard-check');
+                    setTimeout(function () {
+                        $('#btnCopyIp i').removeClass('bi-clipboard-check').addClass('bi-clipboard');
+                    }, 1500);
+                });
+            }
+        });
+
+    });
+    </script>
+}

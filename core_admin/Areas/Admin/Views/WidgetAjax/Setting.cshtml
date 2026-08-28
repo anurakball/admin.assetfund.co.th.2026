@@ -1,0 +1,528 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@using Microsoft.AspNetCore.Http 
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{ 
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;  
+} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" /> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@200;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="/css/Admin/admin_site.css" />
+    <script>
+    var admin_fm_path1 = "@HttpContextAccessor.HttpContext.Session.GetString("admin_fm_path1")";
+    var admin_fm_path2 = "@HttpContextAccessor.HttpContext.Session.GetString("admin_fm_path2")";
+    </script>
+    <script src="/js/Admin/admin_site.js?t=@System.DateTime.Now.ToString("yyyyMMddHHmm")"></script>
+    <link href="/assets/fonts/fontawesome/css/fontawesome-all.min.css" rel="stylesheet" />
+    <link href="/assets/plugins/animation/css/animate.min.css" rel="stylesheet" />
+    <link href="/assets/css/style.css" rel="stylesheet" />
+    <link href="/css/main.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div>
+        <div>
+            <div>
+                <div> 
+                    <div class="form-wrapper">
+                        <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+                            <div class="row" id="core_system_div">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    <div class="field">
+                                        <label for="setting_core_id" class="form-label">Core System</label>
+                                        <select class="form-select" id="setting_core_id" name="setting_core_id" onchange="show_this_type(this.value)">
+                                            <option value="">-- เลือก --</option> 
+                                            <option value="1">รูปสไลด์</option>
+                                            @*
+                                            <option value="1">ประกาศ</option>
+                                            <option value="2">แบนเนอร์</option>
+                                            <option value="3">ค้นหาสาขา</option>
+                                            <option value="4">ดาวน์โหลด</option>
+                                            <option value="5">แบบฟอร์มออนไลน์</option>
+                                            <option value="6">ถาม-ตอบ</option>
+                                            <option value="7">แกลอรีรูปภาพ</option>
+                                            <option value="8">Image Slide</option>
+                                            <option value="9">ข่าวสาร</option>
+                                            <option value="10">สินค้า</option>
+                                            <option value="11">โปรโมชั่น</option>
+                                            <option value="12">วิดีโอแกลอรี</option>
+                                            <option value="13">Text Center</option>
+                                            <option value="14">คณะกรรมการ</option>
+                                            <option value="15">Relate Content</option>
+                                            <option value="16">Text Editor</option>
+                                            *@
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3"> 
+                                    <span id="group_1" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "รูปสไลด์",
+                                        "setting_core_cat_id_1",
+                                        "0",
+                                        showAllOption: true,
+                                        "web_core_item",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "HomeImageSlide",
+                                        "1"
+                                        ))
+                                    </span>
+                                    @*
+                                    <span id="group_2" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "แบนเนอร์",
+                                        "setting_core_cat_id_2",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_banner_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "BannerGroup"
+                                        ))
+                                    </span> 
+                                    <span id="group_3" style="display:none;"><input type="hidden" name="setting_core_cat_id_3" id="id_setting_core_cat_id_3" value="1" /></span>
+                                    <span id="group_4" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "ดาวน์โหลด",
+                                        "setting_core_cat_id_4",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_download_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "DownloadGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_5" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "แบบฟอร์มออนไลน์",
+                                        "setting_core_cat_id_5",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_eform",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "Eform"
+                                        ))
+                                    </span>
+                                    <span id="group_6" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "ถาม-ตอบ",
+                                        "setting_core_cat_id_6",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_faq_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "FaqGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_7" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "แกลอรีรูปภาพ",
+                                        "setting_core_cat_id_7",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_gallery_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "GalleryGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_8" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "Image Slide",
+                                        "setting_core_cat_id_8",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_home_image_slide_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "HomeImageSlideGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_9" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "ข่าวสาร",
+                                        "setting_core_cat_id_9",
+                                        "0",
+                                        showAllOption: true,
+                                        "web_news_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "NewsGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_10" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "สินค้า",
+                                        "setting_core_cat_id_10",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_product_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "ProductGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_11" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "โปรโมชั่น",
+                                        "setting_core_cat_id_11",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_promotion_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "PromotionGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_12" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "วิดีโอแกลอรี",
+                                        "setting_core_cat_id_12",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_vdo_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "VDOGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_13" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "Text Center",
+                                        "setting_core_cat_id_13",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_home_text_slide",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "HomeTextCenter"
+                                        ))
+                                    </span> 
+                                    <span id="group_14" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "คณะกรรมการ",
+                                        "setting_core_cat_id_14",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_board_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "BoardGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_15" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "Relate Content",
+                                        "setting_core_cat_id_15",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_relate_group",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "RelateGroup"
+                                        ))
+                                    </span>
+                                    <span id="group_16" style="display:none;">
+                                        @Html.Raw(
+                                        _admin.InputSelectDB_WG(
+                                        "Text Editor",
+                                        "setting_core_cat_id_16",
+                                        "0",
+                                        showAllOption: false,
+                                        "web_text_editor",
+                                        value_field: "id",
+                                        text_field:"pb_title",
+                                        order_by: "pb_title",
+                                        sort: "asc",
+                                        txtAllOption: "- ทั้งหมด -",
+                                        "TextEditor"
+                                        ))
+                                    </span>
+                                    *@
+                                </div>
+                            </div> 
+                            <div class="row" id="sort_type" style="display:none;">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    <div class="field">
+                                        <label for="setting_sort_1" class="form-label">Sort Type</label>
+                                        <select class="form-select" id="setting_sort_1" name="setting_sort_1">
+                                            <option value="1">การจัดเรียง</option>
+                                            <option value="2">วันที่สร้าง</option>
+                                            <option value="3">วันที่แก้ไข</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    <div class="field">
+                                        <label for="setting_sort_2" class="form-label">Sort Value</label>
+                                        <select class="form-select" id="setting_sort_2" name="setting_sort_2">
+                                            <option value="2">มากไปน้อย</option>
+                                            <option value="1">น้อยไปมาก</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @{
+                                if (ViewBag.id.ToString() == "320" || ViewBag.id.ToString() == "330")
+                                {
+                                    <hr />
+
+                                    <div class="row" id="sort_type_sub">
+                                        <div class="col-lg-6 col-md-6 mb-3">
+                                            <span id="group_8_sub">
+                                                @Html.Raw(
+                                                _admin.InputSelectDB(
+                                                "Image Slide",
+                                                "setting_core_cat_id_8_sub",
+                                                "0",
+                                                showAllOption: false,
+                                                "web_home_image_slide_group",
+                                                value_field: "id",
+                                                text_field:"pb_title",
+                                                order_by: "pb_title",
+                                                sort: "asc",
+                                                txtAllOption: "- เลือก -"
+                                                ))
+                                            </span>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6 mb-3">
+                                            <div class="field">
+                                                <label for="setting_sort_1_sub" class="form-label">Sort Type</label>
+                                                <select class="form-select" id="setting_sort_1_sub" name="setting_sort_1_sub">
+                                                    <option value="1">การจัดเรียง</option>
+                                                    <option value="2">วันที่สร้าง</option>
+                                                    <option value="3">วันที่แก้ไข</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6 mb-3">
+                                            <div class="field">
+                                                <label for="setting_sort_2_sub" class="form-label">Sort Value</label>
+                                                <select class="form-select" id="setting_sort_2_sub" name="setting_sort_2_sub">
+                                                    <option value="2">มากไปน้อย</option>
+                                                    <option value="1">น้อยไปมาก</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input type="hidden" id="id_setting_core_cat_id_8_sub" name="setting_core_cat_id_8_sub" value="">
+                                    <input type="hidden" id="setting_sort_1_sub" name="setting_sort_1_sub" value="">
+                                    <input type="hidden" id="setting_sort_2_sub" name="setting_sort_2_sub" value="">
+                                }
+                            }
+                              
+                            <input type="hidden" name="setting_id" id="setting_id" value="@ViewBag.id" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/lib/sortable/Sortable.js"></script>
+    <script src="/assets/js/pcoded.min.js"></script>
+    <script src="/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/assets/plugins/slimscroll/slimscroll.min.js"></script>
+    <link href="/assets/plugins/jquery-datetimepicker/jquery.datetimepicker.css" rel="stylesheet" />
+    <script src="/assets/plugins/jquery-datetimepicker/moment-with-locales.min.js"></script>
+    <script src="/assets/plugins/jquery-datetimepicker/th.min.js"></script>
+    <script src="/assets/plugins/jquery-datetimepicker/jquery.datetimepicker.full.min.js"></script>
+    <script>
+    $(document).ready(function () 
+    {
+        @{
+            if(@ViewBag.CoreSystem != "")
+            {
+                <text>
+                document.getElementById('setting_core_id').value = '@ViewBag.CoreSystem';
+                show_this_type('@ViewBag.CoreSystem');
+                document.getElementById('id_setting_core_cat_id_@ViewBag.CoreSystem').value = '@ViewBag.CatID'; 
+                </text>
+            }
+
+            if (@ViewBag.Setting != "")
+            {
+                <text>
+                var setting_data = "@ViewBag.Setting";
+                if (setting_data.indexOf(',') > -1) 
+                {
+                    var arr_setting_data = setting_data.split(",");
+
+                    for (var i = 0; i < arr_setting_data.length; i++) 
+                    {
+                        if (arr_setting_data[i] != "") 
+                        {
+                            if (arr_setting_data[i].indexOf(':') > -1) 
+                            {
+                                var arr_get_no_widget = arr_setting_data[i].split(":");
+
+                                if (arr_get_no_widget[0] == "@ViewBag.id") 
+                                {
+                                    var this_setting = arr_get_no_widget[1].split("|"); 
+                                    document.getElementById('setting_core_id').value = this_setting[0];
+                                    show_this_type(this_setting[0]);
+                                         
+                                    document.getElementById('id_setting_core_cat_id_'+this_setting[0]).value = this_setting[1]; 
+                                    document.getElementById('setting_sort_1').value = this_setting[2];
+                                    document.getElementById('setting_sort_2').value = this_setting[3];
+                                }
+                            }
+                        }
+                    }
+                }
+                </text>
+            }
+
+            if (@ViewBag.Setting_sub != "")
+            {
+                <text>
+                var setting_data = "@ViewBag.Setting_sub";
+                if (setting_data.indexOf(',') > -1) 
+                {
+                    var arr_setting_data = setting_data.split(",");
+
+                    for (var i = 0; i < arr_setting_data.length; i++) 
+                    {
+                        if (arr_setting_data[i] != "") 
+                        {
+                            if (arr_setting_data[i].indexOf(':') > -1) 
+                            {
+                                var arr_get_no_widget = arr_setting_data[i].split(":");
+
+                                if (arr_get_no_widget[0] == "@ViewBag.id") 
+                                {
+                                    var this_setting = arr_get_no_widget[1].split("|"); 
+                                    //document.getElementById('setting_core_id').value = this_setting[0];
+                                    //show_this_type(this_setting[0]);
+
+                                    document.getElementById('id_setting_core_cat_id_8_sub').value = this_setting[1];
+                                    document.getElementById('setting_sort_1_sub').value = this_setting[2];
+                                    document.getElementById('setting_sort_2_sub').value = this_setting[3];
+                                }
+                            }
+                        }
+                    }
+                }
+                </text>
+            }
+        }
+             
+        document.getElementById('setting_core_id').disabled = true;
+             
+        @{
+            if (ViewBag.id.ToString() == "120")
+            {
+                    <text>
+                    document.getElementById('id_setting_core_cat_id_9').value = "";
+                    document.getElementById('id_setting_core_cat_id_9').disabled = true;
+                </text>
+            }
+            else if (ViewBag.id.ToString() == "130")
+            {
+                <text>
+                    document.getElementById('id_setting_core_cat_id_1').value = "";
+                    document.getElementById('id_setting_core_cat_id_1').disabled = true;
+                </text>
+            }
+        }
+    });
+    function hide_all_type() {
+        for (let i = 1; i <= 1; i++) {
+            document.getElementById('group_' + i).style.display = 'none';
+        }
+    }
+    function show_this_type(var1) {
+        hide_all_type();
+        document.getElementById("group_" + var1).style.display = '';
+        document.getElementById("sort_type").style.display = '';
+    } 
+    function goto_edit(var1,var2)
+    {
+        window.open('/Admin/' + var1 + '/Edit/' + var2);
+    }
+    </script> 
+</body>
+</html>
+
+ 

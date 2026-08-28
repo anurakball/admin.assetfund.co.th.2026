@@ -1,0 +1,498 @@
+@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+}
+
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+@{
+    var _q = HttpContextAccessor.HttpContext!.Request.Query;
+    string Q(string key) => _q.ContainsKey(key) ? (_q[key].ToString() ?? "").Trim() : "";
+
+    var qEndpoint   = Q("q_endpoint");
+    var qSuccess    = Q("q_success");
+    var qUid        = Q("q_uid");
+    var qIp         = Q("q_ip");
+    var qErrorCode  = Q("q_error_code");
+    var qDateStart  = Q("q_date_start");
+    var qDateEnd    = Q("q_date_end");
+
+    int curPage = int.TryParse(Q("page"),    out var _cp) && _cp > 0 ? _cp : 1;
+    int perPage = int.TryParse(Q("perpage"), out var _pp) && _pp >= 5 ? _pp : 20;
+    int offset  = (curPage - 1) * perPage;
+
+    var where = new System.Text.StringBuilder("WHERE 1=1");
+    var prms  = new Dictionary<string, object>();
+
+    if (!string.IsNullOrEmpty(qEndpoint))  { where.Append(" AND endpoint ILIKE @p_ep");      prms["p_ep"]   = "%" + qEndpoint + "%"; }
+    if (qSuccess == "true")                { where.Append(" AND success = TRUE"); }
+    else if (qSuccess == "false")          { where.Append(" AND success = FALSE"); }
+    if (!string.IsNullOrEmpty(qUid))       { where.Append(" AND CAST(uid AS VARCHAR) = @p_uid"); prms["p_uid"] = qUid; }
+    if (!string.IsNullOrEmpty(qIp))        { where.Append(" AND ip_address ILIKE @p_ip");    prms["p_ip"]   = "%" + qIp + "%"; }
+    if (!string.IsNullOrEmpty(qErrorCode)) { where.Append(" AND error_code ILIKE @p_ec");    prms["p_ec"]   = "%" + qErrorCode + "%"; }
+
+    if (!string.IsNullOrEmpty(qDateStart)) {
+        try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND log_date >= @p_ds"); prms["p_ds"] = d; } catch {}
+    }
+    if (!string.IsNullOrEmpty(qDateEnd)) {
+        try { var p = qDateEnd.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])).AddDays(1); where.Append(" AND log_date < @p_de"); prms["p_de"] = d; } catch {}
+    }
+
+    var w = where.ToString();
+
+    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM api_audit_log {w}", prms);
+    long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
+    int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
+
+    var dtLogs = _db.ExecuteQuery($@"
+        SELECT id, log_date, endpoint, success, uid, detail, ip_address, error_code
+        FROM api_audit_log
+        {w}
+        ORDER BY log_date DESC
+        LIMIT {perPage} OFFSET {offset}", prms);
+
+    var dtStats = _db.ExecuteQuery($@"
+        SELECT
+            COUNT(*) FILTER (WHERE success = TRUE)  AS cnt_success,
+            COUNT(*) FILTER (WHERE success = FALSE) AS cnt_failed,
+            COUNT(*) FILTER (WHERE log_date >= NOW() - INTERVAL '24 hours') AS cnt_today
+        FROM api_audit_log {w}", prms);
+
+    long cntSuccess = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_success"]) : 0;
+    long cntFailed  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_failed"])  : 0;
+    long cntToday   = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_today"])   : 0;
+
+    var dtEndpoints = _db.ExecuteQuery(
+        "SELECT DISTINCT endpoint FROM api_audit_log ORDER BY endpoint");
+
+    var qsParts = new List<string>();
+    if (!string.IsNullOrEmpty(qEndpoint))  qsParts.Add("q_endpoint="  + Uri.EscapeDataString(qEndpoint));
+    if (!string.IsNullOrEmpty(qSuccess))   qsParts.Add("q_success="   + Uri.EscapeDataString(qSuccess));
+    if (!string.IsNullOrEmpty(qUid))       qsParts.Add("q_uid="       + Uri.EscapeDataString(qUid));
+    if (!string.IsNullOrEmpty(qIp))        qsParts.Add("q_ip="        + Uri.EscapeDataString(qIp));
+    if (!string.IsNullOrEmpty(qErrorCode)) qsParts.Add("q_error_code="+ Uri.EscapeDataString(qErrorCode));
+    if (!string.IsNullOrEmpty(qDateStart)) qsParts.Add("q_date_start="+ Uri.EscapeDataString(qDateStart));
+    if (!string.IsNullOrEmpty(qDateEnd))   qsParts.Add("q_date_end="  + Uri.EscapeDataString(qDateEnd));
+    qsParts.Add("perpage=" + perPage);
+    var baseQs   = string.Join("&", qsParts);
+    var exportQs = string.Join("&", qsParts.Where(p => !p.StartsWith("perpage=")));
+
+    int rowNum = offset + 1;
+
+    var logDataMap = new Dictionary<string, object>();
+    foreach (DataRow lr in dtLogs.Rows) {
+        var _at = lr["log_date"] != DBNull.Value ? Convert.ToDateTime(lr["log_date"]) : DateTime.MinValue;
+        logDataMap[lr["id"].ToString()] = new {
+            id         = lr["id"]?.ToString(),
+            log_date   = _at != DateTime.MinValue ? _at.ToString("dd/MM/yyyy HH:mm:ss") : "",
+            endpoint   = lr["endpoint"]?.ToString() ?? "",
+            success    = lr["success"] != DBNull.Value && Convert.ToBoolean(lr["success"]),
+            uid        = lr["uid"] != DBNull.Value ? lr["uid"]?.ToString() : "",
+            detail     = lr["detail"]?.ToString() ?? "",
+            ip_address = lr["ip_address"]?.ToString() ?? "",
+            error_code = lr["error_code"]?.ToString() ?? ""
+        };
+    }
+    var logDataJson = Newtonsoft.Json.JsonConvert.SerializeObject(logDataMap);
+}
+
+@* ===================== SEARCH FORM ===================== *@
+<div class="form-wrapper mb-4">
+    <form method="get" id="formSearch" class="form" autocomplete="off">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">Endpoint</label>
+                    <select name="q_endpoint" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        @foreach (DataRow r in dtEndpoints.Rows) {
+                            var ep = r["endpoint"].ToString();
+                            <option value="@ep" @(qEndpoint == ep ? "selected" : "")>@ep</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">สถานะ</label>
+                    <select name="q_success" class="form-select">
+                        <option value="">-- ทั้งหมด --</option>
+                        <option value="true"  @(qSuccess == "true"  ? "selected" : "")>Success</option>
+                        <option value="false" @(qSuccess == "false" ? "selected" : "")>Failed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">UID (User ID)</label>
+                    <input type="text" name="q_uid" value="@qUid" class="form-control" placeholder="เช่น 24" />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">Error Code</label>
+                    <input type="text" name="q_error_code" value="@qErrorCode" class="form-control" placeholder="เช่น AUTH003" />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">IP Address</label>
+                    <input type="text" name="q_ip" value="@qIp" class="form-control" placeholder="192.168.x.x" />
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-8 mb-3">
+                <div class="field">
+                    <label class="form-label">ช่วงวันที่</label>
+                    <div class="input-group input-daterange">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="text" id="date_timepicker_start" name="q_date_start" value="@qDateStart" class="form-control" placeholder="วันเริ่มต้น" readonly />
+                        <span class="input-group-text">ถึง</span>
+                        <input type="text" id="date_timepicker_end" name="q_date_end" value="@qDateEnd" class="form-control" placeholder="วันสิ้นสุด" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 mb-3">
+                <div class="field">
+                    <label class="form-label">แสดงหน้าละ</label>
+                    <select name="perpage" class="form-select">
+                        @foreach (var n in new[] { 10, 20, 50, 100 }) {
+                            <option value="@n" @(perPage == n ? "selected" : "")>@n รายการ</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group mt-1">
+            <button type="submit" class="btn btn--primary">
+                <span class="btn-icon"><i class="bi bi-search"></i></span>
+                <span class="btn-text">ค้นหา</span>
+            </button>
+
+            @{
+                if(Context.Request.Query["perpage"]+"" != "")
+                {
+                    <a href="?page=1" class="btn btn--gray">
+                        <span class="btn-icon"><i class="bi bi-x-circle"></i></span>
+                        <span class="btn-text">ล้างค่า</span>
+                    </a>
+                }
+            }
+            
+        </div>
+    </form>
+</div>
+
+@* ===================== SUMMARY CARDS ===================== *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-primary">@totalRows.ToString("N0")</div>
+                <div class="small text-muted">รายการทั้งหมด</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-success">@cntSuccess.ToString("N0")</div>
+                <div class="small text-muted">Success</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-danger">@cntFailed.ToString("N0")</div>
+                <div class="small text-muted">Failed</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fs-2 fw-bold text-info">@cntToday.ToString("N0")</div>
+                <div class="small text-muted">ใน 24 ชั่วโมงล่าสุด</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ===================== TABLE ===================== *@
+<div class="card shadow-sm">
+    <div class="card-header d-flex align-items-center py-2">
+        <span class="fw-semibold"><i class="bi bi-list-ul me-1"></i> รายการ LINE LIFF API Log</span>
+        <span class="text-muted small ms-auto me-4">
+            ทั้งหมด @totalRows.ToString("N0") รายการ &bull; หน้า @curPage / @(totalPages == 0 ? 1 : totalPages)
+        </span>
+        <a href="/Admin/LogsLINE/ExportExcel@(string.IsNullOrEmpty(exportQs) ? "" : "?" + exportQs)"
+           class="btn btn-sm" style="background-color:#217346;color:#fff;border-color:#217346"
+           title="Export ผลลัพธ์การค้นหาเป็น Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped-custom mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width:50px">#</th>
+                        <th style="width:155px">วันที่ / เวลา</th>
+                        <th style="width:180px">Endpoint</th>
+                        <th style="width:90px" class="text-center">สถานะ</th>
+                        <th style="width:70px" class="text-center">UID</th>
+                        <th>Detail</th>
+                        <th style="width:130px">IP Address</th>
+                        <th style="width:90px">Error Code</th>
+                        <th style="width:60px" class="text-center">ข้อมูล</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (dtLogs.Rows.Count == 0) {
+                    <tr><td colspan="9" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>ไม่พบข้อมูล</td></tr>
+                }
+                @foreach (DataRow row in dtLogs.Rows) {
+                    var isSuccess  = row["success"] != DBNull.Value && Convert.ToBoolean(row["success"]);
+                    var logDate    = row["log_date"] != DBNull.Value ? Convert.ToDateTime(row["log_date"]) : DateTime.MinValue;
+                    var uidVal     = row["uid"] != DBNull.Value ? row["uid"]?.ToString() : "";
+                    var detailVal  = row["detail"]?.ToString() ?? "";
+                    var ipVal      = row["ip_address"]?.ToString() ?? "";
+                    var errorCode  = row["error_code"]?.ToString() ?? "";
+                    var endpoint   = row["endpoint"]?.ToString() ?? "";
+
+                    <tr data-id="@row["id"]">
+                        <td class="text-center text-muted small">@rowNum</td>
+                        <td class="small">
+                            @if (logDate != DateTime.MinValue) {
+                                <span class="d-block">@logDate.ToString("dd/MM/yyyy")</span>
+                                <span class="text-muted">@logDate.ToString("HH:mm:ss")</span>
+                            }
+                        </td>
+                        <td>
+                            <code class="small text-primary">@endpoint</code>
+                        </td>
+                        <td class="text-center">
+                            @if (isSuccess) {
+                                <span class="badge bg-success">Success</span>
+                            } else {
+                                <span class="badge bg-danger">Failed</span>
+                            }
+                        </td>
+                        <td class="text-center small">
+                            @if (!string.IsNullOrEmpty(uidVal)) {
+                                <span class="fw-semibold">@uidVal</span>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(detailVal)) {
+                                <span class="small text-muted" style="max-width:250px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                      title="@detailVal">@detailVal</span>
+                            } else {
+                                <span class="text-muted small">-</span>
+                            }
+                        </td>
+                        <td class="small">
+                            @if (!string.IsNullOrEmpty(ipVal)) {
+                                <code class="small">@ipVal</code>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(errorCode)) {
+                                <span class="badge bg-warning text-dark">@errorCode</span>
+                            } else {
+                                <span class="text-muted small">-</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn--outline--primary btn-log-detail"
+                                    data-log-id="@row["id"]">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    rowNum++;
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (totalPages > 1) {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="small text-muted">
+                แสดง @(offset + 1)–@(Math.Min(offset + perPage, (int)totalRows)) จาก @totalRows.ToString("N0") รายการ
+            </span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    @{ int pgStart = Math.Max(1, curPage - 2); int pgEnd = Math.Min(totalPages, curPage + 2); }
+                    @if (curPage > 1) {
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=1"><i class="bi bi-chevron-double-left"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@(curPage-1)"><i class="bi bi-chevron-left"></i></a></li>
+                    }
+                    @for (int p = pgStart; p <= pgEnd; p++) {
+                        <li class="page-item @(p == curPage ? "active" : "")">
+                            <a class="page-link" href="?@baseQs&page=@p">@p</a>
+                        </li>
+                    }
+                    @if (curPage < totalPages) {
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@(curPage+1)"><i class="bi bi-chevron-right"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?@baseQs&page=@totalPages"><i class="bi bi-chevron-double-right"></i></a></li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@* ===================== DETAIL MODAL ===================== *@
+<div class="modal fade" id="modalLogDetail" tabindex="-1" aria-labelledby="modalLogDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLogDetailLabel">
+                    <i class="bi bi-journal-text me-2"></i>รายละเอียด API Log
+                    <span id="mdlBadgeStatus" class="badge ms-2"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-plug me-1"></i>ข้อมูล Request</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr><td class="text-muted" style="width:100px">Log ID</td><td><code id="mdlLogId"></code></td></tr>
+                                <tr><td class="text-muted">วันที่/เวลา</td><td id="mdlLogDate"></td></tr>
+                                <tr><td class="text-muted">Endpoint</td><td><code id="mdlEndpoint" class="text-primary"></code></td></tr>
+                                <tr><td class="text-muted">สถานะ</td><td id="mdlStatus"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-person me-1"></i>ข้อมูลผู้ใช้งาน</div>
+                            <table class="table table-sm table-borderless mb-0" style="font-size:.85rem">
+                                <tr><td class="text-muted" style="width:100px">UID</td><td id="mdlUid" class="fw-semibold"></td></tr>
+                                <tr><td class="text-muted">IP Address</td>
+                                    <td><code id="mdlIp"></code>
+                                        <button class="btn btn-sm p-0 ms-1 text-muted" id="btnCopyIp" title="Copy"><i class="bi bi-clipboard"></i></button>
+                                    </td>
+                                </tr>
+                                <tr><td class="text-muted">Error Code</td><td id="mdlErrorCode"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="mdlDetailWrap" class="mb-3 d-none">
+                    <div class="small fw-semibold text-muted mb-1"><i class="bi bi-chat-left-text me-1"></i>Detail</div>
+                    <div id="mdlDetail" class="border rounded p-2 bg-light small" style="word-break:break-all"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--gray" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <style>
+    body.modal-open { overflow: hidden !important; padding-right: 0 !important; }
+    #modalLogDetail .modal-body { overflow-y: auto; scrollbar-width: none; }
+    #modalLogDetail .modal-body::-webkit-scrollbar { display: none; }
+    </style>
+    <script>
+    var __logData = @Html.Raw(logDataJson);
+    $(document).ready(function () {
+
+        // ---- Date Pickers ----
+        if ($.fn.datetimepicker) {
+            $('#date_timepicker_start').datetimepicker({ timepicker: false, format: 'd/m/Y',
+                onSelectDate: function (dp, $i) {
+                    $('#date_timepicker_end').datetimepicker('setOptions', { minDate: $i.val() });
+                }
+            });
+            $('#date_timepicker_end').datetimepicker({ timepicker: false, format: 'd/m/Y',
+                onSelectDate: function (dp, $i) {
+                    $('#date_timepicker_start').datetimepicker('setOptions', { maxDate: $i.val() });
+                }
+            });
+        }
+
+        // ---- Detail Modal ----
+        $(document).on('click', '.btn-log-detail', function () {
+            var d = __logData[$(this).data('log-id')];
+
+            $('#mdlLogId').text(d.id);
+            $('#mdlLogDate').text(d.log_date || '-');
+            $('#mdlEndpoint').text(d.endpoint || '-');
+            $('#mdlUid').text(d.uid || '-');
+            $('#mdlIp').text(d.ip_address || '-');
+
+            var $bs = $('#mdlBadgeStatus').removeClass().addClass('badge');
+            if (d.success) {
+                $bs.addClass('bg-success').text('Success');
+                $('#mdlStatus').html('<span class="badge bg-success">Success</span>');
+            } else {
+                $bs.addClass('bg-danger').text('Failed');
+                $('#mdlStatus').html('<span class="badge bg-danger">Failed</span>');
+            }
+
+            if (d.error_code) {
+                $('#mdlErrorCode').html('<span class="badge bg-warning text-dark">' + d.error_code + '</span>');
+            } else {
+                $('#mdlErrorCode').text('-');
+            }
+
+            var detail = (d.detail || '').trim();
+            $('#mdlDetailWrap').toggleClass('d-none', detail === '');
+            $('#mdlDetail').text(detail);
+
+            $('#modalLogDetail').modal('show');
+        });
+
+        // ---- Modal dismiss ----
+        $(document).on('click', '[data-dismiss="modal"]', function () {
+            $(this).closest('.modal').modal('hide');
+        });
+
+        // ---- Copy IP ----
+        $('#btnCopyIp').on('click', function () {
+            var ip = $('#mdlIp').text().trim();
+            if (ip && navigator.clipboard) {
+                navigator.clipboard.writeText(ip).then(function () {
+                    $('#btnCopyIp i').removeClass('bi-clipboard').addClass('bi-clipboard-check');
+                    setTimeout(function () {
+                        $('#btnCopyIp i').removeClass('bi-clipboard-check').addClass('bi-clipboard');
+                    }, 1500);
+                });
+            }
+        });
+
+    });
+    </script>
+}

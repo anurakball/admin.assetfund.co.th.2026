@@ -1,0 +1,137 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+
+    string curEffect = (row["effect"]?.ToString() ?? "").Trim();
+    string curSpeed = (row["speed"]?.ToString() ?? "").Trim();
+
+    // ประเภทการเลื่อนวน (Swiper 11.2.10 effects) — value = ค่ากำหนดใน effect / text = ชื่อ animation
+    // https://swiperjs.com  (Effects: Slide, Fade, Cube, Coverflow, Flip, Cards, Creative)
+    var effectOptions = new List<KeyValuePair<string, string>>()
+    {
+        new("slide",     "Slide — สไลด์ (เลื่อนแนวนอน)"),
+        new("fade",      "Fade — จางเข้า-ออก"),
+        new("cube",      "Cube — ลูกบาศก์ 3 มิติ"),
+        new("coverflow", "Coverflow — เลื่อนซ้อนแบบ Cover Flow"),
+        new("flip",      "Flip — พลิกภาพ"),
+        new("cards",     "Cards — สไลด์แบบการ์ดซ้อน"),
+        new("creative",  "Creative — เอฟเฟกต์สร้างสรรค์"),
+    };
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<style>
+    .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
+    .cms-section > legend { font-size:1.15rem; font-weight:700; color:#0047B6; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
+    .field .form-hint { display:block; margin-top:6px; color:#6c757d; font-size:.85rem; }
+</style>
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        <fieldset class="cms-section">
+            <legend>ตั้งค่ารูปสไลด์หน้าแรก</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label for="id_effect" class="form-label">ประเภทการเลื่อนวน</label>
+                        <select class="form-select" id="id_effect" name="effect">
+                            @foreach (var opt in effectOptions)
+                            {
+                                if (opt.Key == curEffect)
+                                {
+                                    <option value="@opt.Key" selected>@opt.Value</option>
+                                }
+                                else
+                                {
+                                    <option value="@opt.Key">@opt.Value</option>
+                                }
+                            }
+                        </select>
+                        <span class="form-hint">รูปแบบ animation การเปลี่ยนรูปสไลด์ (อ้างอิง Swiper 11.2.10)</span>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label for="id_speed" class="form-label">ความเร็วในการเปลี่ยนรูป (วินาที)</label>
+                        <input class="form-control" type="text" inputmode="decimal" id="id_speed" name="speed"
+                               value="@curSpeed" placeholder="เช่น 5" autocomplete="off">
+                        <span class="form-hint">กรอกเฉพาะตัวเลข (หน่วยเป็นวินาที) เช่น 5 หมายถึงเปลี่ยนรูปทุก 5 วินาที</span>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<script>
+    // อนุญาตให้กรอกเฉพาะตัวเลข (และจุดทศนิยม) ในช่องความเร็ว
+    $(document).on('input', '#id_speed', function () {
+        var v = $(this).val();
+        // เก็บเฉพาะตัวเลขและจุด, เหลือจุดเดียว
+        v = v.replace(/[^0-9.]/g, '');
+        var parts = v.split('.');
+        if (parts.length > 2) {
+            v = parts[0] + '.' + parts.slice(1).join('');
+        }
+        $(this).val(v);
+    });
+
+    function sConfirmCustom(form) {
+        var effectField = $('#id_effect');
+        if (effectField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณาเลือกข้อมูล', text: 'กรุณาเลือกประเภทการเลื่อนวน', confirmButtonText: 'ตกลง' });
+            return false;
+        }
+
+        var speedField = $('#id_speed');
+        var speedVal = speedField.val().trim();
+        if (speedVal === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอกความเร็วในการเปลี่ยนรูป', confirmButtonText: 'ตกลง' });
+            speedField.focus();
+            return false;
+        }
+        if (!/^\d+(\.\d+)?$/.test(speedVal) || parseFloat(speedVal) <= 0) {
+            Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'ความเร็วต้องเป็นตัวเลขที่มากกว่า 0 (วินาที)', confirmButtonText: 'ตกลง' });
+            speedField.focus();
+            return false;
+        }
+
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: { popup: 'animate__animated animate__bounceIn' },
+            hideClass: { popup: 'animate__animated animate__bounceOut' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+</script>
+}

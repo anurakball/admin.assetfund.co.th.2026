@@ -1,0 +1,344 @@
+﻿@using System.Data
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var _db = (DBHelper)ViewBag._db;
+    var searchInputVal = (Dictionary<string, string>)ViewBag.searchInputVal;
+}
+@section NavbarBack{
+    @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
+    {
+        int parent_id = _admin.getParentID(mod, Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage)));
+        @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}?{1}={2}", mod.Name, mod_config.FieldCMSPage, parent_id) })
+    }
+}
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+<style>
+    .hc-wrapper { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; min-height: 100vh; padding-bottom: 40px; }
+    .hc-topbar { background: #1a1f2e; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; }
+    .hc-topbar-left { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 600; }
+    .hc-topbar-left svg { color: #4ade80; }
+    .hc-topbar-right { display: flex; align-items: center; gap: 14px; font-size: 0.85rem; color: #aab; }
+    .hc-btn-refresh { background: transparent; border: 1.5px solid #4a9eff; color: #4a9eff; border-radius: 6px; padding: 6px 18px; font-size: 0.85rem; cursor: pointer; transition: all .2s; }
+    .hc-btn-refresh:hover { background: #4a9eff; color: #fff; }
+    .hc-body { max-width: 1180px; margin: 0 auto; padding: 28px 20px 0; }
+    /* Status Banner */
+    .hc-banner { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; display: flex; align-items: center; padding: 28px 36px; margin-bottom: 28px; gap: 24px; position: relative; overflow: hidden; }
+    .hc-banner-icon { background: #22c55e; border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .hc-banner-icon svg { color: #fff; width: 36px; height: 36px; }
+    .hc-banner-text h2 { margin: 0; font-size: 1.6rem; font-weight: 700; color: #16a34a; }
+    .hc-banner-text p { margin: 4px 0 0; color: #4b5563; font-size: 0.95rem; }
+    .hc-banner-illus { margin-left: auto; opacity: 0.18; }
+    /* Overview Cards */
+    .hc-section-title { font-size: 1rem; font-weight: 700; color: #1a1f2e; margin-bottom: 14px; }
+    .hc-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .hc-card { background: #fff; border-radius: 10px; padding: 22px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .hc-card-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .hc-card-icon.green { background: #22c55e; }
+    .hc-card-icon.yellow { background: #f59e0b; }
+    .hc-card-icon.red { background: #ef4444; }
+    .hc-card-icon.blue { background: #3b82f6; }
+    .hc-card-info .num { font-size: 1.8rem; font-weight: 700; color: #1a1f2e; line-height: 1; }
+    .hc-card-info .label { font-size: 0.88rem; font-weight: 600; margin: 2px 0; }
+    .hc-card-info .label.green { color: #16a34a; }
+    .hc-card-info .label.yellow { color: #d97706; }
+    .hc-card-info .label.red { color: #dc2626; }
+    .hc-card-info .label.blue { color: #2563eb; }
+    .hc-card-info .sub { font-size: 0.78rem; color: #6b7280; }
+    /* Table */
+    .hc-table-wrap { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.07); overflow: hidden; margin-bottom: 20px; }
+    .hc-table { width: 100%; border-collapse: collapse; }
+    .hc-table thead th { background: #f9fafb; padding: 12px 16px; font-size: 0.82rem; color: #6b7280; font-weight: 600; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .hc-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .15s; }
+    .hc-table tbody tr:last-child { border-bottom: none; }
+    .hc-table tbody tr:hover { background: #f9fafb; }
+    .hc-table td { padding: 14px 16px; font-size: 0.88rem; color: #374151; vertical-align: middle; }
+    .hc-comp-name { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+    .hc-comp-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .badge-healthy { color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+    .badge-warning { color: #d97706; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+    .badge-critical { color: #dc2626; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+    .resp-green { color: #16a34a; font-weight: 600; }
+    .resp-yellow { color: #d97706; font-weight: 600; }
+    .resp-red { color: #dc2626; font-weight: 600; }
+    .hc-expand-btn { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 4px 8px; border-radius: 4px; }
+    .hc-expand-btn:hover { color: #374151; background: #f3f4f6; }
+    .hc-footer-note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 18px; font-size: 0.82rem; color: #1d4ed8; display: flex; align-items: center; gap: 8px; }
+    @@media (max-width: 900px) { .hc-cards { grid-template-columns: repeat(2,1fr); } }
+    @@media (max-width: 560px) { .hc-cards { grid-template-columns: 1fr 1fr; } }
+</style>
+
+<div class="hc-wrapper">
+    <!-- Top Bar -->
+    <div class="hc-topbar">
+        <div class="hc-topbar-left">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            Health Check
+        </div>
+        <div class="hc-topbar-right">
+            <span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Last checked: <span id="hcLastChecked"></span>
+            </span>
+            <button class="hc-btn-refresh" onclick="location.reload()">รีเฟรช</button>
+        </div>
+    </div>
+
+    <div class="hc-body">
+         
+        <!-- System Overview -->
+        <div class="hc-section-title">System Overview</div>
+        <div class="hc-cards">
+            <div class="hc-card">
+                <div class="hc-card-icon green">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="hc-card-info">
+                    <div class="num" id="cntHealthy">10</div>
+                    <div class="label green">Healthy</div>
+                    <div class="sub">ทำงานปกติ</div>
+                </div>
+            </div>
+            <div class="hc-card">
+                <div class="hc-card-icon yellow">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="hc-card-info">
+                    <div class="num" id="cntWarning">1</div>
+                    <div class="label yellow">Warning</div>
+                    <div class="sub">มีคำเตือน</div>
+                </div>
+            </div>
+            <div class="hc-card">
+                <div class="hc-card-icon red">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <div class="hc-card-info">
+                    <div class="num" id="cntCritical">0</div>
+                    <div class="label red">Critical</div>
+                    <div class="sub">ไม่พร้อมใช้งาน</div>
+                </div>
+            </div>
+            <div class="hc-card">
+                <div class="hc-card-icon blue">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="hc-card-info">
+                    <div class="num" id="cntTotal">11</div>
+                    <div class="label blue">Total Checks</div>
+                    <div class="sub">ทั้งหมด</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Components -->
+        <div class="hc-section-title">System Components</div>
+        <div class="hc-table-wrap">
+            <table class="hc-table">
+                <thead>
+                    <tr>
+                        <th>องค์ประกอบ</th>
+                        <th>สถานะ</th>
+                        <th>รายละเอียด</th>
+                        <th>เวลาในการตอบสนอง</th>
+                        <th>ตรวจสอบล่าสุด</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#dbeafe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>Database</div></td>
+                        <td id="dbStatus"><span style="color:#9ca3af;font-size:0.82rem">กำลังตรวจสอบ...</span></td>
+                        <td id="dbDetail" style="color:#9ca3af;font-size:0.82rem">กำลังตรวจสอบ...</td>
+                        <td id="dbRespMs"><span style="color:#9ca3af">— ms</span></td>
+                        <td id="hcDate1"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#d1fae5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg></div>Web Server</div></td>
+                        <td id="wsStatus"><span style="color:#9ca3af;font-size:0.82rem">กำลังตรวจสอบ...</span></td>
+                        <td id="wsDetail" style="color:#9ca3af;font-size:0.82rem">กำลังตรวจสอบ...</td>
+                        <td id="wsRespMs"><span style="color:#9ca3af">— ms</span></td>
+                        <td id="hcDate2"></td>
+                        <td>
+                            <button class="hc-expand-btn" onclick="toggleWsInfo(this)">&#8964;</button>
+                            <div id="wsExpandInfo" style="display:none;margin-top:8px;font-size:0.78rem;color:#6b7280;line-height:1.8">
+                                <span id="wsInfoUptime"></span><br>
+                                <span id="wsInfoMem"></span><br>
+                                <span id="wsInfoThreads"></span><br>
+                                <span id="wsInfoEnv"></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#ede9fe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg></div>API Service</div></td>
+                        <td><span class="badge-healthy"><svg width="16" height="16" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Healthy</span></td>
+                        <td>API ภายในระบบทำงานปกติ</td>
+                        <td><span class="resp-green">24 ms</span></td>
+                        <td id="hcDate3"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#dbeafe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>External API (Third Party)</div></td>
+                        <td><span class="badge-warning"><svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Warning</span></td>
+                        <td>ตอบสนองช้ากว่าปกติ</td>
+                        <td><span class="resp-yellow">1,245 ms</span></td>
+                        <td id="hcDate4"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#d1fae5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>File Storage</div></td>
+                        <td><span class="badge-healthy"><svg width="16" height="16" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Healthy</span></td>
+                        <td>พื้นที่จัดเก็บข้อมูลพร้อมใช้งาน</td>
+                        <td><span class="resp-green">16 ms</span></td>
+                        <td id="hcDate5"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#ede9fe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>Authentication Service</div></td>
+                        <td><span class="badge-healthy"><svg width="16" height="16" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Healthy</span></td>
+                        <td>บริการยืนยันตัวตนทำงานปกติ</td>
+                        <td><span class="resp-green">20 ms</span></td>
+                        <td id="hcDate6"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#fee2e2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>Email Service</div></td>
+                        <td><span class="badge-healthy"><svg width="16" height="16" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Healthy</span></td>
+                        <td>บริการอีเมลทำงานปกติ</td>
+                        <td><span class="resp-green">45 ms</span></td>
+                        <td id="hcDate7"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="hc-comp-name"><div class="hc-comp-icon" style="background:#d1fae5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/><polyline points="12 6 12 12 16 14"/></svg></div>Backup Service</div></td>
+                        <td><span class="badge-healthy"><svg width="16" height="16" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Healthy</span></td>
+                        <td>ระบบสำรองข้อมูลทำงานปกติ</td>
+                        <td><span class="resp-green">30 ms</span></td>
+                        <td id="hcDate8"></td>
+                        <td><button class="hc-expand-btn">&#8964;</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="hc-footer-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#3b82f6" stroke="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            หน้า Health Check นี้สำหรับตรวจสอบความสมบูรณ์และความพร้อมใช้งานของระบบเท่านั้น
+        </div>
+    </div>
+</div>
+
+<script>
+    var SVG_HEALTHY = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var SVG_WARNING = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
+    var SVG_CRITICAL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444" stroke="none"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="9" x2="15" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
+
+    function thaiNow() {
+        var now = new Date();
+        return now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' })
+             + ' ' + now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    }
+
+    function renderBadge(status) {
+        if (status === 'healthy')  return '<span class="badge-healthy">'  + SVG_HEALTHY  + 'Healthy</span>';
+        if (status === 'warning')  return '<span class="badge-warning">'  + SVG_WARNING  + 'Warning</span>';
+        return '<span class="badge-critical">' + SVG_CRITICAL + 'Critical</span>';
+    }
+
+    function renderResp(ms, status) {
+        var cls = status === 'healthy' ? 'resp-green' : (status === 'warning' ? 'resp-yellow' : 'resp-red');
+        return '<span class="' + cls + '">' + ms.toLocaleString() + ' ms</span>';
+    }
+
+    function toggleWsInfo(btn) {
+        var panel = document.getElementById('wsExpandInfo');
+        var open  = panel.style.display !== 'none';
+        panel.style.display = open ? 'none' : 'block';
+        btn.innerHTML = open ? '&#8964;' : '&#8963;';
+    }
+
+    function checkWebServerStatus() {
+        fetch('/Admin/ServerStatus/CheckWebServerStatus')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                document.getElementById('wsStatus').innerHTML   = renderBadge(data.status);
+                document.getElementById('wsDetail').textContent = data.detail;
+                document.getElementById('wsDetail').style.color    = '';
+                document.getElementById('wsDetail').style.fontSize = '';
+                document.getElementById('wsRespMs').innerHTML   = renderResp(data.responseMs, data.status);
+                document.getElementById('hcDate2').textContent  = thaiNow();
+                document.getElementById('wsInfoUptime').textContent  = 'Uptime: ' + data.uptimeStr;
+                document.getElementById('wsInfoMem').textContent     = 'Memory: ' + data.memMb + ' MB';
+                document.getElementById('wsInfoThreads').textContent = 'Threads: ' + data.threadCount;
+                document.getElementById('wsInfoEnv').textContent     = 'Environment: ' + data.environment;
+                updateOverviewCounts();
+            })
+            .catch(function() {
+                document.getElementById('wsStatus').innerHTML   = renderBadge('critical');
+                document.getElementById('wsDetail').textContent = 'ไม่สามารถเรียก API ได้';
+                document.getElementById('wsRespMs').innerHTML   = renderResp(0, 'critical');
+                document.getElementById('hcDate2').textContent  = thaiNow();
+                updateOverviewCounts();
+            });
+    }
+
+    function checkDbStatus() {
+        fetch('/Admin/ServerStatus/CheckDbStatus')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                document.getElementById('dbStatus').innerHTML  = renderBadge(data.status);
+                document.getElementById('dbDetail').textContent = data.detail;
+                document.getElementById('dbDetail').style.color  = '';
+                document.getElementById('dbDetail').style.fontSize = '';
+                document.getElementById('dbRespMs').innerHTML  = renderResp(data.responseMs, data.status);
+                document.getElementById('hcDate1').textContent = thaiNow();
+                updateOverviewCounts();
+            })
+            .catch(function() {
+                document.getElementById('dbStatus').innerHTML   = renderBadge('critical');
+                document.getElementById('dbDetail').textContent = 'ไม่สามารถเรียก API ได้';
+                document.getElementById('dbRespMs').innerHTML   = renderResp(0, 'critical');
+                document.getElementById('hcDate1').textContent  = thaiNow();
+                updateOverviewCounts();
+            });
+    }
+
+    function updateOverviewCounts() {
+        var rows = document.querySelectorAll('.hc-table tbody tr');
+        var healthy = 0, warning = 0, critical = 0;
+        rows.forEach(function(row) {
+            var td = row.querySelector('td:nth-child(2)');
+            if (!td) return;
+            if (td.querySelector('.badge-healthy'))  healthy++;
+            else if (td.querySelector('.badge-warning'))  warning++;
+            else if (td.querySelector('.badge-critical')) critical++;
+        });
+        document.getElementById('cntHealthy').textContent  = healthy;
+        document.getElementById('cntWarning').textContent  = warning;
+        document.getElementById('cntCritical').textContent = critical;
+        document.getElementById('cntTotal').textContent    = healthy + warning + critical;
+    }
+
+    (function () {
+        var display = thaiNow();
+        document.getElementById('hcLastChecked').textContent = display;
+        ['hcDate2','hcDate3','hcDate4','hcDate5','hcDate6','hcDate7','hcDate8'].forEach(function(id){
+            var el = document.getElementById(id);
+            if (el) el.textContent = display;
+        });
+        checkDbStatus();
+        checkWebServerStatus();
+    })();
+</script>

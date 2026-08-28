@@ -1,0 +1,367 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+    string wg_text = "";
+}
+
+<script type="text/javascript">
+    var current_link_popup_id = "";
+    function OpenLinkCMSPageHelper(inputID) {
+        current_link_popup_id = inputID;
+        $("#LinkHelperModal").modal('show');
+    }
+    function updateLink_to_input(this_link) {
+        document.getElementById(current_link_popup_id).value = this_link;
+    }
+    function updateLink_to_input_all_lang(this_link) {
+        document.getElementById(current_link_popup_id).value = "/th/"+this_link;
+        document.getElementById(current_link_popup_id.replace("id_", "id_en_")).value = "/en/"+this_link;
+    }
+</script>
+
+<style>
+    .custom-tabs .nav-link {
+    color: #2b6643;
+    background: #CCC;
+    border: 1px solid #ddd;
+    margin-right: 3px;
+    }
+
+    .custom-tabs .nav-link:hover {
+    background: #CCC;
+    }
+
+    /* tab ที่ active */
+    .custom-tabs .nav-link.active {
+    background: #2b6643;
+    color: #fff;
+    border-color: #00994d;
+    font-weight: bold;
+    }
+</style>
+
+<div class="modal fade" id="LinkHelperModal" tabindex="-1">
+    <!-- modal-sm modal-lg modal-xl -->
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Link Helper</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="line-height:35px;">
+
+                <ul class="nav nav-tabs custom-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab1-btn" data-bs-toggle="tab" data-bs-target="#tab1" type="button">
+                            <h5 style="margin-bottom:0px;color:#fff;">Link จาก CMS</h5>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" style="padding: 20px 30px; margin-top: 0rem !important; background-color:#e6ffe6; border:1px solid #006600;">
+                    <div class="tab-pane fade show active" id="tab1">
+
+                       
+                        <h5 style="color:#333">หน้าแรก</h5>
+
+                        - หน้าแรก &nbsp; 
+                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/');" data-bs-dismiss="modal" aria-label="Close"><span class="fi fi-th"></span></a> 
+                        &nbsp; | &nbsp; 
+                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/');" data-bs-dismiss="modal" aria-label="Close"><span class="fi fi-us"></span></a> <br>
+
+                        <hr />
+                        
+                        
+                        @{
+                            _admin.SetSessionWebID();
+
+                            string all_table = "web_cms_page,web_cms_page_footer1,web_cms_page_footer2";
+                            string all_table_txt = "เมนูหลัก,เมนูด้านล่าง 1,เมนูด้านล่าง 2";
+
+                            string[] all_table_arr = all_table.Split(',');
+                            string[] all_table_txt_arr = all_table_txt.Split(',');
+
+                            int run = 0;
+
+                            foreach (string this_table in all_table_arr)
+                            {
+                                <h5 style="color:#333">@all_table_txt_arr[run]</h5>
+
+                                var All_Page = ViewBag._db.ExecuteQuery(string.Format("select * from " + this_table + " where web_id = @web_id and cat_id = '0' and id <> '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+                                ViewBag.All_Page = All_Page;
+
+                                for (int i = 0; i < ViewBag.All_Page.Rows.Count; i++)
+                                {
+                                    if (ViewBag.All_Page.Rows[i]["page_type"] + "" == "1")
+                                    {
+                                        <text> 
+                                        <a href="javascript:;" style="color:#666; text-decoration:none; cursor:default; font-weight:bold; ">@ViewBag.All_Page.Rows[i]["pb_title"]</a> &nbsp; | &nbsp; <a href="javascript:;" style="color:#666; text-decoration:none; cursor:default; font-weight:bold; ">@ViewBag.All_Page.Rows[i]["pb_en_title"]</a>
+                                        <br />
+                                        </text>
+
+
+                                        var All_Page_lv2 = ViewBag._db.ExecuteQuery(string.Format("select * from web_cms_page where web_id = @web_id and cat_id = '" + ViewBag.All_Page.Rows[i]["id"] + "' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+                                        ViewBag.All_Page_lv2 = All_Page_lv2;
+
+                                        for (int ii = 0; ii < ViewBag.All_Page_lv2.Rows.Count; ii++)
+                                        {
+                                            if (ViewBag.All_Page_lv2.Rows[ii]["page_type"] + "" == "1")
+                                            {
+                                                <text> 
+                                                    &nbsp; &nbsp; &nbsp; &nbsp; <a href="javascript:;" style="color:#666; text-decoration:none; cursor:default; font-weight:bold; ">@ViewBag.All_Page_lv2.Rows[ii]["pb_title"]</a> &nbsp; | &nbsp; <a href="javascript:;" style="color:#666; text-decoration:none; cursor:default; font-weight:bold; ">@ViewBag.All_Page_lv2.Rows[ii]["pb_en_title"]</a>
+                                                    <br />
+                                                </text>
+
+                                                var All_Page_lv3 = ViewBag._db.ExecuteQuery(string.Format("select * from web_cms_page where web_id = @web_id and cat_id = '" + ViewBag.All_Page_lv2.Rows[ii]["id"] + "' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+                                                ViewBag.All_Page_lv3 = All_Page_lv3;
+
+                                                for (int iii = 0; iii < ViewBag.All_Page_lv3.Rows.Count; iii++)
+                                                {
+                                                    if (ViewBag.All_Page_lv3.Rows[iii]["page_type"] + "" == "1")
+                                                    {
+                                                        <text>
+                                                            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="javascript:;" style="color:#666; text-decoration:none; cursor:default; font-weight:bold; ">@ViewBag.All_Page_lv3.Rows[iii]["pb_title"]</a> &nbsp; | &nbsp; <a href="javascript:;" style="color:#666; text-decoration:none; cursor:default; font-weight:bold; ">@ViewBag.All_Page_lv3.Rows[iii]["pb_en_title"]</a>
+                                                            <br />
+                                                        </text>
+                                                    }
+                                                    else if (ViewBag.All_Page_lv3.Rows[iii]["page_type"] + "" == "2")
+                                                    {
+                                                        <text>
+                                                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; - @ViewBag.All_Page_lv3.Rows[iii]["pb_title"] &nbsp; 
+                                                        </text>
+                                                        
+                                                        if(ViewBag.All_Page_lv3.Rows[iii]["pb_url"]+"" != "")
+                                                        {
+                                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('@ViewBag.All_Page_lv3.Rows[iii]["pb_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                                        }
+
+                                                        <text>
+                                                        &nbsp; | &nbsp;
+                                                        </text>
+
+                                                        if(ViewBag.All_Page_lv3.Rows[iii]["pb_en_url"]+"" != "")
+                                                        {
+                                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('@ViewBag.All_Page_lv3.Rows[iii]["pb_en_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                                        }
+
+                                                        <br />
+
+                                                    }
+                                                    else if (ViewBag.All_Page_lv3.Rows[iii]["page_type"] + "" == "3")
+                                                    {
+                                                        <text>
+                                                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - @ViewBag.All_Page_lv3.Rows[iii]["pb_title"] &nbsp;
+                                                        </text>
+
+                                                        if(ViewBag.All_Page_lv3.Rows[iii]["pb_seo_url"]+"" != "")
+                                                        {
+                                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/@ViewBag.All_Page_lv3.Rows[iii]["pb_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                                        }
+                                                           
+                                                        <text>
+                                                        &nbsp; | &nbsp;
+                                                        </text>  
+                                                        
+                                                        if(ViewBag.All_Page_lv3.Rows[iii]["pb_en_seo_url"]+"" != "")
+                                                        {
+                                                             <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/@ViewBag.All_Page_lv3.Rows[iii]["pb_en_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                                        }
+                                                            
+                                                        <text>
+                                                        <br />
+                                                        </text>
+                                                    }
+                                                    else if (ViewBag.All_Page_lv3.Rows[iii]["page_type"] + "" == "4")
+                                                    {
+                                                        <text>
+                                                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - @ViewBag.All_Page_lv3.Rows[iii]["pb_title"] &nbsp;
+                                                        </text>
+
+                                                        if(ViewBag.All_Page_lv3.Rows[iii]["pb_seo_url"]+"" != "")
+                                                        {
+                                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/@ViewBag.All_Page_lv3.Rows[iii]["pb_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                                        }
+
+                                                        <text>
+                                                        &nbsp; | &nbsp;
+                                                        </text>
+
+                                                        if(ViewBag.All_Page_lv3.Rows[iii]["pb_en_seo_url"]+"" != "")
+                                                        {
+                                                             <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/@ViewBag.All_Page_lv3.Rows[iii]["pb_en_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                                        }
+
+                                                        <text>
+                                                        <br />
+                                                        </text>
+                                                    }
+                                                }
+                                            }
+                                            else if (ViewBag.All_Page_lv2.Rows[ii]["page_type"] + "" == "2")
+                                            {
+                                                    <text>
+                                                    &nbsp; &nbsp; &nbsp; &nbsp; - @ViewBag.All_Page_lv2.Rows[ii]["pb_title"] &nbsp;
+                                                    </text>
+
+                                                    if(ViewBag.All_Page_lv2.Rows[ii]["pb_url"]+"" != "")
+                                                    {
+                                                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('@ViewBag.All_Page_lv2.Rows[ii]["pb_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                                    }
+  
+                                                    <text>
+                                                    &nbsp; | &nbsp;
+                                                    </text>
+
+                                                    if(ViewBag.All_Page_lv2.Rows[ii]["pb_en_url"]+"" != "")
+                                                    {
+                                                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('@ViewBag.All_Page_lv2.Rows[ii]["pb_en_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                                    }
+ 
+                                                    <text>
+                                                    <br />
+                                                    </text>
+                                            }
+                                            else if (ViewBag.All_Page_lv2.Rows[ii]["page_type"] + "" == "3")
+                                            {
+                                                    <text>
+                                                    &nbsp; &nbsp; &nbsp; &nbsp;  - @ViewBag.All_Page_lv2.Rows[ii]["pb_title"] &nbsp;
+                                                    </text>
+
+                                                    if(ViewBag.All_Page_lv2.Rows[ii]["pb_seo_url"]+"" != "")
+                                                    {
+                                                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/@ViewBag.All_Page_lv2.Rows[ii]["pb_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                                    }
+ 
+                                                    <text>
+                                                    &nbsp; | &nbsp;    
+                                                    </text>
+
+                                                    if(ViewBag.All_Page_lv2.Rows[ii]["pb_en_seo_url"]+"" != "")
+                                                    {
+                                                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/@ViewBag.All_Page_lv2.Rows[ii]["pb_en_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                                    }
+
+                                                    <text>
+                                                    <br />
+                                                    </text>
+                                            }
+                                            else if (ViewBag.All_Page_lv2.Rows[ii]["page_type"] + "" == "4")
+                                            {
+                                                    <text>
+                                                    &nbsp; &nbsp; &nbsp; &nbsp;  - @ViewBag.All_Page_lv2.Rows[ii]["pb_title"] &nbsp;
+                                                    </text>
+
+                                                    if(ViewBag.All_Page_lv2.Rows[ii]["pb_seo_url"]+"" != "")
+                                                    {
+                                                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/@ViewBag.All_Page_lv2.Rows[ii]["pb_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                                    }
+
+                                                    <text>
+                                                    &nbsp; | &nbsp;
+                                                    </text>
+
+                                                    if(ViewBag.All_Page_lv2.Rows[ii]["pb_en_seo_url"]+"" != "")
+                                                    {
+                                                        <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/@ViewBag.All_Page_lv2.Rows[ii]["pb_en_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                                    }
+
+                                                    <text>
+                                                    <br />
+                                                    </text>
+                                            }
+                                        }
+                                    }
+                                    else if (ViewBag.All_Page.Rows[i]["page_type"] + "" == "2")
+                                    {
+                                        <text>
+                                        - @ViewBag.All_Page.Rows[i]["pb_title"] &nbsp;
+                                        </text>
+
+                                        if(ViewBag.All_Page.Rows[i]["pb_url"]+"" != "")
+                                        {
+                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('@ViewBag.All_Page.Rows[i]["pb_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                        }
+                                         
+                                        <text>
+                                        &nbsp; | &nbsp;
+                                        </text>
+
+                                        if(ViewBag.All_Page.Rows[i]["pb_en_url"]+"" != "")
+                                        {
+                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('@ViewBag.All_Page.Rows[i]["pb_en_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                        }
+                                         
+                                        <text>
+                                        <br />
+                                        </text>
+                                    }
+                                    else if (ViewBag.All_Page.Rows[i]["page_type"] + "" == "3")
+                                    {
+                                        <text>
+                                        - @ViewBag.All_Page.Rows[i]["pb_title"] &nbsp;
+                                        </text>
+
+                                        if(ViewBag.All_Page.Rows[i]["pb_seo_url"]+"" != "")
+                                        {
+                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/@ViewBag.All_Page.Rows[i]["pb_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                        }
+                                         
+                                        <text>
+                                        &nbsp; | &nbsp;
+                                        </text>
+
+                                        if(ViewBag.All_Page.Rows[i]["pb_en_seo_url"]+"" != "")
+                                        {
+                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/@ViewBag.All_Page.Rows[i]["pb_en_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                        }
+
+                                        <text>
+                                        <br />
+                                        </text>
+                                    }
+                                    else if (ViewBag.All_Page.Rows[i]["page_type"] + "" == "4")
+                                    {
+                                        <text>
+                                        - @ViewBag.All_Page.Rows[i]["pb_title"] &nbsp;
+                                        </text>
+
+                                        if(ViewBag.All_Page.Rows[i]["pb_seo_url"]+"" != "")
+                                        {
+                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/th/@ViewBag.All_Page.Rows[i]["pb_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-th'></span></a>
+                                        }
+
+                                        <text>
+                                        &nbsp; | &nbsp;
+                                        </text>
+
+                                        if(ViewBag.All_Page.Rows[i]["pb_en_seo_url"]+"" != "")
+                                        {
+                                            <a href="javascript:;" style="text-decoration:underline;" onclick="updateLink_to_input('/en/@ViewBag.All_Page.Rows[i]["pb_en_seo_url"]');" data-bs-dismiss="modal" aria-label="Close"><span class='fi fi-us'></span></a>
+                                        }
+
+                                        <text>
+                                        <br />
+                                        </text>
+                                    }
+                                }
+
+                                run++;
+
+                                <hr />
+                            }
+                        }
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

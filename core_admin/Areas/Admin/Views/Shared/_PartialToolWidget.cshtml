@@ -1,0 +1,98 @@
+﻿@*ToolWidget*@
+
+<div class="sticky--wrapper">
+    <div class="sticky--nav">
+        <div class="accordion" id="accordion_widget">
+
+            @{
+                for (int i = 0; i < ViewBag.All_Widget.Rows.Count; i++)
+                {
+                    <text>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading_@ViewBag.All_Widget.Rows[i]["id"]">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@ViewBag.All_Widget.Rows[i]["id"]" aria-expanded="false" aria-controls="collapse_@ViewBag.All_Widget.Rows[i]["id"]">
+                                    <div class="icon-widget">
+                                        <img src="/@ViewBag.All_Widget.Rows[i]["pb_img1"]" />
+                                    </div>
+                                   <span style="font-size:14px;">@ViewBag.All_Widget.Rows[i]["pb_title"]</span>
+                                </button>
+                            </h2>
+                            <div id="collapse_@ViewBag.All_Widget.Rows[i]["id"]" class="accordion-collapse collapse" aria-labelledby="heading_@ViewBag.All_Widget.Rows[i]["id"]" data-bs-parent="#accordion_widget">
+                                <div class="accordion-body accordion-body__scroll" id="tools_widget_@i">
+                                    
+                                    @{
+                                        @*----- widget ลูกของกลุ่ม: กรองด้วย cat_id (โครงสร้างกลุ่ม-ลูก) เท่านั้น
+                                                พาเลตต์เป็นค่าคงที่ ไม่กรอง web_id/status เพื่อไม่ให้ microsite เห็นว่าง *@
+                                        var Sub_Widget = ViewBag._db.ExecuteQuery(string.Format("select * from " + ViewBag.WidgetTable + " where cat_id = " + ViewBag.All_Widget.Rows[i]["id"] + " order by sort asc"));
+
+                                        for (int ii = 0; ii < Sub_Widget.Rows.Count; ii++)
+                                        {
+                                            <div class="itemDrag" data-id="wg_@Sub_Widget.Rows[ii]["id"]" id="itemDrag_@Sub_Widget.Rows[ii]["id"]">
+
+                                                <div class="list-group-item" id="gi_@Sub_Widget.Rows[ii]["id"]">
+                                                    <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                            <img src="/@Sub_Widget.Rows[ii]["pb_img1"]" alt="icon pic" />
+                                                        </div>
+                                                        <p class="text-thumbnail" style="font-size:20px; line-height:20px; padding-top:10px;">@Sub_Widget.Rows[ii]["pb_title"]</p>
+                                                    </div>
+                                                    <div class="main-func">
+                                                        <div class="function-modify">
+                                                            <div class="group--tools icon-sort icon-sort__up" title="ย้ายขึ้น">
+                                                                <i class="bi bi-arrow-up-short"></i>
+                                                            </div>
+                                                            <div class="group--tools icon-sort icon-sort__down" title="ย้ายลง">
+                                                                <i class="bi bi-arrow-down-short"></i>
+                                                            </div>
+                                                            @*
+                                                            <div id="icon_setting_@Sub_Widget.Rows[ii]["id"]" class="group--tools group--tools__setting"
+                                                                 title="ตั้งค่าข้อมูล"
+                                                                 data-bs-toggle="modal"
+                                                                 data-bs-target="#setting_section"
+                                                                 onclick="iFrameHeight('@Sub_Widget.Rows[ii]["id"]');urliFrame('/WidgetAjax/Setting?id=@Sub_Widget.Rows[ii]["id"]&box_data='+document.getElementById('box_data').value+'&box_data_sub='+document.getElementById('box_data_sub').value)">
+                                                                <i class="bi bi-gear"></i>
+                                                            </div>
+                                                            *@
+                                                            @*----- ปุ่ม "แก้ไขข้อมูล" แสดงเฉพาะเว็บไซต์หลัก (web_id = 0)
+                                                                    microsite (web_id != 0) แก้ไขเนื้อหาผ่านเมนู CMS ของตัวเองแทน *@
+                                                            @if (Convert.ToInt32(ViewBag.WidgetWebID) == 0)
+                                                            {
+                                                            <div class="group--tools group--tools__manage"
+                                                                 title="แก้ไขข้อมูล"
+                                                                 data-bs-toggle="modal"
+                                                                 data-bs-target="#manage_section"
+                                                                 onclick="urliFrame_manage('/WidgetAjax/Manage?id=@Sub_Widget.Rows[ii]["id"]&box_data='+document.getElementById('box_data').value+'&box_data_sub='+document.getElementById('box_data_sub').value)">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </div>
+                                                            }
+                                                            <div class="group--tools group--tools__refresh" title="รีเฟรช" onclick="Refresh_Widget();">
+                                                                <i class="bi bi-arrow-repeat"></i>
+                                                            </div>
+                                                            <div class="group--tools group--tools__delete" title="ลบ" onclick="document.getElementById('itemDrag_@Sub_Widget.Rows[ii]["id"]').style.display = '';">
+                                                                <i class="bi bi-trash3"></i>
+                                                            </div> 
+                                                        </div>
+                                                         <div class="my-handle" style="text-align:center; font-size:30px;"> . . . </div>
+                                                         <span class="wgs_@Sub_Widget.Rows[ii]["id"]">
+                                                         <div align="center" style="font-size:20px;">Loading...</div>
+                                                         <!-- Html.Raw(Sub_Widget.Rows[ii]["pb_info"]) -->
+                                                         </span>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        }
+                                     }
+ 
+                                    <div class="clearfix"></div>
+
+                                </div>
+                            </div>
+                        </div> 
+                    </text>
+                }
+            }
+             
+        </div>
+    </div>
+</div>

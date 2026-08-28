@@ -1,0 +1,143 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfrim(this);" class="">
+    
+        <div class="row">
+                @Html.AntiForgeryToken()
+                @foreach (string input_field in mod_config.FieldUpdate)
+                {
+                    switch (input_field)
+                    {
+                        case "title":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", ""))
+                            </div>
+                            break;
+
+                        case "en_title":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", ""))
+                            </div>
+                            break;
+
+                        case "des":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-th'></span>", "des", ""))
+                            </div>
+                            break;
+
+                        case "en_des":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-us'></span>", "en_des", ""))
+                            </div>
+                            break;
+
+                        case "info":
+                            @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-th'></span>", "info", ""))
+                            break;
+
+                        case "en_info":
+                            @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-us'></span>", "en_info", ""))
+                            break;
+
+                        case "img1":
+                            <div class="col-lg-6 col-md-12 mb-3">
+                                @Html.Raw(_admin.InputFileManeger("รูปภาพ ", "img1", ""))
+                            </div>
+                            
+                            break;
+
+                        case "file1":
+                            <div class="col-lg-6 col-md-12 mb-3">
+                                @Html.Raw(_admin.InputFileManeger("PDF ", "file1", "", "application/pdf"))
+                            </div>
+                            break;
+
+                        case "file2":
+                            <div class="col-lg-6 col-md-12 mb-3">
+                                @Html.Raw(_admin.InputFileManeger("Video ", "file2", "", "video"))
+                            </div>
+                            break;
+
+                        case "url":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextLink("URL <span class='fi fi-th'></span>", "url", ""))
+                            </div>
+                            break;
+
+                        case "en_url":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextLink("URL <span class='fi fi-us'></span>", "en_url", ""))
+                            </div>
+                            break;
+
+                        case "url_target":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputUrlTarget("URL Target", "url_target", ""))
+                            </div>
+                            break;
+
+                        case "issue_date":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", System.DateTime.Now.ToString("dd/MM/yyyy HH:mm")))
+                            </div>
+                        break;
+
+                        case "expiry_date":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm")))
+                            </div>
+                        break;
+
+                        case "item_date":
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputDateTime("วันที่", "item_date", ""))
+                            </div>
+                        break;
+
+                        default:
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText(input_field, input_field, ""))
+                            </div>
+                            break;
+                    }
+                }
+
+        </div>
+    
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+<br/>
+<br/>
+<br/>
+
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+
+    $(document).ready(function() {
+        
+    });
+</script>
+}

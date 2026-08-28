@@ -1,0 +1,223 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">    
+        @Html.AntiForgeryToken()
+       
+        
+        <div class="row">
+            <div class="col-lg-12 col-md-12 mb-3">
+                <label class="form-label">Username</label>
+                <div class="form-control-plaintext fw-bold">@row["username"]</div><br />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 mb-3">
+                <div class="field">
+                    <label class="form-label">ประเภทสมาชิก</label>
+                    @{
+                        var _member_type = (row["member_type"].ToString() ?? "").Trim();
+                        if (_member_type == "") { _member_type = "1"; }
+                        var memberTypeOptions = new Dictionary<string, string> {
+                            { "1", "สมาชิก" }, { "2", "Investor" }, { "3", "Agency" }, { "4", "Sale/Executive" }
+                        };
+                    }
+                    <div class="d-flex flex-wrap gap-4 mt-1">
+                        @foreach (var opt in memberTypeOptions)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="member_type" id="member_type_@opt.Key" value="@opt.Key" @(_member_type == opt.Key ? "checked" : "")>
+                                <label class="form-check-label" for="member_type_@opt.Key">@opt.Value</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ประเภท (นิติบุคคล/บุคคล)</label>
+                    <div class="d-flex gap-4 mt-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="type" id="type_1" value="1" @(row["type"].ToString() == "1" ? "checked" : "")>
+                            <label class="form-check-label" for="type_1">นิติบุคคล</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="type" id="type_2" value="2" @(row["type"].ToString() == "2" ? "checked" : "")>
+                            <label class="form-check-label" for="type_2">บุคคล</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ยืนยันอีเมล</label>
+                    @if (row["confirm_email"].ToString() == "1")
+                    {
+                        <div class="mt-1">
+                            <strong>ยืนยันแล้ว</strong>
+                            <input type="hidden" name="confirm_email" value="1">
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-4 mt-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="confirm_email" id="confirm_email_0" value="0" @(row["confirm_email"].ToString() == "0" ? "checked" : "")>
+                                <label class="form-check-label" for="confirm_email_0">ยังไม่ยืนยัน</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="confirm_email" id="confirm_email_1" value="1" @(row["confirm_email"].ToString() == "1" ? "checked" : "")>
+                                <label class="form-check-label" for="confirm_email_1">ยืนยันแล้ว</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">คำนำหน้า</label>
+                    @{ var _title = (row["title"].ToString() ?? "").Trim(); }
+                    <div class="d-flex gap-4 mt-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="title" id="title_mr" value="นาย" @(_title == "นาย" ? "checked" : "")>
+                            <label class="form-check-label" for="title_mr">นาย</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="title" id="title_mrs" value="นาง" @(_title == "นาง" ? "checked" : "")>
+                            <label class="form-check-label" for="title_mrs">นาง</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="title" id="title_ms" value="นางสาว" @(_title == "นางสาว" ? "checked" : "")>
+                            <label class="form-check-label" for="title_ms">นางสาว</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="titleoth" value="@((row["titleoth"].ToString() ?? "").Trim())" />
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อ", "firstname",  (row["firstname"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("นามสกุล", "surname",  (row["surname"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+               @Html.Raw(_admin.InputText("อีเมล", "email",  (row["email"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label for="id_mobile" class="form-label">มือถือ</label>
+                    <input type="tel" class="form-control" id="id_mobile" name="mobile" value="@((row["mobile"].ToString() ?? "").Trim())" maxlength="10" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 mb-3">
+                @Html.Raw(_admin.InputText("LINE UUID", "lineuid", (row["lineuid"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-lg-12 col-md-12 mb-3">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="chk_change_password" onchange="togglePassword(this)">
+                    <label class="form-check-label" for="chk_change_password">ต้องการเปลี่ยนรหัสผ่าน</label>
+                </div>
+                <div id="pw_input" style="display:none;">
+                    <div class="field">
+                        <label for="id_password" class="form-label">รหัสผ่านใหม่</label>
+                        <input type="password" class="form-control" id="id_password" name="password" value="" placeholder="" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+ 
+@await Component.InvokeAsync("AddForm")
+
+@section Scripts
+{
+    <link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+    <script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    function sConfirmCustom(form) { 
+        // Validate required fields
+        var titleChecked = $('[name="title"]:checked').val();
+        var titleOth = ($('[name="titleoth"]').val() || '').trim();
+        if (!titleChecked && titleOth === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณาเลือกคำนำหน้า ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    } 
+    function togglePassword(chk) {
+        var pw = document.getElementById('pw_input');
+        var input = document.getElementById('id_password');
+        if (chk.checked) {
+            pw.style.display = 'block';
+            input.disabled = false;
+        } else {
+            pw.style.display = 'none';
+            input.disabled = true;
+        }
+    }
+    $(document).ready(function() {
+        checkLockedRow(modConfig, jsonRow);
+    });
+    </script>
+}

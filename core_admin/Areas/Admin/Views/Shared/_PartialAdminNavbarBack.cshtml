@@ -1,0 +1,10 @@
+﻿@{
+    string linkBack = (string)ViewBag.linkBack ?? "Index";
+}
+<div class="btn-group btn-group-mob-icon mb-0">
+    <button type="button" class="btn btn--gray" onclick="window.location.href = '@linkBack'" title="ย้อนกลับ"
+        data-bs-toggle="tooltip" data-bs-placement="top">
+        <span class="btn-icon"><i class="bi bi-chevron-left"></i></span>
+        <span class="btn-text">Back</span>
+    </button>
+</div>

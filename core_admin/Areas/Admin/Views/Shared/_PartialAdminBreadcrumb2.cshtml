@@ -1,0 +1,13 @@
+﻿@{
+    List<string> Breadcrumb = (List<string>)ViewBag.Breadcrumb;
+}
+@if (Breadcrumb != null && Breadcrumb.Count > 0)
+{
+    @for (var i = 0; i < Breadcrumb.Count; i++)
+    {
+        if ((i + 2) == Breadcrumb.Count)
+        {
+            @Breadcrumb[i].Trim()
+        }
+    }
+}

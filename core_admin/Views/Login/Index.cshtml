@@ -1,0 +1,174 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Welcome to SAM Admin Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+    @*css Back*@
+    <link rel="stylesheet" href="~/css/main_cms.min.css" asp-append-version="true" />
+
+    <link href="~/css/pages/login.min.css" rel="stylesheet" asp-append-version="true" />
+
+    <style>
+        /* theme บังคับ appearance:none + background:none บน .form-control ทำให้ select ไม่มีลูกศร
+           และดูเหมือน textbox จึงวาดลูกศรเองที่มุมขวา */
+        .select-webid {
+            cursor: pointer;
+            padding-right: 40px !important;
+            background-color: #fff !important;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23606d7c'%3E%3Cpath d='M1.65 4.15a.5.5 0 0 1 .7 0L8 9.79l5.65-5.64a.5.5 0 0 1 .7.71l-6 6a.5.5 0 0 1-.7 0l-6-6a.5.5 0 0 1 0-.71z'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 14px center !important;
+            background-size: 14px 14px !important;
+        }
+
+            .select-webid:hover {
+                border-color: #b9c0c8;
+            }
+
+            .select-webid:focus {
+                outline: none;
+            }
+
+        .input-group__icon .icon-input .bi {
+            font-size: 18px;
+            color: #606d7c;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-login-wrapper">
+        <div class="img-bg">
+            @{
+                var rnd = new Random();
+                int n = rnd.Next(0, 82);
+                string bg = "bg"+n.ToString()+".jpg";
+            }
+            <img src="~/images/bg/@bg" />
+        </div>
+        <div class="section-text" style="background: rgba(255, 255, 255, .7); color:#111111; backdrop-filter: blur(10px); padding: 30px;">
+            <div class="head-text" style="color:#111111;">Welcome to <br /> SAM Admin Management</div>
+            <div class="sub-text" style="color:#111111;">
+                SAM มุ่งมั่นทำงานด้วยใจ เพื่อสร้าง “โอกาส” ให้กับทุก “ความสำเร็จ” ของคนไทย พร้อมเดินหน้าช่วยเหลือสังคมไทยในทุกมิติ
+            </div>
+        </div>
+        <div class="section-login">
+            <div class="align-self-end bg-form">
+                <div class="form-wrapper">
+                    <form class="login-form" action="#" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="head-form">
+                            <img src="~/images/logo/logo-32.png" alt="icon logo" />
+                            <p>Login @((ViewBag.webTitle+"" != "") ? (": " +ViewBag.webTitle) : "")</p>
+                        </div>
+                        <div class="body-form">
+                            <div class="input-group input-group__icon">
+                                <span class="icon-input">
+                                    <img src="~/images/icons-cms/icon-mail.svg" />
+                                </span>
+                                <input type="text" name="username" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="username">
+                            </div>
+                            <div class="input-group input-group__icon">
+                                <span class="icon-input">
+                                    <img src="~/images/icons-cms/icon-key.svg" />
+                                </span>
+                                <input id="inp_password" name="password" type="password" class="form-control form-icon form-icon__key" placeholder="Password" aria-label="Password" aria-describedby="password">
+                                <span class="icon-input-password" id="icon_password">
+                                    <i class="bi bi-eye"></i>
+                                </span>
+                            </div>
+
+                            @{
+                                //----- ไซต์ที่เลือกไว้ : จาก ?webID= (หรือ cookie ผ่าน AdminLogin) ไม่มีให้ default เป็นเว็บไซต์หลัก (0)
+                                string selectedWebID = (ViewBag.webID + "" != "") ? (ViewBag.webID + "") : "0";
+                            }
+                            <div class="input-group input-group__icon">
+                                <span class="icon-input">
+                                    <i class="bi bi-globe2"></i>
+                                </span>
+                                <select class="form-control form-icon select-webid" id="id_web_id" name="web_id">
+                                    <option value="0" selected="@(selectedWebID == "0")">เว็บไซต์หลัก</option>
+                                    @if (ViewBag.AllMicrosite != null)
+                                    {
+                                        foreach (System.Data.DataRow data in (System.Data.DataRowCollection)ViewBag.AllMicrosite)
+                                        {
+                                            <option value="@data["id"]" selected="@(data["id"] + "" == selectedWebID)">@data["pb_title"]</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            @if (TempData["alert_message"] != null)
+                            {
+                                string alerClass = (TempData["alert_class"] != null) ? (TempData["alert_class"] + "") :
+                                "alert-warning";
+                                <br />
+                                <div class="alert @alerClass">
+                                    @TempData["alert_message"]
+                                </div>
+                            }
+
+                            <!--
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="remember">
+                                <label class="form-check-label" for="remember">
+                                    Remember me
+                                </label>
+                            </div>
+                            -->
+                             
+                            <div class="btn-group btn-group__full">
+                                <button type="submit" class="btn btn-primary mx-0">Log In</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" defer></script>
+
+    <script>
+        function updateQueryStringParameter(uri, key, value) {
+            uri = uri.split('#')[0];
+            var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+            var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+            if (uri.match(re)) {
+                return uri.replace(re, '$1' + key + "=" + value + '$2');
+            }
+            else {
+                return uri + separator + key + "=" + value;
+            }
+        }
+        $(document).ready(function () {
+            $("#icon_password").click(function () {
+                if ($("#inp_password").attr("type") === "password") {
+
+                    $("#inp_password").attr("type", "text");
+                    $(this).find('.bi').removeClass('bi-eye').addClass('bi-eye-slash');
+
+                } else {
+                    $("#inp_password").attr("type", "password");
+                    $(this).find('.bi').removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            $("#inp_miscrosite").change(function(){
+            
+            });
+        });
+    </script>
+</body>
+</html>

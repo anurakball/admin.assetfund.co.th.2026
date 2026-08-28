@@ -1,0 +1,187 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        <div class="row">
+            @Html.AntiForgeryToken()
+
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", (row["title"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", (row["en_title"].ToString() ?? "").Trim()))
+            </div>
+
+            <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-th'></span>", "des", (row["des"].ToString() ?? "")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-us'></span>", "en_des", (row["en_des"].ToString() ?? "")))
+            </div>
+        </div>
+
+        <div class="row">
+            @{
+                string issue_date = ""; try { issue_date = ((DateTime)row["issue_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { issue_date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm"); }
+                string expiry_date = ""; try { expiry_date = ((DateTime)row["expiry_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { expiry_date = System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm"); }
+            }
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", issue_date))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", expiry_date))
+            </div>            
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ประเภท</label>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check">
+		                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_1" value="page" @(row["page_type"]+"" == "page" ? "checked" : "")>
+		                        <label class="form-check-label" for="id_page_type_1">
+			                        เนื้อหา
+		                        </label>
+	                        </div>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_2" value="url" @(row["page_type"]+"" == "url" ? "checked" : "")>
+                                <label class="form-check-label" for="id_page_type_2">
+                                        URL
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section_info" style="display:@(row["page_type"]+"" == "page" ? "" : "none");">
+            <div class="row">
+                @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-th'></span>", "info", (row["info"].ToString() ?? "")))
+                @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-us'></span>", "en_info", (row["en_info"].ToString() ?? "")))
+            </div>
+        </div>
+
+        <div id="section_url" style="display:@(row["page_type"]+"" == "url" ? "" : "none");">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextLink("URL <span class='fi fi-th'></span>", "url", (row["url"].ToString() ?? "")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextLink("URL <span class='fi fi-us'></span>", "en_url", (row["en_url"].ToString() ?? "")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputUrlTarget("URL Target", "url_target", (row["url_target"].ToString() ?? "")))
+                </div>
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    function sConfirmCustom(form) {
+
+        if (
+            $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+            $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+        ) {
+            sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+            return false;
+        }
+
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    
+    $(document).ready(function() {
+
+        checkLockedRow(modConfig, jsonRow);
+
+        //$(":input[name='title'],:input[name='group_id'],:input[name='issue_date'],:input[name='expiry_date']").prop("required", true);
+
+        $(":input[name='page_type']").click(function(){
+            if ($(this).val() == 'url') 
+            {
+                $('#section_info').stop(true, false).slideUp();
+                $('#section_url').stop(true, false).slideDown();
+            }
+            else
+            {
+                $('#section_info').stop(true, false).slideDown();
+                $('#section_url').stop(true, false).slideUp();
+            }
+        });
+
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0
+            });
+        },500);
+    });
+</script>
+}

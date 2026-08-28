@@ -1,0 +1,163 @@
+﻿.datepicker{
+    z-index: 1030 !important;
+    &.dropdown-menu{
+        min-width: 280px;
+        .datepicker-days, .datepicker-months, .datepicker-years, .datepicker-decades{
+            .table-condensed{
+                width: 100%;
+                thead{
+                    tr{
+                        th{
+                            &.datepicker-switch, &.prev, &.next{
+                                &:hover{
+                                    background-color: $color-primary;
+                                    background-image: none;
+                                    color: #fff;
+                                }
+                            }
+                        }
+                    }
+                }
+                tbody{
+                    tr{
+                        td{
+                            &.day{
+                                border-radius: 0; 
+                                &.active{
+                                    background-color: $color-primary;
+                                    background-image: none;
+                                }
+                                &.range{
+                                    background-color: #3E75CE;
+                                    background-image: none;
+                                    color: #fff;
+                                }
+                                &.range-start, &.range-end{
+                                    color: #fff;
+                                    &.selected{
+                                        background-image: none;
+                                        background-color: $color-primary;
+                                        color: #fff;
+                                    }
+                                }
+
+                                &:hover{
+                                    background-color: $color-primary;
+                                }
+                            }
+                            .month, .year{
+                                &.focused{
+                                    background-color: $color-primary;
+                                    background-image: none;
+                                    color: #fff;
+                                }
+                                &:hover{
+                                    background-color: $color-primary;
+                                    color: #fff;
+                                }
+                            }
+                        }
+                    }
+                }
+                tfoot{
+                    tr{
+                        th{
+                            &.today{
+                                &:hover{
+                                    background-color: $color-primary;
+                                    background-image: none;
+                                    color: #fff;
+                                }
+                            }
+                            &.clear{
+                                &:hover{
+                                    background-color: $color-primary;
+                                    background-image: none;
+                                    color: #fff;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    &.datepicker-dropdown {
+        background-color: #fff;
+        border: 2px solid $color-primary;
+        color: $color-primary;
+        &.datepicker-orient-top {
+            &:before {
+                border-top: 7px solid $color-primary;
+            }
+            &:after{
+                border-top: 6px solid $color-primary;
+            }
+        }
+        &.datepicker-orient-bottom {
+            &:before {
+                border-bottom: 7px solid $color-primary;
+            }
+            &:after{
+                border-bottom: 6px solid $color-primary;
+            }
+        }
+    }
+}
+
+
+.xdsoft_datetimepicker {
+    border-radius: 10px;
+
+    .xdsoft_datepicker {
+        .xdsoft_monthpicker {
+            .xdsoft_label {
+                font-family: 'Noto Sans Thai', sans-serif;
+            }
+        }
+
+        .xdsoft_calendar {
+            font-family: 'Noto Sans Thai', sans-serif;
+
+            table {
+                tbody {
+                    tr {
+                        td {
+                            &.xdsoft_today{
+                                color: $color-secondary;
+                            }
+                            &.xdsoft_current {
+                                background: $color-primary;
+                                box-shadow: none;
+                                &.xdsoft_today{
+                                    color: #fff;
+                                }
+                            }
+
+                            &:hover {
+                                background: $color-secondary !important;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .xdsoft_timepicker {
+        .xdsoft_time_box {
+            .xdsoft_time_variant {
+                .xdsoft_time {
+                    &.xdsoft_current {
+                        background: $color-primary;
+                        box-shadow: none;
+                    }
+                    &:hover{
+                        background: $color-secondary;
+                    }
+                }
+            }
+        }
+    }
+}
+

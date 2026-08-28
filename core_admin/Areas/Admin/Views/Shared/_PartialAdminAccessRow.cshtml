@@ -1,0 +1,87 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@model thaicredit_hr_admin.Areas.Admin.Models.AdminMenuModel
+@{
+    var item = Model;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var access = (System.Data.DataRow)ViewBag.dataRow;
+}
+
+@if (item != null && item.ModuleName != null && item.ModuleName != "") {
+    var accessModule = _admin.GetModule(item.ModuleName);
+    if (accessModule != null)
+    {
+        <tr>
+            <td class="@(ViewBag.padding != null && ViewBag.padding == "y" ? "ps-5" : "ps-4")">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)" id="@(item.ModuleName)" value="1" onclick="checkAccess($(this))" 
+                    @(access != null ? "checked" : "")>
+                    <label class="form-check-label" for="@(item.ModuleName)">@item.Title</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_add" id="@(item.ModuleName)_can_add" value="@(accessModule.Config.CanAdd == true ? "1":"")" onclick="checkAccess2($(this))" 
+                    @(accessModule.Config.CanAdd == true ? "":"disabled") 
+                    @(access != null && Convert.ToInt32(access["can_add"]) == 1 && accessModule.Config.CanAdd == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_add">Add</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_edit" id="@(item.ModuleName)_can_edit" value="@(accessModule.Config.CanEdit == true ? "1":"")" onclick="checkAccess2($(this))"
+                    @(accessModule.Config.CanEdit == true ? "":"disabled")
+                    @(access != null && Convert.ToInt32(access["can_edit"]) == 1 && accessModule.Config.CanEdit == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_edit">Edit</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_delete" id="@(item.ModuleName)_can_delete" value="@(accessModule.Config.CanDelete == true ? "1":"")" onclick="checkAccess2($(this))"
+                    @(accessModule.Config.CanDelete == true ? "":"disabled")
+                    @(access != null && Convert.ToInt32(access["can_delete"]) == 1 && accessModule.Config.CanDelete == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_delete">Delete</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_move" id="@(item.ModuleName)_can_move" value="@(accessModule.Config.CanMove == true ? "1":"")" onclick="checkAccess2($(this))"
+                    @(accessModule.Config.CanMove == true ? "":"disabled")
+                    @(access != null && Convert.ToInt32(access["can_move"]) == 1 && accessModule.Config.CanMove == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_move">Move</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_status" id="@(item.ModuleName)_can_status" value="@(accessModule.Config.CanStatus == true ? "1":"")" onclick="checkAccess2($(this))"
+                    @(accessModule.Config.CanStatus == true ? "":"disabled")
+                    @(access != null && Convert.ToInt32(access["can_status"]) == 1 && accessModule.Config.CanStatus == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_status">Status</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_export" id="@(item.ModuleName)_can_export" value="@(accessModule.Config.CanExport == true ? "1":"")" onclick="checkAccess2($(this))"
+                    @(accessModule.Config.CanExport == true ? "":"disabled")
+                    @(access != null && Convert.ToInt32(access["can_export"]) == 1 && accessModule.Config.CanExport == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_export">Export</label>
+                </div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="@(item.ModuleName)_can_approve" id="@(item.ModuleName)_can_approve" value="@(accessModule.Config.CanApprove == true ? "1":"")" onclick="checkAccess2($(this))"
+                    @(accessModule.Config.CanApprove == true ? "":"disabled")
+                    @(access != null && Convert.ToInt32(access["can_approve"]) == 1 && accessModule.Config.CanApprove == true ? "checked" : "")
+                    >
+                    <label class="form-check-label" for="@(item.ModuleName)_can_approve">Approve</label>
+                </div>
+            </td>
+        </tr>
+    }
+}

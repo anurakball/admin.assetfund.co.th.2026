@@ -1,0 +1,288 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    var _dbHelper = (DBHelper)ViewBag._db;   // typed — ใช้กับ GeoHelper (static method รับ DBHelper)
+
+    // AgentList: แปลงรหัสทรัพย์ NPA ทุกช่อง → ชื่อโครงการ ด้วยคิวรีเดียว (เดิมยิงทีละช่อง = 1 query ต่อช่อง)
+    Dictionary<string, string> npaProjects = new();
+    if (mod.Name == "AgentList")
+    {
+        var npaCodes = mod_config.ViewDetailData
+            .Where(d => d.Key.StartsWith("npaid"))
+            .Select(d => row[d.Key]?.ToString() ?? "");
+        npaProjects = ViewBag._db.GetNpaProjectNames(npaCodes);
+    }
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+<div class="table-responsive">
+    <table class="table">
+        <tbody>
+            @foreach (var item in mod_config.ViewDetailData)
+            {
+                string data = row[item.Key] + "" ?? "";
+                if (
+                    item.Key == "created_at" ||
+                    item.Key == "updated_at" ||
+                    (item.Key).EndsWith("_date")
+                )
+                {
+                    try { data = ((DateTime)row[item.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"); } catch { }
+                }
+                else if ((mod.Name == "AnnounceSubmit" || mod.Name == "AnnounceJobSubmit" || mod.Name == "DownloadSubmit") && item.Key == "cat_id")
+                {
+                    var a = ViewBag._db.ExecuteQuery(string.Format("select title from web_core_news where id = @id"), new Dictionary<string, object>() { { "id", row["cat_id"] } });
+
+                    if (a.Rows.Count > 0)
+                    {
+                        data = a.Rows[0]["title"];
+                    }
+                }
+                else if ((mod.Name == "ContactSubmit") && item.Key == "cat_id")
+                {
+                    var a = ViewBag._db.ExecuteQuery(string.Format("select title from web_core_group where id = @id"), new Dictionary<string, object>() { { "id", row["cat_id"] } });
+
+                    if (a.Rows.Count > 0)
+                    {
+                        data = a.Rows[0]["title"];
+                    }
+                }
+                else if (mod.Name == "MemberList" && item.Key == "member_type")
+                {
+                    var memberTypeMap = new Dictionary<string, string> {
+                        { "1", "สมาชิก" }, { "2", "Investor" }, { "3", "Agency" }, { "4", "Sale/Executive" }
+                    };
+                    var mtVal = (row["member_type"]?.ToString() ?? "").Trim();
+                    data = memberTypeMap.ContainsKey(mtVal) ? memberTypeMap[mtVal] : (mtVal == "" ? "สมาชิก" : mtVal);
+                }
+                else if (mod.Name == "MemberList" && item.Key == "type")
+                {
+                    if(row["type"].ToString() == "1")
+                    {
+                        data = "นิติบุคคล";
+                    }
+                    else if(row["type"].ToString() == "2")
+                    {
+                        data = "บุคคล";
+                    }
+                } 
+                else if (mod.Name == "MemberList" && item.Key == "confirm_email")
+                { 
+                    if(row["confirm_email"].ToString() == "1")
+                    {
+                        data = "ยืนยันอีเมลแล้ว";
+                    }
+                    else 
+                    {
+                        data = "ยังไม่ยืนยันอีเมล";
+                    }
+                } 
+                else if (mod.Name == "AgentList" && (item.Key == "upfile1" || item.Key == "upfile2" || item.Key == "upfile3" || item.Key == "upfile4"))
+                {
+                    var fileName = row[item.Key]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        var fileUrl = _utility.frontURL("/uploads/agency/" + fileName);
+                        // uid ของ web_agent = id ของ web_member — ส่งไปหน้า AgentNews เพื่อเตรียมอีเมลแจ้งสถานะเอกสาร
+                        var agentUid = (row["uid"]?.ToString() ?? "").Trim();
+                        var mailBtn = string.IsNullOrEmpty(agentUid) ? "" :
+                            $" <a href='/Admin/AgentNews?uid={agentUid}' class='btn btn-sm btn-outline-primary ms-2'><i class='fa-regular fa-envelope me-1'></i>แจ้งอีเมลสถานะเอกสาร</a>";
+                        data = $"<a target='_blank' rel='noopener' href='{fileUrl}'>เรียกดูไฟล์</a>{mailBtn}";
+                    }
+                    else
+                    {
+                        data = "<span class='text-muted'>ไม่มีไฟล์</span>";
+                    }
+                }
+                else if (mod.Name == "AgentList" && item.Key == "title")
+                {
+                    var titleMap = new Dictionary<string, string> { { "1", "นาย" }, { "2", "นาง" }, { "3", "นางสาว" }, { "4", "อื่นๆ" } };
+                    var tval = (row["title"]?.ToString() ?? "").Trim();
+                    data = titleMap.ContainsKey(tval) ? titleMap[tval] : tval;
+                }
+                else if (mod.Name == "AgentList" && (item.Key == "cus_base_province" || item.Key == "cus_contact_province"))
+                {
+                    // แปลง code → "ชื่อ (code)" ผ่าน GeoHelper — ค่าที่ไม่ใช่ code (ข้อมูลเก่า) แสดงค่าเดิมโดยไม่ error
+                    data = GeoHelper.Display(_dbHelper, GeoHelper.ProvinceTable, row[item.Key]?.ToString());
+                }
+                else if (mod.Name == "AgentList" && (item.Key == "cus_base_amphur" || item.Key == "cus_contact_amphur"))
+                {
+                    data = GeoHelper.Display(_dbHelper, GeoHelper.DistrictTable, row[item.Key]?.ToString());
+                }
+                else if (mod.Name == "AgentList" && (item.Key == "cus_base_tambol" || item.Key == "cus_contact_tambol"))
+                {
+                    data = GeoHelper.Display(_dbHelper, GeoHelper.SubdistrictTable, row[item.Key]?.ToString());
+                }
+                else if (mod.Name == "AgentList" && item.Key.StartsWith("npaid"))
+                {
+                    // ค่าในช่องนี้เป็นได้ 2 แบบ: รหัสทรัพย์ (มีชื่อโครงการใน tb_product2) หรือ "ข้อความอิสระ" ที่ผู้สมัครพิมพ์เอง
+                    //   ViewTR ถูก render ด้วย Html.Raw → ต้อง encode ก่อน ไม่งั้นข้อความอิสระที่มีแท็ก HTML จะหลุดเข้าหน้า admin
+                    var pcode = (row[item.Key]?.ToString() ?? "").Trim();
+                    data = System.Net.WebUtility.HtmlEncode(pcode);
+                    if (!string.IsNullOrEmpty(pcode) && npaProjects.ContainsKey(pcode))
+                        data += $" <span class='text-muted small'>({System.Net.WebUtility.HtmlEncode(npaProjects[pcode])})</span>";
+                }
+                else if (mod.Name == "AgentList" && item.Key == "approved")
+                {
+                    // ตัวเลือกสถานะมาจาก AgentStatus ที่เดียวกับหน้า Edit/หน้า list — เปลี่ยนที่นั่นที่เดียวพอ
+                    // ค่าที่อ่านจาก DB ต้อง Normalize ก่อน ไม่งั้นค่าเก่า (2) จะไม่ตรงกับ option ไหนเลย
+                    // แล้ว browser จะเลือกตัวแรกให้เอง = แสดงสถานะผิดทุกครั้งที่เปิดหน้า
+                    int ap = AgentStatus.Normalize(row["approved"]);
+                    var agentId = row["id"]?.ToString();
+                    var sb = new System.Text.StringBuilder();
+                    sb.Append("<select class=\"form-select form-select-sm approved-select\" style=\"max-width:240px;\" data-id=\"")
+                      .Append(agentId).Append("\" onchange=\"updateApproved(this)\">");
+                    foreach (var opt in AgentStatus.Options)
+                    {
+                        sb.Append("<option value=\"").Append(opt.Key).Append("\"")
+                          .Append(ap == opt.Key ? " selected" : "").Append(">")
+                          .Append(System.Net.WebUtility.HtmlEncode(opt.Value)).Append("</option>");
+                    }
+                    sb.Append("</select>");
+                    data = sb.ToString();
+                }
+                else if (mod.Name == "AnnounceJobSubmit" && item.Key == "data_doc")
+                {
+                    // ไฟล์แนบใบสมัครงาน (resume) → front-end บันทึกที่ /wwwroot/uploads/job-apply
+                    var fileName = row[item.Key]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        var fileUrl = _utility.frontURL("/uploads/job-apply/" + fileName);
+                        data = $"<a target='_blank' rel='noopener' href='{fileUrl}'>เรียกดูไฟล์</a> <span class='text-muted small'>({fileName})</span>";
+                    }
+                    else
+                    {
+                        data = "<span class='text-muted'>ไม่มีไฟล์</span>";
+                    }
+                }
+                else if (mod.Name == "LinkSubmit" && item.Key == "data_file")
+                {
+                    // รูปแบนเนอร์/โลโก้แลกลิงก์ → front-end บันทึกที่ /wwwroot/uploads/partner
+                    var fileName = row[item.Key]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        var fileUrl = _utility.frontURL("/uploads/partner/" + fileName);
+                        data = $"<a target='_blank' rel='noopener' href='{fileUrl}'>เรียกดูไฟล์</a> <span class='text-muted small'>({fileName})</span>";
+                    }
+                    else
+                    {
+                        data = "<span class='text-muted'>ไม่มีไฟล์</span>";
+                    }
+                }
+                else if (mod.Name == "NpaOffer" && item.Key == "doc_file")
+                {
+                    // เอกสารแนบข้อเสนอซื้อ → front-end บันทึกที่ /wwwroot/uploads/npa-offer
+                    var fileName = row[item.Key]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        var fileUrl = _utility.frontURL("/uploads/npa-offer/" + fileName);
+                        data = $"<a target='_blank' rel='noopener' href='{fileUrl}'>เรียกดูไฟล์</a> <span class='text-muted small'>({fileName})</span>";
+                    }
+                    else
+                    {
+                        data = "<span class='text-muted'>ไม่มีไฟล์</span>";
+                    }
+                }
+                else if (mod.Name == "SubscriptionNews" && (item.Key == "file1" || item.Key == "file2" || item.Key == "file3"))
+                {
+                    // ไฟล์แนบข่าวสารทางอีเมล → เก็บที่ฝั่ง admin /wwwroot/Files/subscription_news
+                    var fileName = row[item.Key]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        var fileUrl = _utility.rootURL().TrimEnd('/') + "/Files/subscription_news/" + Uri.EscapeDataString(fileName);
+                        data = $"<a target='_blank' rel='noopener' href='{fileUrl}'>เรียกดู/ดาวน์โหลดไฟล์</a> <span class='text-muted small'>({fileName})</span>";
+                    }
+                    else
+                    {
+                        data = "<span class='text-muted'>ไม่มีไฟล์</span>";
+                    }
+                }
+                else if (mod.Name == "SubscriptionNews" && item.Key == "recipient_type")
+                {
+                    var rt = (row["recipient_type"]?.ToString() ?? "").Trim();
+                    data = rt == "custom" ? "กำหนดเอง" : (rt == "all" ? "ส่งไปทุกอีเมล" : rt);
+                }
+                else if (mod.Name == "SubscriptionNews" && item.Key == "body")
+                {
+                    // เนื้อหาอีเมลเป็น HTML → แสดงตัวอย่างในกรอบ
+                    var html = row["body"]?.ToString() ?? "";
+                    data = string.IsNullOrWhiteSpace(html)
+                        ? "<span class='text-muted'>- ไม่มีเนื้อหา -</span>"
+                        : $"<div class='border rounded p-3 bg-light'>{html}</div>";
+                }
+                @Html.Raw(_admin.ViewTR(item.Value , data))
+            }
+        </tbody>
+    </table>
+</div>
+
+<br/>
+<br/>
+<br/>
+
+@if (mod.Name == "AgentList")
+{
+    @Html.AntiForgeryToken()
+}
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    $(document).ready(function() {
+
+    });
+
+    // จำค่าที่บันทึกไว้ล่าสุดของ dropdown สถานะ เพื่อคืนค่าเดิมเมื่อบันทึกไม่สำเร็จ
+    // (ไม่งั้นหน้าจะโชว์สถานะที่ยังไม่ได้ลง DB จริง จนกว่าจะ refresh)
+    $(document).on('focus', '.approved-select', function () {
+        $(this).data('prev', this.value);
+    });
+
+    function updateApproved(sel) {
+        var id = $(sel).data('id');
+        var approved = sel.value;
+        var token = $('input[name="__RequestVerificationToken"]').val();
+        var $sel = $(sel);
+        var prev = $sel.data('prev');
+        $sel.prop('disabled', true);
+        $.ajax({
+            url: '/Admin/AgentList/UpdateApproved',
+            type: 'POST',
+            data: { id: id, approved: approved, __RequestVerificationToken: token },
+            success: function (res) {
+                $sel.prop('disabled', false);
+                if (res && res.success) {
+                    $sel.data('prev', approved);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'อัปเดตสถานะแล้ว',
+                        text: res.message || '',
+                        timer: 2600,
+                        showConfirmButton: false
+                    });
+                } else {
+                    if (prev !== undefined) $sel.val(prev);
+                    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: (res && res.message) || 'ไม่สามารถอัปเดตสถานะได้' });
+                }
+            },
+            error: function () {
+                $sel.prop('disabled', false);
+                if (prev !== undefined) $sel.val(prev);
+                Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่สามารถอัปเดตสถานะได้' });
+            }
+        });
+    }
+</script>
+}

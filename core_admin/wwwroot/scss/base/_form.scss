@@ -1,0 +1,306 @@
+﻿
+
+.form-wrapper {
+
+    .group-form {
+        .title-group {
+            font-size: 1.875rem;
+            line-height: 1.875rem;
+        }
+
+        .form-label {
+            font-size: 1.375rem;
+            line-height: 1.625rem;
+            font-weight: bold;
+            color: $gray;
+            margin-bottom: 3px;
+            display: block;
+
+            .req {
+                color: #BC1320;
+            }
+        }
+
+        .form-check {
+            font-size: 1.375rem;
+            color: $gray;
+        }
+
+        .form-text {
+            font-size: 1.3rem;
+            line-height: 1.625rem;
+            margin-top: 0;
+            color: $light-gray;
+        }
+
+        .form-text-remark {
+            font-size: 1.2rem;
+            line-height: 1.2rem;
+            margin-top: 0;
+            color: $light-gray;
+            margin-top: .25rem;
+        }
+
+        .image-profile {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-right: 40px;
+
+            .image {
+                margin-bottom: 10px;
+                background-color: rgba(146, 145, 144, 0.1);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 176px;
+                width: 100%;
+
+                img {
+                    width: auto;
+                    max-width: 100%;
+                    max-height: 100%;
+                }
+            }
+
+            @media only screen and (max-width: 767px) {
+                margin-right: 0;
+            }
+        }
+
+        .group-form-section {
+
+            .navbar-divider {
+                background-color: #f5f5f5;
+                border: none;
+                height: 2px;
+                opacity: 1;
+            }
+        }
+    }
+
+    .form-label {
+        font-size: 1rem;
+        line-height: 1.375rem;
+        font-weight: bold;
+        color: $gray;
+        margin-bottom: 3px;
+        display: block;
+
+        .req {
+            color: #BC1320;
+        }
+    }
+
+    .input-group {
+        .btn {
+            i {
+                margin-right: 0;
+            }
+        }
+    }
+
+    .field {
+        position: relative;
+        /*input[type="password"]:disabled {
+            background: #e9ecef;
+        }*/
+        .icon-upload {
+            cursor: pointer;
+
+            i {
+                display: flex;
+                font-size: 20px;
+                color: #929190;
+            }
+        }
+
+        .form-control {
+            background-color: #fff;
+            box-shadow: none;
+            font-size: 1rem;
+            line-height: 1.75rem;
+
+            &:focus {
+                border-color: $color-primary;
+            }
+            &:read-only {
+                background-color: $white;
+            }
+
+            &--icon {
+                display: none;
+            }
+
+            &:disabled {
+                background: #e9ecef;
+            }
+        }
+
+        .form-select {
+            box-shadow: none;
+            font-size: 1rem;
+            line-height: 1.75rem;
+
+            optgroup[label] {
+                color: $color-primary;
+                font-size: 1.25rem;
+                font-weight: 600;
+                text-shadow: none;
+
+                option {
+                    color: $gray;
+                    font-size: 1rem;
+                }
+            }
+
+            option {
+                color: $gray;
+            }
+
+            &:focus {
+                border-color: $color-primary;
+            }
+        }
+
+        .form-check-input {
+            margin-left: -18px;
+
+            &:checked {
+                background-color: $color-primary;
+                border-color: $color-primary;
+            }
+
+            &:focus {
+                box-shadow: none;
+            }
+        }
+
+        .form-check-input:checked + label {
+            color: $color-primary;
+        }
+
+        .form-check-label {
+            font-size: 1rem;
+            line-height: 1.625rem;
+            padding-left: 5px;
+
+            a {
+                color: $color-primary;
+
+                &:hover {
+                    color: $color-secondary;
+                }
+            }
+        }
+
+        .input-file {
+            height: 40px;
+        }
+
+        .form-switch {
+            padding-left: 2.25rem;
+
+            .form-check-input {
+                margin-left: -2.25rem;
+            }
+        }
+
+        textarea.form-control {
+            height: 131px;
+            padding-top: 10px;
+            resize: none;
+        }
+
+        &__icon {
+            .form-control {
+                padding-right: 40px;
+            }
+
+            .icon-field {
+                position: absolute;
+                right: 13px;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 9;
+
+                i {
+                    display: flex;
+                    color: #929190;
+                }
+            }
+        }
+    }
+
+    .has-validation {
+        .form-control {
+            border: 1px solid #dc3545;
+        }
+
+        .form-select {
+            border: 1px solid #dc3545;
+        }
+    }
+
+    .input-icon {
+        position: relative;
+
+        .form-control {
+            padding-right: 40px;
+        }
+
+        .icon {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 9;
+
+            i {
+                display: flex;
+                color: #929190;
+            }
+        }
+    }
+
+    .form-check-input {
+        &:focus {
+            box-shadow: none;
+        }
+    }
+
+    .show-img {
+        display: none;
+        margin-bottom: 15px;
+        height: 150px;
+
+        .img-thumbnail {
+            display: none;
+            border: none;
+            margin-bottom: 15px;
+            max-height: 100%;
+        }
+
+        .video-thumbnail {
+            display: none;
+            border: none;
+            margin-bottom: 15px;
+            max-height: 100%;
+        }
+    }
+
+    .form-switch {
+        .form-check-input {
+            cursor: pointer;
+
+            &:checked {
+                background-color: $color-primary;
+                border-color: $color-primary;
+            }
+
+            &:disabled {
+                cursor: default;
+            }
+        }
+    }
+}

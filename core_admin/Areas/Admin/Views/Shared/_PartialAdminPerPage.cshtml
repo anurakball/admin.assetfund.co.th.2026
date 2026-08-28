@@ -1,0 +1,14 @@
+﻿@{
+    int PerPage = (int)ViewBag.PerPage;
+}
+<div class="row">
+    <label for="perpage" class="col-auto col-form-label">แสดง </label>
+    <div class="col-auto">
+        <select class="form-select form-select-sm" id="perpage" name="perpage" onchange="let url = updateQueryStringParameter(window.location.href, 'perpage', this.value); window.location.href = updateQueryStringParameter(url, 'page', '1');">
+            @foreach (var item in new List<int>{ 5, 10, 15, 50, 100, 500 })
+            {
+                <option value="@item" @(PerPage == item ? "selected" : "")>@item</option>
+            }
+        </select>
+    </div>
+</div>

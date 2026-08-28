@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\Project\\\\admin.sam.or.th\\\\core_admin\\\\Areas\\\\Admin\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"SEO\\\\|Code\\\\|Script\\\\|Meta\\\\|Tag\")",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Project\\\\admin.sam.or.th\\\\core_admin\\\\Areas\\\\Admin\\\\Views\" -Directory | Where-Object {$_.Name -match '\\(FacebookPixel|GoogleAnalytics\\)'} | Select-Object -ExpandProperty FullName)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Project\\\\admin.sam.or.th\\\\core_admin\\\\Areas\\\\Admin\\\\Views\" -Directory | Select-Object -ExpandProperty Name | Where-Object {$_ -match '\\(GoogleAnalytics|FacebookPixel\\)'})",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Project\\\\admin.sam.or.th\\\\core_admin\\\\Areas\\\\Admin\\\\Views\" -Directory | Select-Object -ExpandProperty Name | Where-Object {$_ -match 'Google|Facebook'})",
+      "PowerShell(Start-Process \"d:\\\\Project\\\\admin.sam.or.th\\\\core_admin\\\\UAT_TestCase_WebsiteMenu_v2.xlsx\")",
+      "PowerShell(dotnet build --nologo 2>&1)",
+      "mcp__playwright__browser_navigate"
+    ]
+  },
+  "enabledPlugins": {
+    "playwright@claude-plugins-official": true
+  }
+}

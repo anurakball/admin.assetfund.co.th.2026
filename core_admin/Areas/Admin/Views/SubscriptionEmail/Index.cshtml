@@ -1,0 +1,184 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+
+    // ค่าเริ่มต้นจาก query string (ปัจจุบันใช้กับ AgentNews?uid=... จากปุ่ม "แจ้งอีเมลสถานะเอกสาร" ในหน้าผู้สมัครตัวแทน)
+    bool prefillCustom = ((string)ViewBag.PrefillRecipientType ?? "") == "custom";
+    string prefillEmails = (string)ViewBag.PrefillCustomEmails ?? "";
+    string prefillSubject = (string)ViewBag.PrefillSubject ?? "";
+    string prefillBody = (string)ViewBag.PrefillBody ?? "";
+}
+ 
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<script>
+function toggleRecipientSections() {
+    var isAll = document.getElementById('radioAll').checked;
+    var customSec = document.getElementById('customEmailSection');
+    if (customSec) { customSec.style.display = isAll ? 'none' : ''; }
+    var memberTypeSec = document.getElementById('memberTypeSection');
+    if (memberTypeSec) { memberTypeSec.style.display = isAll ? '' : 'none'; }
+}
+function sConfirmCustom(form) {
+    // เมื่อส่งแบบ "ทุกอีเมล" และมีตัวเลือกประเภทสมาชิก ต้องเลือกอย่างน้อย 1 ประเภท
+    if (document.getElementById('radioAll').checked && document.querySelectorAll('.member-type-check').length > 0
+        && document.querySelectorAll('.member-type-check:checked').length === 0) {
+        Swal.fire({ icon: 'warning', title: 'กรุณาเลือกประเภทสมาชิก', text: 'กรุณาเลือกประเภทสมาชิกอย่างน้อย 1 ประเภท', confirmButtonText: 'ตกลง' });
+        return false;
+    }
+    Swal.fire({
+        title: 'ยืนยัน ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#0047B6',
+        cancelButtonColor: '#BC1320',
+        confirmButtonText: 'ใช่',
+        cancelButtonText: 'ปิด',
+        showClass: { popup: 'animate__animated animate__bounceIn' },
+        hideClass: { popup: 'animate__animated animate__bounceOut' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // ดันเนื้อหาจาก CKEditor ลง <textarea name="emailBody"> ก่อนส่งฟอร์ม
+            // (form.submit() แบบเรียกจาก JS ไม่ยิง event submit จึงซิงก์เองให้ชัวร์)
+            if (window['ckEditor_id_emailBody'] && window['ckEditor_id_emailBody'].updateSourceElement) {
+                window['ckEditor_id_emailBody'].updateSourceElement();
+            }
+            $('#sendingModal').modal('show');
+            form.submit();
+        }
+    });
+    return false;
+}
+</script>
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+        
+        <div class="row">
+            <div class="col-lg-12 col-md-12 mb-3">
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">ผู้รับอีเมล</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="recipientType" id="radioAll" value="all" checked="@(!prefillCustom)"
+                            onchange="toggleRecipientSections()" />
+                        <label class="form-check-label" for="radioAll">1. ส่งไปทุกอีเมล</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="recipientType" id="radioCustom" value="custom" checked="@prefillCustom"
+                            onchange="toggleRecipientSections()" />
+                        <label class="form-check-label" for="radioCustom">2. กำหนดเอง</label>
+                    </div>
+                </div>
+
+                @if (mod.Name == "MemberNews")
+                {
+                    <div class="mb-4 ps-4" id="memberTypeSection">
+                        <label class="form-label fw-bold">ประเภทสมาชิกที่จะส่ง <small class="text-muted fw-normal">(เลือกได้มากกว่า 1 ประเภท)</small></label>
+                        <div class="form-check">
+                            <input class="form-check-input member-type-check" type="checkbox" name="memberTypes" id="memberType1" value="1" checked />
+                            <label class="form-check-label" for="memberType1">สมาชิก</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input member-type-check" type="checkbox" name="memberTypes" id="memberType2" value="2" checked />
+                            <label class="form-check-label" for="memberType2">Investor</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input member-type-check" type="checkbox" name="memberTypes" id="memberType3" value="3" checked />
+                            <label class="form-check-label" for="memberType3">Agency</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input member-type-check" type="checkbox" name="memberTypes" id="memberType4" value="4" checked />
+                            <label class="form-check-label" for="memberType4">Sale/Executive</label>
+                        </div>
+                    </div>
+                }
+
+                <div class="mb-4" id="customEmailSection" style="@(prefillCustom ? "" : "display:none;")">
+                    <label for="customEmails" class="form-label fw-bold">
+                        อีเมลปลายทาง <small class="text-muted fw-normal">(กรอกทีละบรรทัด)</small>
+                    </label>
+                    <textarea class="form-control" id="customEmails" name="customEmails" rows="5"
+                        placeholder="กรอกอีเมลปลายทาง โดยแต่ละอีเมลอยู่คนละบรรทัด&#10;example@email.com&#10;another@email.com">@prefillEmails</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="emailSubject" class="form-label fw-bold">หัวเรื่อง (Subject)</label>
+                    <input type="text" class="form-control" id="emailSubject" name="emailSubject" value="@prefillSubject"
+                        placeholder="กรอกหัวเรื่องอีเมล" />
+                </div>
+
+                <div class="mb-4">
+                    @* เนื้อหาอีเมลเป็น Text Editor (CKEditor) — ตอนส่งจะถูกแปลงเป็น HTML แบบ inline style
+                       เพื่อให้ Gmail/Outlook แสดงผลตามที่ตกแต่งไว้ และรูปในเนื้อหาจะถูกฝังไปกับอีเมล *@
+                    @Html.Raw(_admin.InputTextEditor("เนื้อหาอีเมล (Message Body)", "emailBody", prefillBody))
+                    <small class="text-muted">
+                        จัดรูปแบบข้อความ/แทรกรูปได้จากแถบเครื่องมือด้านบน (ปุ่มแทรกรูปจะเปิด File Manager)
+                        — รูปที่แทรกจะถูกส่งไปพร้อมอีเมล ผู้รับจึงเห็นรูปได้ทันที
+                    </small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">แนบไฟล์ในอีเมล <small class="text-muted fw-normal">(ไม่บังคับ • แนบได้สูงสุด 3 ไฟล์)</small></label>
+                    <div class="mb-2">
+                        <input type="file" class="form-control" id="attachment1" name="attachment1" />
+                    </div>
+                    <div class="mb-2">
+                        <input type="file" class="form-control" id="attachment2" name="attachment2" />
+                    </div>
+                    <div class="mb-2">
+                        <input type="file" class="form-control" id="attachment3" name="attachment3" />
+                    </div>
+                    <small class="text-muted">หากไม่ต้องการแนบไฟล์ สามารถเว้นว่างไว้ได้ (ขนาดไฟล์รวมไม่ควรเกิน 20 MB)</small>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4" id="btnSendEmail">
+                    <i class="fas fa-paper-plane me-2"></i>ส่งอีเมล
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal: กำลังส่งอีเมล -->
+<div class="modal fade" id="sendingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-1">กำลังส่งอีเมล</h5>
+                <p class="text-muted mb-0">กรุณารอสักครู่ อย่าปิดหน้าต่างนี้</p>
+            </div>
+        </div>
+    </div>
+</div>
+ 
+@await Component.InvokeAsync("AddForm")
+
+@section Scripts
+{
+    <link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+    <script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    $(document).ready(function() {
+        checkLockedRow(modConfig, jsonRow);
+    });
+    </script>
+}

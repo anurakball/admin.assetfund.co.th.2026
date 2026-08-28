@@ -1,0 +1,107 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+    Func<string, string> V = col => (row.Table.Columns.Contains(col) ? (row[col]?.ToString() ?? "") : "").Trim();
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<style>
+    .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
+    .cms-section > legend { font-size:1.15rem; font-weight:700; color:#0047B6; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
+    .cms-note { background:#e8f4ff; border:1px solid #b6dcff; border-radius:8px; padding:10px 14px; margin-bottom:18px; font-size:.92rem; }
+</style>
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        <fieldset class="cms-section">
+            <legend>หัวข้อส่วน</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", V("title")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", V("en_title")))
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>คอลัมน์ซ้าย — เนื้อหา</legend>
+            @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-th'></span>", "t1", V("t1")))
+            @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-us'></span>", "en_t1", V("en_t1")))
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>คอลัมน์ขวา — แบบฟอร์ม (E-Form)</legend>
+            <div class="row">
+                <div class="col-lg-8 col-md-10 mb-3">
+                    @Html.Raw(
+                        _admin.InputSelectDB(
+                            "เลือกแบบฟอร์ม <span style='font-weight:normal;color:orange;'>(เฉพาะฟอร์มของไมโครไซต์นี้)</span>",
+                            "t2",
+                            V("t2"),
+                            showAllOption: true,
+                            "web_eform",
+                            value_field: "id",
+                            text_field: "pb_title",
+                            order_by: "sort",
+                            sort: "asc",
+                            txtAllOption: "-- ไม่แสดงฟอร์ม --"
+                        ))
+                    <div class="mt-2">
+                        <a href="/Admin/EForm" target="_blank" style="text-decoration:underline;color:#666">[จัดการ E-Form]</a>
+                        <a href="javascript:;" onclick="location.reload();" style="text-decoration:underline;color:#666">[Refresh]</a>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        @{
+            string issue_date = ""; try { issue_date = ((DateTime)row["issue_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { issue_date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm"); }
+            string expiry_date = ""; try { expiry_date = ((DateTime)row["expiry_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { expiry_date = System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm"); }
+        }
+        <input type="hidden" name="issue_date_config" value="1" />
+        <input type="hidden" name="issue_date" value="@issue_date" />
+        <input type="hidden" name="expiry_date" value="@expiry_date" />
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    function sConfirmCustom(form)
+    {
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus(); return false;
+        }
+        Swal.fire({ title: 'ยืนยัน ?', icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#0047B6', cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่', cancelButtonText: 'ปิด',
+            showClass: { popup: 'animate__animated animate__bounceIn' },
+            hideClass: { popup: 'animate__animated animate__bounceOut' }
+        }).then((result) => { if (result.isConfirmed) { form.submit(); } else { return false; } });
+        return false;
+    }
+    $(document).ready(function() { checkLockedRow(modConfig, jsonRow); });
+</script>
+}

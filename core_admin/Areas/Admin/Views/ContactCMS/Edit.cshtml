@@ -1,0 +1,219 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+
+    // อ่านค่าจากคอลัมน์อย่างปลอดภัย
+    Func<string, string> V = col => (row.Table.Columns.Contains(col) ? (row[col]?.ToString() ?? "") : "").Trim();
+
+    // ป้ายธงภาษา
+    const string TH = " <span class='fi fi-th'></span>";
+    const string EN = " <span class='fi fi-us'></span>";
+
+    // คู่ข้อความ ไทย/อังกฤษ (text สั้น) -> ใช้คอลัมน์ t{n} / en_t{n}
+    Func<string, int, string> TextPair = (label, n) =>
+        "<div class='row'>"
+        + "<div class='col-lg-6 col-md-6 mb-3'>" + _admin.InputText(label + TH, "t" + n, V("t" + n)) + "</div>"
+        + "<div class='col-lg-6 col-md-6 mb-3'>" + _admin.InputText(label + EN, "en_t" + n, V("en_t" + n)) + "</div>"
+        + "</div>";
+
+    // คู่ข้อความ ไทย/อังกฤษ (textarea ยาว)
+    Func<string, int, string> AreaPair = (label, n) =>
+        "<div class='row'>"
+        + "<div class='col-lg-6 col-md-6 mb-3'>" + _admin.InputTextArea(label + TH, "t" + n, V("t" + n)) + "</div>"
+        + "<div class='col-lg-6 col-md-6 mb-3'>" + _admin.InputTextArea(label + EN, "en_t" + n, V("en_t" + n)) + "</div>"
+        + "</div>";
+
+    // รูปภาพ / ไอคอน (ภาษาเดียว) -> ใช้คอลัมน์ t{n}
+    Func<string, int, string> Img = (label, n) =>
+        "<div class='row'><div class='col-lg-8 col-md-10 mb-3'>" + _admin.InputFileManeger(label, "t" + n, V("t" + n)) + "</div></div>";
+
+    // ไอคอน Bootstrap Icons (ภาษาเดียว) -> ใช้คอลัมน์ t{n} ; เก็บค่าเช่น "bi bi-telephone"
+    Func<string, int, string> Icon = (label, n) =>
+        "<div class='row'><div class='col-lg-8 col-md-10 mb-3'>" + _admin.InputBootstrapIcon(label, "t" + n, V("t" + n)) + "</div></div>";
+
+    // ลิงก์ (ภาษาเดียว) -> ใช้คอลัมน์ t{n}
+    Func<string, int, string> Link = (label, n) =>
+        "<div class='row'><div class='col-lg-8 col-md-10 mb-3'>" + _admin.InputTextLink(label, "t" + n, V("t" + n)) + "</div></div>";
+
+    // การ์ดช่องทาง (ไอคอน + หัวข้อ + ข้อความ + ลิงก์) ; ส่ง 0 ในช่องที่ไม่มี
+    Func<string, int, int, int, int, string> Card = (label, iconNo, titleNo, textNo, linkNo) =>
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<fieldset style='border:1px solid #ccc;padding:18px;border-radius:10px;margin-bottom:18px;background:#fafafa;'>");
+        sb.Append("<legend style='font-size:1rem;font-weight:600;width:auto;padding:0 10px;'>" + label + "</legend>");
+        sb.Append(Icon("ไอคอน <span style='font-weight:normal;color:orange;'>(เลือกจาก Bootstrap Icons)</span>", iconNo));
+        if (titleNo > 0) sb.Append(TextPair("หัวข้อการ์ด", titleNo));
+        if (textNo > 0) sb.Append(TextPair("ข้อความใต้หัวข้อ", textNo));
+        if (linkNo > 0) sb.Append(Link("ลิงก์ (กดที่การ์ด)", linkNo));
+        sb.Append("</fieldset>");
+        return sb.ToString();
+    };
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<script src="/js/spectrum.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/Admin/spectrum.min.css">
+
+<style>
+    .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
+    .cms-section > legend { font-size:1.15rem; font-weight:700; color:#0047B6; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
+    .cms-subhead { font-weight:600; margin:6px 0 14px; padding-bottom:6px; border-bottom:1px dashed #ccc; }
+</style>
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        @* ---------- ชื่อรายการ (ใช้ในระบบ/เมนู) ---------- *@
+        <fieldset class="cms-section">
+            <legend>ชื่อรายการ</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("ชื่อรายการ" + TH, "title", V("title")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("ชื่อรายการ" + EN, "en_title", V("en_title")))
+                </div>
+            </div>
+        </fieldset>
+
+        @* ========== ส่วนที่ 1 — แบนเนอร์ (bg-contact-1) ========== *@
+        <fieldset class="cms-section">
+            <legend>ส่วนที่ 1 : แบนเนอร์ส่วนหัว</legend>
+            @Html.Raw(AreaPair("ข้อความแบนเนอร์ (หัวข้อใหญ่)", 1))
+            @Html.Raw(Img("รูปพื้นหลังแบนเนอร์ <span style='font-weight:normal;color:orange;'>(.webp, .png, .jpg แนะนำ 1920 x 1080)</span>", 2))
+        </fieldset>
+
+        @* ========== ส่วนที่ 2 — ติดต่อด้วยตนเอง (bg-contact-2) ========== *@
+        <fieldset class="cms-section">
+            <legend>ส่วนที่ 2 : ข้อเสนอแนะ/ร้องเรียนด้วยตนเอง</legend>
+            @Html.Raw(TextPair("หัวข้อส่วน", 3))
+            @Html.Raw(TextPair("ชื่อหน่วยงาน", 4))
+            @Html.Raw(TextPair("ชื่อบริษัท", 5))
+            @Html.Raw(AreaPair("ที่อยู่", 6))
+            @Html.Raw(TextPair("เบอร์โทรศัพท์", 7))
+
+            <hr />
+            <div class="cms-subhead">ปุ่ม “ติดต่อเจ้าหน้าที่”</div>
+            @Html.Raw(TextPair("ข้อความบนปุ่ม", 8))
+            @Html.Raw(Link("ลิงก์ปุ่ม (เช่น tel:1443)", 9))
+
+            <div class="cms-subhead">ปุ่ม “ขอเส้นทาง”</div>
+            @Html.Raw(TextPair("ข้อความบนปุ่ม", 10))
+            @Html.Raw(Link("ลิงก์ปุ่ม (เช่น https://maps.app.goo.gl/...)", 11))
+
+            <hr />
+            @Html.Raw(Img("รูปพื้นหลังส่วนที่ 2 <span style='font-weight:normal;color:orange;'>(.webp, .png, .jpg แนะนำ 1920 x 1080)</span>", 12))
+        </fieldset>
+
+        @* ========== ส่วนที่ 3 — ร้องเรียนออนไลน์ ========== *@
+        <fieldset class="cms-section">
+            <legend>ส่วนที่ 3 : ข้อเสนอแนะ/ร้องเรียนออนไลน์</legend>
+            @Html.Raw(TextPair("หัวข้อส่วน", 13))
+            @Html.Raw(TextPair("หัวข้อรอง", 14))
+
+            <div class="cms-subhead">ช่องทาง “ภายในบริษัท”</div>
+            @Html.Raw(TextPair("หัวข้อกลุ่ม (ภายในบริษัท)", 15))
+
+            @Html.Raw(Card("การ์ด — SAM Call Center", 16, 17, 18, 19))
+            @Html.Raw(Card("การ์ด — Website", 20, 21, 22, 23))
+            @Html.Raw(Card("การ์ด — สาขา / จุดให้บริการ", 24, 25, 0, 0))
+            @Html.Raw(Card("การ์ด — จดหมาย / หนังสือร้องเรียน", 26, 27, 0, 0))
+            @Html.Raw(Card("การ์ด — Facebook", 28, 29, 30, 31))
+            @Html.Raw(Card("การ์ด — Youtube", 32, 33, 34, 35))
+            @Html.Raw(Card("การ์ด — Line", 36, 37, 38, 39))
+            @Html.Raw(Card("การ์ด — TikTok", 40, 41, 42, 43))
+
+            <div class="cms-subhead">ช่องทาง “ภายนอกบริษัท”</div>
+            @Html.Raw(TextPair("หัวข้อกลุ่ม (ภายนอกบริษัท)", 44))
+
+            <fieldset style="border:1px solid #ccc;padding:18px;border-radius:10px;margin-bottom:18px;background:#fafafa;">
+                <legend style="font-size:1rem;font-weight:600;width:auto;padding:0 10px;">การ์ด — หน่วยงานภายนอก</legend>
+                @Html.Raw(Icon("ไอคอน <span style='font-weight:normal;color:orange;'>(เลือกจาก Bootstrap Icons)</span>", 45))
+                @Html.Raw(AreaPair("ข้อความการ์ด", 46))
+            </fieldset>
+        </fieldset>
+
+        @* ========== หมายเหตุท้ายหน้า ========== *@
+        <fieldset class="cms-section">
+            <legend>หมายเหตุท้ายหน้า</legend>
+            @Html.Raw(TextPair("หัวข้อหมายเหตุ", 47))
+            @Html.Raw(AreaPair("ข้อความหมายเหตุ", 48))
+        </fieldset>
+
+        @{
+            string issue_date = ""; try { issue_date = ((DateTime)row["issue_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { issue_date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm"); }
+            string expiry_date = ""; try { expiry_date = ((DateTime)row["expiry_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { expiry_date = System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm"); }
+        }
+        <input type="hidden" name="issue_date_config" value="1" />
+        <input type="hidden" name="issue_date" value="@issue_date" />
+        <input type="hidden" name="expiry_date" value="@expiry_date" />
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    function sConfirmCustom(form) {
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+
+    $(document).ready(function() {
+        checkLockedRow(modConfig, jsonRow);
+    });
+</script>
+}

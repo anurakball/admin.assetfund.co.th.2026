@@ -1,0 +1,64 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb",  new { Module = mod })
+
+<div class="table-responsive">
+    <table class="table">
+        <tbody>
+            @foreach (var item in mod_config.ViewDetailData)
+            {
+                string data = row[item.Key] + "" ?? "";
+                if (
+                    item.Key == "created_at" ||
+                    item.Key == "updated_at" ||
+                    (item.Key).EndsWith("_date")
+                )
+                {
+                    try { data = ((DateTime)row[item.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"); } catch { }
+                }
+                if (item.Key == "old_value" || item.Key == "new_value"){
+                    data = $"<pre id='_{item.Key}'></pre>";
+                }
+                @Html.Raw(_admin.ViewTR(item.Value, data))
+            }
+        </tbody>
+    </table>
+</div>
+
+<br/>
+<br/>
+<br/>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<!-- json-viewer -->
+<script src="~/lib/jquery-json-viewer/jquery.json-viewer.js"></script>
+<link rel="stylesheet" href="~/lib/jquery-json-viewer/jquery.json-viewer.css" />
+<script>
+$(document).ready(function() {
+    var old_value_json = @Html.Raw(Json.Serialize(@row["old_value"]));
+    var new_value_json = @Html.Raw(Json.Serialize(@row["new_value"]));
+
+    if (old_value_json != "") {
+        $('#_old_value').jsonViewer(JSON.parse(old_value_json), {collapsed: true, rootCollapsable: true, withQuotes: true, withLinks: false});
+    }
+    if (new_value_json != "") {
+        $('#_new_value').jsonViewer(JSON.parse(new_value_json), {collapsed: true, rootCollapsable: true, withQuotes: true, withLinks: false});
+    }
+});
+</script>
+}

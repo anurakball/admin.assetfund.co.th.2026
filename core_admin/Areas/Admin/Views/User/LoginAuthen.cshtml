@@ -1,0 +1,143 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminNotLoginLayout.cshtml";
+    ViewBag.Title = "Two-Factor Authentication";
+}
+
+    <div class="section section__authen">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-5">
+                    <div class="head">
+                        <h2 class="title-form text-color-primary mb-4">TWO-Factor Authentication</h2>
+                        <p>Enter your two-factor authentication code from the app on your phone.</p>
+                    </div>
+                    <div class="form">
+                        <form class="authen-form C_Frm" method="post" action="/Admin/User/LoginAuthen">
+                        @Html.AntiForgeryToken()
+                            <input type="hidden" name="web_id" value="@ViewBag.webID" />
+                            <div class="form-group">
+                                <input type="text" name="PassOTP" id="codeAuthen" class="form-control" placeholder="Enter the 6-digit code" maxlength="6" autocomplete="off">
+                                <button type="button" class="btn btn-resend C_ResendOTP">Resend OTP (<span class="C_CountDown">60</span>)</button>
+                            </div>
+                            <div class="mt-5">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn--primary C_BTN">Verify</button>                                    
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+        @if (ViewBag.OTP_alert_message != null)
+        {
+            <text>
+                    Swal.fire({
+                        title: 'ข้อความแจ้งเตือน',
+                        html: "@ViewBag.OTP_alert_message.ToString()",
+                        icon: 'warning',
+                        confirmButtonText: 'OK',
+                    });
+            </text>
+        }
+
+            $(".C_BTN").click(function(){
+                if($.trim($("input[name='PassOTP']").val()) == "")
+                {
+                    Swal.fire({
+                        title: 'กรุณากรอกรหัสยืนยัน',
+                        icon: 'warning',
+                        confirmButtonText: 'OK',
+                    });
+                    return false;
+                }
+                $(".C_Frm").submit();
+            });
+
+            // Label effect
+            $('input').focus(function () {
+                $(this).siblings('label').addClass('active');
+            });
+
+            // Form validation
+            $('input').blur(function () {
+                // label effect
+                if ($(this).val().length > 0) {
+                    $(this).siblings('label').addClass('active');
+                } else {
+                    $(this).siblings('label').removeClass('active');
+                }
+            });
+
+            $(".C_ResendOTP").click(function(){
+                $(".C_ResendOTP").prop("disabled", true);
+                Swal.fire({
+                    title: 'กำลังส่งรหัสยืนยัน',
+                    icon: 'info'
+                });
+                $.ajax({
+                    url: '/Admin/User/reSendOTP',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+                    },
+                    success: function (result) {
+                        if(result == "1")
+                        {
+                            countdown(60);
+                            Swal.fire({
+                                title: 'ส่งรหัสยืนยันเรียบร้อย',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                        else
+                        {
+                            $(".C_ResendOTP").prop("disabled", false);
+                            Swal.fire({
+                                title: 'ไม่สามารถส่งรหัสยืนยันได้',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function () {
+                        $(".C_ResendOTP").prop("disabled", false);
+                        Swal.fire({
+                            title: 'Error : ไม่สามารถส่งรหัสยืนยันได้',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        function countdown(Data_Sec) {
+            var timer2 = Data_Sec;
+            var interval = setInterval(function () {
+
+                var timer = timer2;
+                var seconds = parseInt(timer, 10);
+                --seconds;
+                $('.C_CountDown').text(seconds);
+                if (seconds <= 0){
+                    clearInterval(interval);
+                    $('.C_CountDown').text(Data_Sec);
+                    $(".C_ResendOTP").prop("disabled", false);
+                }
+                timer2 = seconds;
+
+            }, 1000);
+        }        
+    </script>
+
+}

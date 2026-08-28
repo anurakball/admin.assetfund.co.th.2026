@@ -1,0 +1,83 @@
+# ---------------------------------------------------------------------------
+# Build output
+# (bin/ obj/ Logs/ are also listed in the repo-root .gitignore — kept here too
+#  so this project folder is self-contained)
+# ---------------------------------------------------------------------------
+bin/
+obj/
+publish/
+*.publishproj
+
+# ---------------------------------------------------------------------------
+# IDE / editor / tooling artifacts
+# ---------------------------------------------------------------------------
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.lscache
+*~
+*.swp
+
+# ---------------------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------------------
+Logs/
+*.log
+
+# ---------------------------------------------------------------------------
+# Local-only settings (never commit machine/developer specific config)
+# ---------------------------------------------------------------------------
+.claude/settings.local.json
+appsettings.*.local.json
+appsettings.Local.json
+
+# ---------------------------------------------------------------------------
+# Node modules (Playwright etc. — regenerate with npm install)
+# ---------------------------------------------------------------------------
+node_modules/
+
+# ---------------------------------------------------------------------------
+# Playwright MCP test artifacts (screenshots, snapshots, console logs)
+# ---------------------------------------------------------------------------
+.playwright-mcp/
+
+# ---------------------------------------------------------------------------
+# Server-managed / runtime content — not versioned
+# ---------------------------------------------------------------------------
+# uploaded content (elFinder / article attachments)
+wwwroot/Files/
+# runtime uploads
+wwwroot/uploads/
+# background images folder
+wwwroot/images/bg/
+
+# ---------------------------------------------------------------------------
+# เอกสาร/สคริปต์ประกอบงาน + รูปที่ generate เอง — ไม่ track (ไม่ถูกอ้างจากโค้ด)
+# ---------------------------------------------------------------------------
+docs/
+
+# ---------------------------------------------------------------------------
+# One-off debug / audit scratch output (ไม่ถูกอ้างจากโค้ด — ลบทิ้งได้)
+# ---------------------------------------------------------------------------
+/btn-audit.json
+/buttons.json
+/edit78-current.json
+/frontend-check.json
+/geom.json
+/list-row.json
+/setdata-result.json
+/source-content.json
+/source-inner.json
+/deployed-admin_site.js.txt
+/shot.mjs
+
+# ---------------------------------------------------------------------------
+# OS junk
+# ---------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store

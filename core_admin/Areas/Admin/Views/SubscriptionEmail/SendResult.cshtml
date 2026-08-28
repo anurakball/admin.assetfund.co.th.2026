@@ -1,0 +1,102 @@
+@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@using thaicredit_hr_admin.Areas.Admin.Controllers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+
+    int totalCount = (int)ViewBag.TotalCount;
+    int successCount = (int)ViewBag.SuccessCount;
+    int failCount = (int)ViewBag.FailCount;
+    var sendResults = (List<EmailSendResult>)ViewBag.SendResults;
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="fw-bold mb-3">ผลการส่งอีเมล</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card text-center border-secondary">
+                        <div class="card-body py-3">
+                            <div class="fs-2 fw-bold text-secondary">@totalCount.ToString("N0")</div>
+                            <div class="text-muted small">ทั้งหมด</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center border-success">
+                        <div class="card-body py-3">
+                            <div class="fs-2 fw-bold text-success">@successCount.ToString("N0")</div>
+                            <div class="text-muted small">สำเร็จ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center border-danger">
+                        <div class="card-body py-3">
+                            <div class="fs-2 fw-bold text-danger">@failCount.ToString("N0")</div>
+                            <div class="text-muted small">ไม่สำเร็จ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (sendResults != null && sendResults.Count > 0)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:50px">#</th>
+                                <th>อีเมล</th>
+                                <th style="width:120px" class="text-center">สถานะ</th>
+                                <th>หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rowNum = 1; }
+                            @foreach (var item in sendResults)
+                            {
+                                <tr>
+                                    <td>@rowNum</td>
+                                    <td>@item.Email</td>
+                                    <td class="text-center">
+                                        @if (item.Success)
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>สำเร็จ</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger"><i class="fas fa-times me-1"></i>ไม่สำเร็จ</span>
+                                        }
+                                    </td>
+                                    <td class="text-danger small">@item.ErrorMessage</td>
+                                </tr>
+                                rowNum++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            <a href="/Admin/SubscriptionEmail" class="btn btn-secondary px-4">
+                <i class="fas fa-arrow-left me-2"></i>กลับหน้าส่งอีเมล
+            </a>
+        </div>
+    </div>
+
+</div>

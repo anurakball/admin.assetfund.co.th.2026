@@ -1,0 +1,32 @@
+﻿@using System.Data
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Last Activity";
+    AdminHelpers _admin = (AdminHelpers)ViewBag._admin;
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Breadcrumb = new List<string>() { "Personal information", ViewBag.Title } })
+
+<div class="table-responsive">
+    <table class="table table-striped-custom">
+        <thead>
+            <tr>
+            <th>Action</th>
+            <th>Action Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if(ViewBag.activ_logs != null)
+        {
+            foreach (DataRow item in (DataRowCollection)ViewBag.activ_logs)
+            {
+                <tr>
+                    <td>@Html.Raw(item["action_info"])</td>
+                    <td>@Html.Raw(((DateTime)item["created_at"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"));</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

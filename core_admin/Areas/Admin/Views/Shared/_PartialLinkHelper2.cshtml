@@ -1,0 +1,126 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+    string wg_text = "";
+}
+
+<script type="text/javascript">
+    var current_link_popup_id2 = "";
+    function OpenLinkCMSPageHelper2(inputID) {
+        current_link_popup_id2 = inputID;
+        $("#LinkHelperModal2").modal('show');
+    }
+    function updateLink_to_input2(this_link) {
+        document.getElementById(current_link_popup_id2).value = this_link;
+    }
+    function updateLink_to_input2_all_lang(this_link) {
+        document.getElementById(current_link_popup_id2).value = "/th/"+this_link;
+        document.getElementById(current_link_popup_id2.replace("id_", "id_en_")).value = "/en/"+this_link;
+    }
+</script>
+
+<style>
+    .custom-tabs .nav-link {
+    color: #2b6643;
+    background: #CCC;
+    border: 1px solid #ddd;
+    margin-right: 3px;
+    }
+
+    .custom-tabs .nav-link:hover {
+    background: #CCC;
+    }
+
+    /* tab ที่ active */
+    .custom-tabs .nav-link.active {
+    background: #2b6643;
+    color: #fff;
+    border-color: #00994d;
+    font-weight: bold;
+    }
+</style>
+
+<div class="modal fade" id="LinkHelperModal2" tabindex="-1">
+    <!-- modal-sm modal-lg modal-xl -->
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Link Helper</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="line-height:35px;">
+
+                <ul class="nav nav-tabs custom-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab2-btn" data-bs-toggle="tab" data-bs-target="#tab2" type="button">
+                            <h5 style="margin-bottom:0px;color:#fff;">Link จาก System</h5>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" style="padding: 20px 30px; margin-top: 0rem !important; background-color:#e6ffe6; border:1px solid #006600;">
+                    <div class="tab-pane fade show active" id="tab2">
+
+                        @{
+                            string help_main = "หน้าแรก,เกี่ยวกับเรา,ทรัพย์สินรอการขาย,บริหารหนี้ด้อยคุณภาพ,ข่าวสารและประกาศ,ร่วมงานกับเรา,ติดต่อเรา,อื่นๆ";
+
+                            string[] help_sub = new string[99];
+
+                            help_sub[0] = "หน้าแรก$Home_Index";
+                            help_sub[1] = "วิสัยทัศน์/พันธกิจ$About_Vision,ประวัติความเป็นมา$about,โครงสร้างองค์กร$,รายงานประจำปี$about/annual-report,รายงานการเงิน$about/financial-statements,คณะกรรมการบริษัท$about/board-of-directors,คณะกรรมการอื่นๆ$about/committee,คณะผู้บริหารระดับสูง$about/board-of-executives,คณะผู้บริหารฝ่าย$about/vice-president,การบริหารสินทรัพย์ด้อยคุณภาพ บสส.$business-policy/management-non-performing-loans,การบริหารทรัพย์สินรอการขาย$business-policy/management-non-performing-assets,การสร้างโอกาสทางธุรกิจ บสส.$business-policy/business-opportunities";
+                            help_sub[2] = "ค้นหาทรัพย์สิน$npa/search-results,ประเภททรัพย์$npa/asset-category,โปรโมชั่นทรัพย์เด่น$promotion,ขั้นตอนการซื้อทรัพย์$#";
+                            help_sub[3] = "ภาพรวมการบริหารหนี้$#,ขั้นตอนการปรับโครงสร้างหนี้$#,สิทธิประโยชน์ลูกหนี้$#,ดาวน์โหลดแบบฟอร์ม / เอกสารที่เกี่ยวข้อง$#,ลงทะเบียนปรับโครงสร้างหนี้$#,คลินิกแก้หนี้$#";
+                            help_sub[4] = "ข่าวประชาสัมพันธ์$#,บทความและวารสาร$#,วิดีโอ / สื่อประชาสัมพันธ์$#,อัตราดอกเบี้ย$#,จัดซื้อจัดจ้าง$#,NPL/NPA$#,ทั่วไป$#";
+                            help_sub[5] = "ตำแหน่งงานว่าง$#,บทความและวารสาร$#,วัฒนธรรมองค์กร$#";
+                            help_sub[6] = "สำนักงานใหญ่ / สาขา$contact,ช่องทางร้องเรียน / ข้อเสนอแนะ$complaint,ดาวน์โหลดแบบฟอร์ม$#,คำถามที่พบบ่อย$faq,หน่วยงานที่เกี่ยวข้อง$#,แลกเปลี่ยนลิงค์$#";
+                            help_sub[7] = "สมัครสมาชิก$#,เข้าสู่ระบบ$#,ค้นหาในเว็บไซต์$#,ค้นหาทรัพย์ตามแผนที่$#,จับคู่ความต้องการทรัพย์สิน NPA$#,ทรัพย์ขายทอดตลาดของกรมบังคับคดี$#,แผนผังเว็บไซต์$#,แบบสำรวจ$#,สำหรับเจ้าหน้าที่$#,คำนวณสินเชื่อ$#,ประกาศความเป็นส่วนตัว$#,ข้อตกลงและเงื่อนไขการใช้บริการอิเล็กทรอนิกส์$#,การเปิดเผยข้อมูลและความโปร่งใสในการดำเนินงาน$#";
+
+
+                            string[] help_main_arr = help_main.Split(',');
+
+                            int j = 0;
+                            foreach (string item in help_main_arr)
+                            {
+                                string[] help_sub_arr = help_sub[j].Split(',');
+                                
+                                <h5 style="color:#333"><b>@item</b></h5>
+
+                                foreach (string item_sub in help_sub_arr)
+                                {
+                                    string[] item_sub_2 = item_sub.Split('$');
+                                    
+                                    <text>
+                                        - <a href="javascript:;" style="text-decoration:underline;color:#222;" onclick="updateLink_to_input2('@item_sub_2[1]');" data-bs-dismiss="modal" aria-label="Close">@item_sub_2[0]</a> <br />
+
+                                    </text>
+                                }
+
+                                <hr />
+
+                                j++;
+                            }
+                        }
+                         
+                        <!--
+                        <h5>Microsite</h5>
+                        - <a href="javascript:;" onclick="updateLink_to_input('/Home-for-cash');" data-bs-dismiss="modal" aria-label="Close">Home for cash</a><br />
+                        - <a href="javascript:;" onclick="updateLink_to_input('/Alpha-mobile');" data-bs-dismiss="modal" aria-label="Close">Alpha mobile</a><br />
+                        - <a href="javascript:;" onclick="updateLink_to_input('/Personal-loan');" data-bs-dismiss="modal" aria-label="Close">Personal loan</a><br />
+                        - <a href="javascript:;" onclick="updateLink_to_input('/Micro-Nano-finance');" data-bs-dismiss="modal" aria-label="Close">Micro Nano finance</a><br />
+                        - <a href="javascript:;" onclick="updateLink_to_input('/EMpower');" data-bs-dismiss="modal" aria-label="Close">EMpower</a><br />
+                        - <a href="javascript:;" onclick="updateLink_to_input('/ตังค์โต-Know-how');" data-bs-dismiss="modal" aria-label="Close">ตังค์โต Know-how</a><br />
+                        -->
+                          
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,184 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+    string wg_text = "";
+}
+
+<script type="text/javascript">
+    var current_editor_id = "";
+    var current_link_popup_id = "";
+    function OpenAddForm(inputID) {
+        current_link_popup_id = inputID;
+        current_editor_id = inputID;
+        $("#AddFormModal").modal('show');
+    }
+    function add_form_to_input(this_link) {
+        document.getElementById(current_link_popup_id).value = this_link;
+    }
+    function add_form_to_input_all_lang(this_link) {
+        document.getElementById(current_link_popup_id).value = "/th/"+this_link;
+        document.getElementById(current_link_popup_id.replace("id_", "id_en_")).value = "/en/"+this_link;
+    }
+</script>
+
+<style>
+    .custom-tabs .nav-link {
+    color: #2b6643;
+    background: #CCC;
+    border: 1px solid #ddd;
+    margin-right: 3px;
+    }
+
+    .custom-tabs .nav-link:hover {
+    background: #CCC;
+    }
+
+    /* tab ที่ active */
+    .custom-tabs .nav-link.active {
+    background: #2b6643;
+    color: #fff;
+    border-color: #00994d;
+    font-weight: bold;
+    }
+</style>
+
+<script>
+var current_value = "";
+var current_id = "";
+function show_select(var1)
+{
+    document.getElementById('id_this_id_').style.display = 'none';
+
+    @{
+        _admin.SetSessionWebID();
+
+        var All_Page = ViewBag._db.ExecuteQuery(string.Format("select * from web_core_group where web_id = @web_id AND module_id = '17' AND status = '1' AND show_front = '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+        ViewBag.All_Page = All_Page;
+        
+        for (int i = 0; i < ViewBag.All_Page.Rows.Count; i++)
+        {
+            <text>
+            document.getElementById('id_this_id_@ViewBag.All_Page.Rows[i]["id"]').style.display = 'none'; 
+            </text>
+        }
+
+        <text>
+        document.getElementById('id_this_id_'+var1).style.display = ''; 
+        if(document.getElementById('id_this_id_'+var1).value == '')
+        {
+            document.getElementById('button_add_form').style.display = 'none';
+        }
+        else
+        {
+            document.getElementById('button_add_form').style.display = '';
+        }
+        </text>
+    }
+} 
+</script>
+ 
+<div class="modal fade" id="AddFormModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Insert E-Form</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="container-fluid">
+                    <div class="row g-3">
+
+                        <!-- Select 1 -->
+                        <div class="col-md-6">
+                            <label class="form-label">กลุ่ม</label>
+                            <select class="form-select" name="cat_id" id="id_cat_id" onchange="show_select(this.value)">
+                                <option value="">-- เลือก --</option>
+
+                                @{
+                                    
+                                    for (int i = 0; i < ViewBag.All_Page.Rows.Count; i++)
+                                    {
+                                        <option value="@ViewBag.All_Page.Rows[i]["id"]">@ViewBag.All_Page.Rows[i]["pb_title"]</option>
+                                    }
+                                } 
+
+                            </select>
+                        </div>
+
+                        <!-- Select 2 -->
+                        <div class="col-md-6">
+                            <label class="form-label">E-Form</label>
+
+                            <select class="form-select" name="this_id" id="id_this_id_">
+                                <option value="">-- เลือก --</option>
+                            </select>
+
+                            @{ 
+                                for (int i = 0; i < ViewBag.All_Page.Rows.Count; i++)
+                                {
+                                    <select class="form-select" name="this_id" id="id_this_id_@ViewBag.All_Page.Rows[i]["id"]" style="display:none;" onchange="current_value = this.value; current_id = '@ViewBag.All_Page.Rows[i]["id"]'; if(this.value != ''){document.getElementById('button_add_form').style.display = '';}else{document.getElementById('button_add_form').style.display = 'none';}">
+                                        <option value="">-- เลือก --</option>
+
+                                        @{
+                                            var All_Page_Sub = ViewBag._db.ExecuteQuery(string.Format("select * from web_eform where web_id = @web_id AND cat_id = '" + ViewBag.All_Page.Rows[i]["id"] + "' AND status = '1' AND show_front = '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+                                            ViewBag.All_Page_Sub = All_Page_Sub;
+                                            for (int ii = 0; ii < ViewBag.All_Page_Sub.Rows.Count; ii++)
+                                            {
+                                                <option value="@ViewBag.All_Page_Sub.Rows[ii]["id"]">@ViewBag.All_Page_Sub.Rows[ii]["pb_title"]</option>
+                                            }
+                                        }
+
+                                    </select>
+                                }
+                            }
+                             
+                        </div>
+
+                        <!-- Button -->
+                        <div class="col-12 text-end mt-3">
+                            <button type="button" id="button_add_form" class="btn btn-primary px-4" onclick="insertHtmlToEditor(current_editor_id);" style="display:none;">
+                                + Insert E-Form
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function insertHtmlToEditor(editorId) 
+{  
+    select = document.getElementById('id_this_id_'+current_id);  
+    select.options[select.selectedIndex].text; 
+    html = '{{{E-Form:' + select.options[select.selectedIndex].text + ':' + current_value + '}}}';  
+    const editor = window['ckEditor_' + editorId];
+    if (!editor) return;
+
+    editor.model.change(writer => {
+        const viewFragment = editor.data.processor.toView(html);
+        const modelFragment = editor.data.toModel(viewFragment);
+
+        editor.model.insertContent(
+            modelFragment,
+            editor.model.document.selection
+        );
+    });
+
+    $("#AddFormModal").modal('hide');
+} 
+</script>

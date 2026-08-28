@@ -1,0 +1,207 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<script src="/js/spectrum.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/Admin/spectrum.min.css">
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group mb-3">
+            <label>ค้นหา NPA <small class="text-muted">(พิมพ์อย่างน้อย 3 ตัวอักษร)</small></label>
+            <input type="text" id="product_search" class="form-control" placeholder="ค้นหา product_code / project..." autocomplete="off" style="background-color:#fff;">
+        </div>
+
+        <div class="form-group mb-3">
+            <label>เลือก NPA</label>
+            <select name="npa_id" id="npa_id_select" class="form-control" style="background-color:#fff;">
+                <option value="">-- กรุณาค้นหาและเลือกรายการ --</option>
+            </select>
+        </div>
+
+        <input type="hidden" name="title" id="title">
+
+        <div class="form-group mb-3">
+            <label>ค้นหาสมาชิก <small class="text-muted">(พิมพ์อย่างน้อย 3 ตัวอักษร)</small></label>
+            <input type="text" id="member_search" class="form-control" placeholder="ค้นหา ชื่อ / นามสกุล..." autocomplete="off" style="background-color:#fff;">
+        </div>
+
+        <div class="form-group mb-3">
+            <label>เลือกสมาชิก</label>
+            <select name="member_id" id="member_id_select" class="form-control" style="background-color:#fff;">
+                <option value="">-- กรุณาค้นหาและเลือกรายการ --</option>
+            </select>
+        </div>
+
+        <input type="hidden" name="title2" id="title2" class="form-control mb-3" readonly style="background-color:#f8f9fa;">
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+
+    function sConfirmCustom(form) {
+
+        if (document.getElementById('id_issue_date_config_2').checked == true) {
+            if (
+                $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+                $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+            ) {
+                sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+                return false;
+            }
+        }
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+
+    //----- Add fn addHouse
+    Date.prototype.addHours = function(h) {
+        this.setTime(this.getTime() + (h*60*60*1000));
+        return this;
+    }
+    Date.prototype.addMinutes = function(m) {
+        this.setTime(this.getTime() + (m*60*1000));
+        return this;
+    }
+
+    $(document).ready(function() {
+
+        var searchTimer = null;
+
+        $('#product_search').on('input', function() {
+            var q = $(this).val().trim();
+            clearTimeout(searchTimer);
+            if (q.length < 3) {
+                $('#npa_id_select').html('<option value="">-- กรุณาค้นหาและเลือกรายการ --</option>');
+                return;
+            }
+            searchTimer = setTimeout(function() {
+                $.getJSON('/Admin/NpaStatus/SearchProduct', { q: q }, function(data) {
+                    if (data.error) {
+                        $('#npa_id_select').html('<option value="">-- เกิดข้อผิดพลาด: ' + data.error + ' --</option>');
+                        return;
+                    }
+                    var opts = '<option value="">-- เลือกรายการ (' + data.length + ' รายการ) --</option>';
+                    $.each(data, function(i, item) {
+                        opts += '<option value="' + item.id + '">' + $('<div>').text(item.text).html() + '</option>';
+                    });
+                    $('#npa_id_select').html(opts);
+                });
+            }, 400);
+        });
+
+        $('#npa_id_select').on('change', function() {
+            var selected = $(this).find('option:selected');
+            if ($(this).val() !== '') {
+                $('#title').val(selected.text());
+            }
+        });
+
+        var memberSearchTimer = null;
+
+        $('#member_search').on('input', function() {
+            var q = $(this).val().trim();
+            clearTimeout(memberSearchTimer);
+            if (q.length < 3) {
+                $('#member_id_select').html('<option value="">-- กรุณาค้นหาและเลือกรายการ --</option>');
+                $('#title2').val('');
+                return;
+            }
+            memberSearchTimer = setTimeout(function() {
+                $.getJSON('/Admin/MemberList/SearchMember', { q: q }, function(data) {
+                    if (data.error) {
+                        $('#member_id_select').html('<option value="">-- เกิดข้อผิดพลาด: ' + data.error + ' --</option>');
+                        return;
+                    }
+                    var opts = '<option value="">-- เลือกรายการ (' + data.length + ' รายการ) --</option>';
+                    $.each(data, function(i, item) {
+                        opts += '<option value="' + item.id + '">' + $('<div>').text(item.text).html() + '</option>';
+                    });
+                    $('#member_id_select').html(opts);
+                });
+            }, 400);
+        });
+
+        $('#member_id_select').on('change', function() {
+            var selected = $(this).find('option:selected');
+            if ($(this).val() !== '') {
+                $('#title2').val(selected.text());
+            } else {
+                $('#title2').val('');
+            }
+        });
+
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0,
+                onClose: function(current_time, $input){
+                    //console.log('input value', $input.datetimepicker('getValue'));
+                    //console.log('new Date()', new Date().addHours(-1));
+                    if ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)) {
+                        $input.val('');
+                        sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ น้อยวันที่ปัจจุบันได้", "warning");
+                        //console.log('condition', ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)));
+                    }
+                },
+            });
+        },500);
+    });
+</script>
+}

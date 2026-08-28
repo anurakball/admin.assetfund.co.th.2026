@@ -1,0 +1,183 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+         
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", ""))
+            </div>
+             
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-th'></span>", "des", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-us'></span>", "en_des", "")) 
+            </div> 
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+            @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", System.DateTime.Now.ToString("dd/MM/yyyy HH:mm")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+            @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm")))
+            </div>            
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+	                <label class="form-label">ประเภท</label>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_1" value="page" checked>
+                                <label class="form-check-label" for="id_page_type_1">
+                                    เนื้อหา
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_2" value="url">
+                                <label class="form-check-label" for="id_page_type_2">
+                                    URL
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div id="section_info">
+            <div class="row">
+                @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-th'></span>", "info", ""))
+                @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-us'></span>", "en_info", ""))
+            </div>
+        </div>
+
+        <div class="" id="section_url" style="display:none;">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("URL <span class='fi fi-th'></span>", "url", ""))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("URL <span class='fi fi-us'></span>", "en_url", ""))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputUrlTarget("URL Target", "url_target", ""))
+                </div>
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+
+    function sConfirmCustom(form) {
+
+        if (
+            $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+            $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+        ) {
+            sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+            return false;
+        }
+
+
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+
+    //----- Add fn addHouse
+    Date.prototype.addHours = function(h) {
+        this.setTime(this.getTime() + (h*60*60*1000));
+        return this;
+    }
+    Date.prototype.addMinutes = function(m) {
+        this.setTime(this.getTime() + (m*60*1000));
+        return this;
+    }
+
+    $(document).ready(function() {
+        //$(":input[name='title'],:input[name='group_id'],:input[name='issue_date'],:input[name='expiry_date']").prop("required", true);
+
+        $(":input[name='page_type']").click(function(){
+            if ($(this).val() == 'url') 
+            {
+                $('#section_info').stop(true, false).slideUp();
+                $('#section_url').stop(true, false).slideDown();
+            }
+            else
+            {
+                $('#section_info').stop(true, false).slideDown();
+                $('#section_url').stop(true, false).slideUp();
+            }
+        });
+
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0,
+                onClose: function(current_time, $input){
+                    //console.log('input value', $input.datetimepicker('getValue'));
+                    //console.log('new Date()', new Date().addHours(-1));
+                    if ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)) {
+                        $input.val('');
+                        sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ น้อยวันที่ปัจจุบันได้", "warning");
+                        //console.log('condition', ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)));
+                    }
+                },
+            });
+        },500);
+    });
+</script>
+}

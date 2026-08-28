@@ -1,0 +1,1080 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+    string wg_text = "";
+}
+@section NavbarBack
+{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod }) 
+<link rel="stylesheet" href="/css2/main_cms.min.css" />
+<!--<link rel="stylesheet" href="/css2/main.min.css" />-->
+<link rel="stylesheet" href="/lib/flag-icons-main/css/flag-icons.min.css" />
+
+
+<link href="/css_home/vendor.min.css" rel="stylesheet">
+<link href="/css_home/bootstrap-icons.min.css" rel="stylesheet">
+<link href="/css_home/select2.min.css" rel="stylesheet">
+<link href="/css_home/main.min.css" rel="stylesheet">
+<link href="/css_home/swiper-bundle.min.css" rel="stylesheet">
+<style>
+/* ปุ่ม Back: css_home/main.min.css ทำให้พื้นหลังจางจนตัวอักษรอ่านยาก จึงบังคับให้พื้นเข้มเหมือนหน้าอื่น */
+#header_custom .btn--gray {
+    background-color: #8b8b8b !important;
+    background-image: none !important;
+    color: #fff !important;
+}
+
+#header_custom .btn--gray:hover {
+    background-color: #4a4a4a !important;
+    color: #fff !important;
+}
+
+.swiper-notification {
+    pointer-events: none;
+}
+
+/* ตกแต่งชื่อกลุ่มใน Select2 */
+.select2-results__group {
+    padding: 8px 12px !important;
+    background-color: #f8f9fa;
+    /* สีพื้นหลังอ่อนๆ ให้เห็นขอบเขตกลุ่ม */
+    color: #666 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ปรับระยะห่างของตัวเลือกข้างในกลุ่ม */
+.select2-results__option[aria-selected] {
+    padding-left: 20px !important;
+}
+</style> 
+<script>
+var sortableMain = null;
+</script>
+@section pageCreator
+{
+    <link rel="stylesheet" href="~/css2/pages/creator.min.css" asp-append-version="true" />
+    <style>
+    h1, h2, h3, h4, h5, h6 
+    {
+        color: inherit;
+    }
+    .breadcrumb--wrapper 
+    {
+        margin-top: 0 !important;
+    }
+    .breadcrumb--wrapper .breadcrumb 
+    {
+        padding: 0.75rem 0;
+        margin-bottom: 1rem;
+    }
+    .input-group 
+    {
+        background: inherit;
+    }
+    .card 
+    {
+        box-shadow: none;
+    }
+    </style>
+}
+<br />
+<div class="creator--wrapper modify">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+
+            @{
+                if(row["is_home"]+"" != "1")
+                {
+                    <button class="nav-link active" id="nav-tab1-tab" data-bs-toggle="tab" data-bs-target="#nav-tab1" type="button" role="tab" aria-controls="nav-tab1" aria-selected="true">
+                        <h5>ข้อมูลเพจ</h5>
+                    </button>
+                }
+            }
+            
+            <button class="nav-link" id="nav-tab2-tab" data-bs-toggle="tab" data-bs-target="#nav-tab2" type="button" role="tab" aria-controls="nav-tab2" aria-selected="false" style="display:none;">
+                <h5>ตกแต่งเพจ</h5>
+            </button>
+        </div>     
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade  show active" id="nav-tab1" role="tabpanel" aria-labelledby="nav-tab1-tab">
+                <div class="section section--information">
+                    <div class="form-wrapper">
+                        @{
+                            int parent_lv = _session.GetInt32("admin_" + mod.Name + "_parent_lv") ?? 0;
+                            int parent_id = Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage) ?? "0");
+                        }
+                        <h5>
+                        กลุ่ม :
+                        @{
+                            if(parent_lv > 1)
+                            {
+                                @await Component.InvokeAsync("AdminBreadcrumb2", new { Module = mod })
+                            }
+                            else
+                            {
+                                <text>เมนูหลัก</text>
+                            }
+                        }
+                        </h5><br />
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", @row["title"]+""))
+                            </div>
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", @row["en_title"]+""))
+                            </div>
+                        </div>
+                        <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputText("URL Friendly <span class='fi fi-th'></span>", "seo_url", @row["seo_url"] + "", "", 200))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputText("URL Friendly <span class='fi fi-us'></span>", "en_seo_url", @row["en_seo_url"] + "", "", 200))
+                                </div>
+                            </div>
+                        <div class="row" id="div_textarea">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-th'></span>", "des", @row["des"]+""))
+                            </div>
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-us'></span>", "en_des", @row["en_des"]+""))
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                <div class="field">
+                                    <label class="form-label">ประเภท</label>
+                                    <div class="row">
+                                        @{
+                                            int for_check_level_c = 3;
+                                            if (mod.Name == "FooterLink")
+                                            {
+                                                for_check_level_c = 4;
+                                            }
+                                            if (parent_lv < for_check_level_c)
+                                            {
+                                                <div class="col-md-3 col-sm-3 col-3" id="div_group_menu">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_1" value="1" checked>
+                                                        <label class="form-check-label" for="id_page_type_1">
+                                                            Group Menu
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        <div class="col-md-3 col-sm-3 col-3" id="div_page_menu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_3" value="3">
+                                                <label class="form-check-label" for="id_page_type_3">
+                                                    Page Content
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3 col-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_2" value="2">
+                                                <label class="form-check-label" for="id_page_type_2">
+                                                   URL Link
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                         @{
+                                            if(mod.Name == "FooterLink")
+                                            {
+                                                <div class="col-md-3 col-sm-3 col-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_5" value="5">
+                                                        <label class="form-check-label" for="id_page_type_5">
+                                                        File Link
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if((_session.GetInt32("admin_web_id") ?? 0) == 0)
+                                            {
+                                                <div class="col-md-3 col-sm-3 col-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_4" value="4">
+                                                        <label class="form-check-label" for="id_page_type_4">
+                                                        System Link
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+
+ 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="type_div_1">
+                            
+                        </div>
+                        <div id="type_div_2" style="display:none;">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextLinkCMSPage("URL <span class='fi fi-th'></span>", "url", @row["url"] + ""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextLinkCMSPage("URL <span class='fi fi-us'></span>", "en_url", @row["en_url"] + ""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputUrlTarget("URL Target", "url_target", @row["url_target"]+""))
+                                </div>
+                            </div>
+                        </div>
+                        <div id="type_div_3" style="display:none;"> 
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("SEO Keyword", "seo_kw", @row["seo_kw"]+""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("SEO Description", "seo_de", @row["seo_de"]+""))
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("Script Header", "script_head", @row["script_head"]+""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("Script Body", "script_body", @row["script_body"]+""))
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Raw(_admin.InputTextEditor_Eform("เนื้อหา <span class='fi fi-th'></span>", "info", (row["info"].ToString() ?? "").Trim()))
+                                @Html.Raw(_admin.InputTextEditor_Eform("เนื้อหา <span class='fi fi-us'></span>", "en_info", (row["en_info"].ToString() ?? "").Trim()))
+                            </div>
+                             <br />
+                        </div>
+                        <div id="type_div_4" style="display:none;">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextLinkCMSPage2("System", "box_data", @row["box_data"]+""))
+                                </div> 
+                            </div>
+                        </div>
+                         <div id="type_div_5" style="display:none;"> 
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputFileManeger("ไฟล์ดาวน์โหลด <span class='fi fi-th'></span> <span style='font-weight: normal;color: orange;'>(.pdf ไม่เกิน 50MB)</span>", "page_type_sub", @row["page_type_sub"]+"", "application/pdf"))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputFileManeger("ไฟล์ดาวน์โหลด <span class='fi fi-us'></span> <span style='font-weight: normal;color: orange;'>(.pdf ไม่เกิน 50MB)</span>", "page_type_sub_core", @row["page_type_sub_core"]+"", "application/pdf"))
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="page_type_sub_core_data" id="page_type_sub_core_data" value="@row["page_type_sub_core_data"]" />
+                        <br />
+                        <script>
+                        function hide_all_type()
+                        {
+                            for (let i = 1; i <= 16; i++)
+                            {
+                                document.getElementById('group_'+i).style.display = 'none';
+                            }
+                        }
+                        function show_this_type(var1)
+                        {
+                            hide_all_type();
+                            document.getElementById("group_"+var1).style.display = '';
+                            document.getElementById("page_type_sub_core_data").value = document.getElementById('id_page_type_sub_data_' + var1).options[document.getElementById('id_page_type_sub_data_' + var1).selectedIndex].value;
+                        }
+                        $(document).ready(function()
+                        { 
+                            $(":input[name='issue_date_config']").click(function()
+                            { 
+                                if ($(this).val() == '2') 
+                                {
+                                    $('#div_id_issue_date').stop(true, false).slideDown();
+                                }
+                                else
+                                {
+                                    $('#div_id_issue_date').stop(true, false).slideUp();
+                                }
+                            });
+                        });
+                        </script>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                <div class="field">
+                                    <label class="form-label">วันที่แสดงผล</label>
+                                    <div class="row">
+                                        <div class="col-md-6 col-sm-6 col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="issue_date_config" id="id_issue_date_config_1" value="1" checked>
+                                                <label class="form-check-label" for="id_issue_date_config_1">
+                                                    แสดงตลอดเวลา
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6 col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="issue_date_config" id="id_issue_date_config_2" value="2">
+                                                <label class="form-check-label" for="id_issue_date_config_2">
+                                                    กำหนดเอง
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="" id="div_id_issue_date" style="display:none;">
+                            <div class="row">
+                                @{
+                                    string issue_date = ""; try { issue_date = ((DateTime)row["issue_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { issue_date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm"); }
+                                    string expiry_date = ""; try { expiry_date = ((DateTime)row["expiry_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { expiry_date = System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm"); }
+                                }
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", issue_date))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", expiry_date))
+                                </div>
+                            </div>
+                        </div>
+
+                        @{
+                            if (row["id"]+"" == "1" && mod.Name == "CMSPage")
+                            {
+                                <br />
+                                <div class="row" id="create_page_div">
+                                    &nbsp; &nbsp; <button type="button" style="background-color:#2b6643; width:150px; font-size:18px; color:#fff;" class="btn btn--primary" title="ตกแต่งเพจ" onclick="
+                                                document.getElementById('nav-tab2-tab').style.display = '';
+                                                window.scrollTo(0,0);
+                                                $('#nav-tab2-tab').trigger('click');">
+                                        <span class="btn-text">ตกแต่งเพจ</span>
+                                    </button>
+                                </div>
+                            } 
+                        }
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="nav-tab2" role="tabpanel" aria-labelledby="nav-tab2-tab">
+                <div class="list-group list-group__left">
+
+                    @await Component.InvokeAsync("ToolWidget")
+                
+                </div>
+                <div class="list-group list-group__right">
+
+                    @await Component.InvokeAsync("Header")
+                     
+                    <div id="tools_module" class="area-drag">
+                    @{
+                        string this_box_layout = row["box_layout"].ToString();
+                        if (this_box_layout.ToString().IndexOf(",") < 0)
+                        {
+                            this_box_layout = this_box_layout + ",";
+                        }
+                        if (this_box_layout.ToString().IndexOf(",") > -1)
+                        {
+                            string[] arr_box = this_box_layout.ToString().Split(',');
+                            for (int i = 0; i < arr_box.Count(); i++)
+                            {
+                                if(arr_box[i].Length > 2)
+                                {
+                                    if(arr_box[i].Substring(0,3) == "wg_")
+                                    {
+                                        string[] arr_get_id = arr_box[i].Split('_');
+
+                                        @*----- web_id = 0 อ่าน web_widget, web_id != 0 (microsite) อ่าน web_widget2 (เลือกชุดโดย WidgetTable()); พาเลตต์คงที่ ไม่กรอง web_id *@
+                                        var Widget1 = ViewBag._db.ExecuteQuery(string.Format("select * from " + _admin.WidgetTable() + " where id = " + arr_get_id[1]));
+
+                                        if(Widget1.Rows.Count > 0)
+                                        {
+                                            wg_text = wg_text + arr_get_id[1] + ",";
+
+                                            <div class="itemDrag" data-id="@arr_box[i]" draggable="false" style="" id="@i">
+                                                <div class="list-group-item" id="gi_@arr_box[i]">
+                                                    <div class="thumbnail hide">
+                                                        <div class="image-thumbnail">
+                                                            <img src="/Files/Widget ICON/Image/icon-wg-picSlide.svg" alt="icon pic" draggable="false">
+                                                        </div>
+                                                        <p class="text-thumbnail"></p>
+                                                    </div>
+                                                    <div class="main-func show">
+                                                        <div class="function-modify">
+                                                            <div class="group--tools icon-sort icon-sort__up" title="ย้ายขึ้น">
+                                                                <i class="bi bi-arrow-up-short"></i>
+                                                            </div>
+                                                            <div class="group--tools icon-sort icon-sort__down" title="ย้ายลง">
+                                                                <i class="bi bi-arrow-down-short"></i>
+                                                            </div>
+                                                            @*
+                                                            <div id="icon_setting_@Widget1.Rows[0]["id"]" class="group--tools group--tools__setting"
+                                                                            title="ตั้งค่าข้อมูล"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#setting_section"
+                                                                            onclick="iFrameHeight('@Widget1.Rows[0]["id"]');urliFrame('/WidgetAjax/Setting?id=@Widget1.Rows[0]["id"]&box_data='+document.getElementById('box_data').value+'&box_data_sub='+document.getElementById('box_data_sub').value)">
+                                                                <i class="bi bi-gear"></i>
+                                                            </div>
+                                                            *@
+                                                            @*----- ปุ่ม "แก้ไขข้อมูล" แสดงเฉพาะเว็บไซต์หลัก (web_id = 0)
+                                                                    microsite (web_id != 0) แก้ไขเนื้อหาผ่านเมนู CMS ของตัวเองแทน *@
+                                                            @if (_admin._currentWebID == 0)
+                                                            {
+                                                            <div class="group--tools group--tools__manage"
+                                                                            title="แก้ไขข้อมูล"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#manage_section"
+                                                                            onclick="urliFrame_manage('/WidgetAjax/Manage?id=@Widget1.Rows[0]["id"]&box_data='+document.getElementById('box_data').value+'&box_data_sub='+document.getElementById('box_data_sub').value)">
+                                                                        <i class="bi bi-pencil"></i>
+                                                            </div>
+                                                            }
+                                                            <div class="group--tools group--tools__refresh" title="รีเฟรช" onclick="Refresh_Widget();">
+                                                                <i class="bi bi-arrow-repeat"></i>
+                                                            </div>
+                                                            <div class="group--tools group--tools__delete" title="ลบ" onclick="document.getElementById('itemDrag_@Widget1.Rows[0]["id"]').style.display = '';">
+                                                                <i class="bi bi-trash3"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="my-handle" style="text-align:center; font-size:30px;"> . . . </div>
+                                                        <span class="wgs_@Widget1.Rows[0]["id"]">
+                                                            <div align="center" style="font-size:20px;">Loading...</div>
+                                                            <!-- Html.Raw(Widget1.Rows[0]["pb_info"]) -->
+                                                        </span> 
+                                                    </div>
+                                                </div> 
+                                            </div>
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                                    
+                        } 
+                    }
+                    </div>
+
+                    @*Footer*@
+                    @await Component.InvokeAsync("Footer")
+
+                </div>
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+
+        <input type="hidden" name="box_layout" id="box_layout" />
+        <input type="hidden" name="box_data2" id="box_data" value="@row["box_data"]" />
+        <input type="hidden" name="box_data_sub" id="box_data_sub" value="@row["box_data_sub"]" />
+         
+    </form>
+     
+    <div class="modal fade modal--manage" id="manage_section" tabindex="-1" aria-labelledby="manage_section" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-fullscreen" style="padding: 20px !important;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Manage Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="Refresh_Widget();"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="iframe_full_manage" height="100%" width="100%" src=""></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Dragdrop
+    {
+        @*CDN*@
+        @*<script src="https://unpkg.com/sortablejs-make/Sortable.min.js"></script>*@
+        @*<script src="https://cdn.jsdelivr.net/npm/jquery-sortablejs@latest/jquery-sortable.js"></script>*@
+
+        @*Local*@
+        @*<script src="~/js/sortable.min.js" asp-append-version="true"></script>*@
+        @*<script src="~/js/jquery-sortable.js" asp-append-version="true"></script>*@
+
+        <script>
+        $(document).ready(function ()
+        {
+            function sortTemplate()
+            {
+                $('#tools_module').find('.area-drop').addClass('hide').remove();
+                $('#tools_module').find('.thumbnail').addClass('hide');
+                $('#tools_module').find('.main-func').addClass('show');
+            };
+
+            @{
+                @*----- จำนวนกลุ่มต้องอิงจาก DB ไม่ใช่ค่าคงที่ 3 ไม่งั้นกลุ่มที่เกินมาจะลากไม่ได้ *@
+                var wgGroupCount = ViewBag._db.ExecuteQuery(
+                    string.Format("select count(*) as c from {0}", _admin.WidgetGroupTable())).Rows[0]["c"];
+                for(int i=0;i<Convert.ToInt32(wgGroupCount);i++)
+                {
+                    <text>
+                    new Sortable(tools_widget_@i,
+                    {
+                        group:
+                        {
+                            name: 'shared',
+                            pull: 'clone',
+                        },
+                        animation: 150,
+                        sort: false,
+                        filter: ".static",
+                        draggable: ".itemDrag",
+                        onEnd: function (evt)
+                        {
+                            var itemEl = evt.item;
+                            var num_id = 0;
+                            $('#tools_module.area-drag .list-group-item').each(function () 
+                            {
+                                $(itemEl).attr('id', num_id);
+                                num_id++;
+                            });
+                            var selected = 0;
+                            var len = $('#tools_module.area-drag .itemDrag').length;
+                            onClickMoveUPorDOWN();
+                        },
+                    });
+                    </text>
+                }
+            } 
+
+            sortableMain = new Sortable(tools_module, 
+            {
+                group: 'shared',
+                animation: 150,
+                filter: ".static",
+                handle: ".my-handle",
+                ghostClass: "sortable-ghost",
+                chosenClass: "sortable-chosen",
+                dragClass: "sortable-drag",
+                onSort: sortTemplate,
+                onAdd: function (evt) 
+                {
+                    slickCarousel();
+                    $('.slick-arrow').attr('disabled',true);
+                    Refresh_Widget();
+                    var this_wg_id = evt.item.innerHTML.trim().substring(36, 39);
+
+                    var lastTwo = this_wg_id.slice(-2);
+                    if(lastTwo == '">')
+                    {
+                        this_wg_id = evt.item.innerHTML.trim().substring(36, 37);
+                    }
+                    else
+                    {
+                        var lastOne = this_wg_id.slice(-1);
+                        if(lastOne == '"')
+                        {
+                            this_wg_id = evt.item.innerHTML.trim().substring(36, 38);
+                        }
+                    } 
+
+                    document.getElementById('itemDrag_' + this_wg_id).style.display = 'none';
+                    //$("#icon_setting_" + this_wg_id).trigger("click");
+                },
+            });
+        });
+        areaMove = document.getElementById('tools_module');
+        function onClickMoveUPorDOWN() 
+        {
+            var btn_moveDOWN = [...document.getElementsByClassName('icon-sort__down')];
+            var btn_moveUP = [...document.getElementsByClassName('icon-sort__up')];
+            btn_moveUP.forEach(onebyone => 
+            {
+                onebyone.addEventListener('click', ChangeUP)
+            }) 
+            btn_moveDOWN.forEach(onebyone => 
+            {
+                onebyone.addEventListener('click', ChangeDOWN)
+            })
+        }
+        function ChangeUP() 
+        {
+            CurrentElement_ToMove = this.parentElement.parentElement.parentElement.parentElement;
+            previousElement_ToMove = CurrentElement_ToMove.previousElementSibling;
+            if (previousElement_ToMove != null) 
+            {
+                areaMove.insertBefore(CurrentElement_ToMove, previousElement_ToMove);
+            } 
+            else 
+            {
+                return false;
+            }
+        }
+        function ChangeDOWN() 
+        {
+            CurrentElement_ToMove = this.parentElement.parentElement.parentElement.parentElement;
+            nextElement_ToMove = CurrentElement_ToMove.nextElementSibling;
+            if (nextElement_ToMove != null) 
+            {
+                areaMove.insertBefore(nextElement_ToMove, CurrentElement_ToMove);
+            } 
+            else 
+            {
+                return false;
+            }
+        }
+        function Refresh_Widget() 
+        {
+            var order_ref = sortableMain.toArray();
+            for(i=0;i<order_ref.length;i++)
+            {
+                if (order_ref[i].indexOf("_") > -1) 
+                {
+                    arr_order = order_ref[i].split('_');
+                    $('.wgs_' + arr_order[1]).load("/Admin/WidgetAjax?id=" + arr_order[1] + "&box_data=" + document.getElementById("box_data").value + "&box_data_sub=" + document.getElementById("box_data_sub").value);
+                }
+            }
+        }
+        var main_iframe_url = '';
+        function urliFrame(url) 
+        {
+            document.getElementById('iframe_full').src = '';
+            main_iframe_url = url;
+        }
+        function iFrameHeight(id) 
+        {
+            if(id == "32" || id == "33")
+            {
+                document.getElementById('iframe_full').style.height = '630px';
+            }
+            else 
+            {
+                document.getElementById('iframe_full').style.height = '350px';
+            }
+        }
+        var main_iframe_url_manage = '';
+        function urliFrame_manage(url) 
+        {
+            document.getElementById('iframe_full_manage').src = '';
+            main_iframe_url_manage = url;
+        }
+        $(document).ready(function () 
+        {
+            $('#manage_section').on('shown.bs.modal', function () 
+            {
+                $(this).find('iframe').attr('src', main_iframe_url_manage);
+            });
+            $(".group--tools__delete").click(function () 
+            {
+                $(this).parents('.itemDrag').remove();
+            }); 
+            @{
+                if(row["id"]+"" == "1" && mod.Name == "CMSPage")
+                {
+                    <text>
+                    document.getElementById('nav-tab2-tab').style.display = '';
+                    window.scrollTo(0,0);
+                    $('#nav-tab2-tab').trigger('click');
+                    </text>
+                }
+            }
+        });
+        </script>
+    }
+
+</div>
+
+@{
+    if ((row["issue_date_config"].ToString() ?? "").Trim() == "2")
+    {
+        <script>
+            document.getElementById('id_issue_date_config_2').checked = true;
+            document.getElementById('div_id_issue_date').style.display = '';
+        </script>
+    }
+    else
+    {
+        <script>
+            document.getElementById('id_issue_date_config_1').checked = true;
+            document.getElementById('div_id_issue_date').style.display = 'none';
+        </script>
+    }
+
+    if (mod.Name == "CMSPageFooter1" || mod.Name == "CMSPageFooter2")
+    {
+        <text>
+        <script>
+        document.getElementById('div_group_menu').style.display = 'none';
+        </script>
+        </text>
+    }
+    else if (mod.Name == "FooterLink")
+    {
+        <text>
+        <script>
+        document.getElementById('div_page_menu').style.display = 'none';
+        document.getElementById('div_textarea').style.display = 'none';
+        //document.getElementById('div_group_menu').style.display = 'none';
+        </script>
+        </text>
+    }
+}
+
+@await Component.InvokeAsync("LinkHelper")
+@await Component.InvokeAsync("LinkHelper2")
+@await Component.InvokeAsync("AddForm")
+
+@section Slide
+{
+    <link href="~/Vendor/slick/slick.css" rel="stylesheet" />
+    <link href="~/Vendor/slick/slick-theme.css" rel="stylesheet" />
+    <script src="~/Vendor/slick/slick.min.js"></script>
+    <script> 
+    function sConfirmCustom(form) 
+    {
+        var order = sortableMain.toArray();
+        document.getElementById('box_layout').value = order;
+        if (document.getElementById('id_issue_date_config_2').checked == true)
+        {
+            if (
+                $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+                $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+            )
+            {
+                sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+                return false;
+            }
+        }
+
+        if ($('#id_title').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก หัวข้อ (TH)", "warning").then(() => { $('#id_title').focus(); });
+            return false;
+        }
+        if ($('#id_en_title').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก หัวข้อ (EN)", "warning").then(() => { $('#id_en_title').focus(); });
+            return false;
+        }
+/*
+        if ($('#id_seo_url').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL Friendly (TH)", "warning").then(() => { $('#id_seo_url').focus(); });
+            return false;
+        }
+        if ($('#id_en_seo_url').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL Friendly (EN)", "warning").then(() => { $('#id_en_seo_url').focus(); });
+            return false;
+        }
+*/
+        if ($(':input[name="page_type"]:checked').val() === '2') {
+            if ($('#id_url').val().trim() === '') {
+                sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL (TH)", "warning").then(() => { $('#id_url').focus(); });
+                return false;
+            }
+            if ($('#id_en_url').val().trim() === '') {
+                sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL (EN)", "warning").then(() => { $('#id_en_url').focus(); });
+                return false;
+            }
+        }
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    function slickCarousel() 
+    {
+        $(".card--slide").each(function (index, element) 
+        {
+            $(this).not('.slick-initialized').slick(
+            {
+                dots: false,
+                autoplay: false,
+                infinite: true,
+                arrows: true,
+                touchMove: false,
+                speed: 1000,
+                //cssEase: 'linear',
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                responsive: [
+                {
+                    breakpoint: 992,
+                    settings: {
+                        slidesToShow: 2,
+                    }
+                },
+                {
+                    breakpoint: 480,
+                    settings: {
+                        slidesToShow: 1,
+                    }
+                }]
+            });
+        });
+        $('.list-group__left .accordion-item .accordion-collapse .accordion-body .itemDrag .list-group-item .main-func .card--slide').slick('destroy');
+    }
+    $(document).ready(function () 
+    {
+        $(":input[name='page_type']").click(function () 
+        {
+            if ($(this).val() == '1') {
+                $('#type_div_1').stop(true, false).slideDown();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '2') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideDown();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '3') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideDown();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '4') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideDown();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '5') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideDown();
+            }
+        });
+        $(":input[name='page_type_sub']").click(function () 
+        {
+            if ($(this).val() == '1') 
+            {
+                //document.getElementById('core_system_div').style.display = 'none';
+                //document.getElementById('create_page_div').style.display = '';
+
+                document.getElementById('nav-tab2-tab').style.display = '';
+            }
+            else if ($(this).val() == '2') 
+            {
+                //document.getElementById('core_system_div').style.display = '';
+                //document.getElementById('create_page_div').style.display = 'none';
+
+                document.getElementById('nav-tab2-tab').style.display = 'none';
+            }
+        }); 
+        for (let i = 1; i <= 16; i++) 
+        {
+            $(":input[name='page_type_sub_data_" + i + "']").click(function () 
+            {
+                document.getElementById("page_type_sub_core_data").value = document.getElementById('id_page_type_sub_data_' + i).options[document.getElementById('id_page_type_sub_data_' + i).selectedIndex].value;
+            });
+        } 
+        setTimeout(function () 
+        {
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0,
+                onClose: function (current_time, $input) 
+                { 
+                    /*
+                    if ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)) 
+                    {
+                        $input.val('');
+                        sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ น้อยวันที่ปัจจุบันได้", "warning"); 
+                    }
+                    */
+                },
+            });
+        }, 500);
+              
+        @{
+            if (@row["page_type"] + "" == "1")
+            {
+                <text>
+                $('#id_page_type_1').trigger('click');
+                </text>
+            }
+            else if (@row["page_type"] + "" == "2")
+            {
+                <text>
+                $('#id_page_type_2').trigger('click');
+                </text>
+            }
+            else if (@row["page_type"] + "" == "3")
+            {
+                <text>
+                $('#id_page_type_3').trigger('click');
+                </text>
+            }
+            else if (@row["page_type"] + "" == "4")
+            {
+                <text>
+                $('#id_page_type_4').trigger('click');
+                </text>
+            }
+            else if (@row["page_type"] + "" == "5")
+            {
+                <text>
+                $('#id_page_type_5').trigger('click');
+                </text>
+            }
+            if (@row["page_type_sub"] + "" == "1")
+            {
+                <text>
+                $('#id_page_type_sub_1').trigger('click');
+                </text>
+            }
+            else if (@row["page_type_sub"] + "" == "2")
+            {
+                <text>
+                $('#id_page_type_sub_2').trigger('click');
+                </text>
+            }
+            if(@row["page_type_sub_core"].ToString().Trim() != "")
+            {
+                <text>
+                document.getElementById('page_type_sub_core').value = '@row["page_type_sub_core"]';  
+                </text>
+            }
+            if(@row["page_type_sub_core"].ToString().Trim() != "")
+            {
+                <text>
+                show_this_type('@row["page_type_sub_core"]');
+                </text>
+            }
+            if(@row["page_type_sub_core"].ToString().Trim() != "")
+            {
+                <text>
+                document.getElementById('id_page_type_sub_data_@row["page_type_sub_core"]').value = '@row["page_type_sub_core_data"]'; 
+                </text>
+            }
+            if (@row["page_type"].ToString() == "3" && @row["page_type_sub"].ToString() == "1")
+            {
+                <text>
+                document.getElementById('nav-tab2-tab').style.display = '';
+                window.scrollTo(0,0);
+                $('#nav-tab2-tab').trigger('click'); 
+                </text>
+            }
+            /*
+            if(@row["page_style"].ToString().Trim() != "")
+            {
+                <text>
+                document.getElementById('page_style').value = '@row["page_style"].ToString()';
+                </text>
+            }
+            */
+        }
+        Refresh_Widget();
+        onClickMoveUPorDOWN();
+        $('#id_seo_url').on('keyup', function ()
+        {
+            var val = replace_for_url(document.getElementById('id_seo_url').value);
+            document.getElementById('id_seo_url').value = val.replace(/\//g, '');
+        });
+        $('#id_en_seo_url').on('keyup', function ()
+        {
+            var val = replace_for_url(document.getElementById('id_en_seo_url').value);
+            document.getElementById('id_en_seo_url').value = val.replace(/\//g, '');
+        });
+        $('#id_seo_url').on('blur', function () {
+            var val = replace_for_url($(this).val().trim());
+            val = val.replace(/\//g, '');
+            val = val.replace(/[^a-zA-Z0-9ก-๙\-_.]/g, '-');
+            val = val.replace(/-{2,}/g, '-');
+            val = val.replace(/^-+|-+$/g, '');
+            val = val.toLowerCase();
+            $(this).val(val);
+        });
+        $('#id_en_seo_url').on('blur', function () {
+            var val = replace_for_url($(this).val().trim());
+            val = val.replace(/\//g, '');
+            val = val.replace(/[^a-zA-Z0-9ก-๙\-_.]/g, '-');
+            val = val.replace(/-{2,}/g, '-');
+            val = val.replace(/^-+|-+$/g, '');
+            val = val.toLowerCase();
+            $(this).val(val);
+        });
+        $('#id_title').on('blur', function () {
+            if ($('#id_seo_url').val().trim() === '') {
+                $('#id_seo_url').val($(this).val());
+                $('#id_seo_url').trigger('blur');
+            }
+        });
+        $('#id_en_title').on('blur', function () {
+            if ($('#id_en_seo_url').val().trim() === '') {
+                $('#id_en_seo_url').val($(this).val());
+                $('#id_en_seo_url').trigger('blur');
+            }
+        });
+
+        @{
+            if (wg_text.IndexOf(",") > -1)
+            {
+                string[] arr_wg_text = wg_text.Split(",");
+
+                for (int i = 0; i < arr_wg_text.Count(); i++)
+                {
+                    if(arr_wg_text[i] != "")
+                    {
+                        <text>
+                        document.getElementById("itemDrag_@arr_wg_text[i]").style.display = 'none';
+                        </text>
+                    } 
+                }
+            }
+        } 
+
+        $('#fm_cms').find('input[type="text"], textarea').attr('maxlength', 255);
+
+        $('.header--primary').css("display", "none");
+
+    });
+    </script>
+}
+
+ 

@@ -1,0 +1,21 @@
+﻿.ck-editor__editable_inline {
+    min-height: 600px;
+}
+.elfinder.dialogelfinder, .img_root {
+    -webkit-box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.75);
+    box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.75);
+
+    z-index: 1050;
+}
+.custom-block-indent-a {
+    text-indent: 40px;
+}
+
+.custom-block-indent-b {
+    text-indent: 80px;
+}
+
+.custom-block-indent-c {
+    text-indent: 120px;
+}

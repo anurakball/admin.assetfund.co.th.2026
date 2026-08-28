@@ -1,0 +1,16 @@
+﻿@{
+    List<string> Breadcrumb = (List<string>)ViewBag.Breadcrumb;
+}
+@if (Breadcrumb != null && Breadcrumb.Count > 0)
+{
+    <div class="breadcrumb--wrapper">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                @for (var i = 0; i < Breadcrumb.Count; i++)
+                {
+                    <li class="breadcrumb-item @(i==Breadcrumb.Count-1?"active":"")">@Html.Raw(Breadcrumb[i].Trim())</li>
+                }
+            </ol>
+        </nav>
+    </div>
+}

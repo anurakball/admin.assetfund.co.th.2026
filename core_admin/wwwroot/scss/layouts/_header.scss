@@ -1,0 +1,36 @@
+﻿header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 999;
+    background-color: rgba(255,255,255, 0);
+    backdrop-filter: blur(0);
+    .logo-main{
+        display: block;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        width: 273px;
+        //height: 55px;
+        img{
+            max-width: 100%;
+            width: 100%;
+        }
+    }
+
+    &.scroll{
+        background-color: rgba(255,255,255, 0.8);
+        backdrop-filter: blur(10px);
+        .logo-main{
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+    }
+    @media only screen and (max-width: 767px) {
+        .logo-main{
+            width: 222px
+        }
+    }
+}

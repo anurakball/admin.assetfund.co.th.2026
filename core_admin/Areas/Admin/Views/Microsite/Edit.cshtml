@@ -1,0 +1,177 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        <div class="row">
+            @Html.AntiForgeryToken()
+
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ", "title", (row["title"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("URL ", "url", (row["url"].ToString() ?? "").Trim()))
+                <button class="btn btn-success mt-3" type="button" onclick="checkURL()">ตรวจสอบ URL <i class="bi bi-check2-circle"></i></button>
+            </div>
+        </div>
+
+        <div class="row">
+            @{
+                string issue_date = ""; try { issue_date = ((DateTime)row["issue_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { issue_date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm"); }
+                string expiry_date = ""; try { expiry_date = ((DateTime)row["expiry_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { expiry_date = System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm"); }
+            }
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", issue_date))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", expiry_date))
+            </div>            
+        </div>
+        <input type="hidden" name="check_id" value="@(row["id"]+"")">
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+
+    function isSlugValid(input) {
+        // Define a regular expression pattern for a valid slug
+        const pattern = /^[a-z0-9-]+$/;
+
+        // Use RegExp.test to check if the input matches the pattern
+        return pattern.test(input);
+    }
+
+    function generateSlug(phrase) {
+        let str = removeAccent(phrase).toLowerCase();
+
+        // Remove invalid characters
+        str = str.replace(/[^a-z0-9\s-]/g, "");
+
+        // Convert multiple spaces into one space
+        str = str.replace(/\s+/g, " ").trim();
+
+        // Cut and trim
+        str = str.substring(0, Math.min(str.length, 45)).trim();
+
+        // Replace spaces with hyphens
+        str = str.replace(/\s/g, "-");
+
+        return str;
+    }
+
+    function removeAccent(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function checkURL() {
+        preload('show');
+        setTimeout(function () {
+            $.ajax({
+                type: "POST",
+                url: '/Admin/Microsite/CheckURL',
+                data: $('#fm_cms').serialize(),
+                success: function (msg) {
+                    console.log(msg);
+                    sAlert('ผลการตรวจสอบ', msg.message, msg.status == 1 ? 'success' : 'error');
+                    preload('hide');
+                },
+                error: function (xhr, status, error) {
+                    console.log('status', status);
+                    console.log('error', error);
+                    sAlert('ไม่สามารถทำรายการได้ในขณะนี้', '', 'error');
+                    preload('hide');
+                }
+            });
+        }, 500);
+    }
+
+    function sConfirmCustom(form) {
+
+        if (
+            $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+            $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+        ) {
+            sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+            return false;
+        }
+
+
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    
+    $(document).ready(function() {
+
+            $(":input[name='url']").on("keyup change blur", function () {
+                var v = $(this).val();
+                $(this).val(generateSlug(v));
+            });
+
+        checkLockedRow(modConfig, jsonRow);
+
+        //$(":input[name='title'],:input[name='url'],:input[name='issue_date'],:input[name='expiry_date']").prop("required", true);
+
+        $(":input[name='page_type']").click(function(){
+            if ($(this).val() == 'url') 
+            {
+                $('#section_info').stop(true, false).slideUp();
+                $('#section_url').stop(true, false).slideDown();
+            }
+            else
+            {
+                $('#section_info').stop(true, false).slideDown();
+                $('#section_url').stop(true, false).slideUp();
+            }
+        });
+
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0
+            });
+        },500);
+    });
+</script>
+}

@@ -1,0 +1,230 @@
+﻿.btn-center{
+    text-align: center;
+}
+
+.btn-group {
+    max-width: 100%;
+    width: max-content;
+
+    .btn {
+        border-radius: 6px !important;
+        font-size: 1rem;
+        line-height: 1rem;
+        padding-left: 10px;
+        padding-right: 10px;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2rem;
+
+        i {
+            position: relative;
+            font-size: 1rem;
+            display: flex;
+        }
+
+        &:focus {
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        &.btn-del {
+            display: none;
+        }
+
+        &:last-child {
+            margin-right: 0;
+        }
+
+        .btn-icon {
+            margin-right: 10px;
+        }
+    }
+
+    .btn--primary {
+        background-color: $color-primary;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: $color-secondary;
+        }
+    }
+
+    .btn--secondary {
+        background-color: $color-secondary;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: $color-secondary;
+        }
+    }
+
+    .btn--gray {
+        background-color: $light-gray;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: $gray;
+        }
+    }
+
+    .btn--red {
+        background-color: #CC3636;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: $red;
+        }
+    }
+
+    .btn--lightred {
+        background-color: #E64848;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: #C21010;
+        }
+    }
+
+    .btn--success {
+        background-color: #5cb85c;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: #4a934a;
+        }
+    }
+
+    .btn--edit {
+        background-color: #3E75CE;
+        color: $white;
+        transition: 0.4s, background-position 0s;
+
+        &:hover {
+            background-color: #013CA6;
+        }
+    }
+
+    .btn--outline--primary {
+        border-color: $color-primary;
+        color: $color-primary;
+
+        &:hover {
+            background-color: $color-primary;
+            color: $white;
+        }
+    }
+
+    .btn--outline--secondary {
+        border-color: $color-secondary;
+        color: $color-secondary;
+
+        &:hover {
+            background-color: $color-secondary;
+            color: $white;
+        }
+    }
+
+    .btn--outline--red {
+        border-color: $red;
+        color: $red;
+
+        &:hover {
+            background-color: $red;
+            color: $white;
+        }
+    }
+
+    .btn--outline--lightred {
+        border-color: #f44236;
+        color: #f44236;
+
+        &:hover {
+            background-color: #f44236;
+            color: $white;
+        }
+    }
+
+    .btn--outline--green {
+        border-color: #217346;
+        color: #217346;
+
+        &:hover {
+            background-color: #217346;
+            color: $white;
+        }
+    }
+
+    .btn--outline--pdf {
+        border-color: #f40f02;
+        color: #f40f02;
+
+        &:hover {
+            background-color: #f40f02;
+            color: $white;
+        }
+    }
+
+    &--icon {
+        .btn {
+            padding: 5px;
+            margin-right: 10px;
+            min-width: max-content;
+
+            i {
+                margin-right: 0;
+            }
+        }
+    }
+
+    &__manage {
+        .btn {
+            margin: 0 1.25rem;
+            margin-left: 0;
+            line-height: 1rem;
+            min-width: 100px;
+        }
+    }
+
+    @media only screen and (max-width: 767px) {
+        &.btn-group-mob-icon {
+            .btn {
+                min-width: 20px;
+                margin-right: 20px;
+
+                .btn-icon {
+                    margin-right: 0;
+                }
+
+                .btn-text {
+                    display: none;
+                }
+
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+}
+
+.swal2-container{
+    .swal2-modal{
+        .swal2-actions{
+            .swal2-styled{
+                min-width: 120px;
+                &:focus{
+                    outline: none;
+                    box-shadow: none;
+                }
+            }
+        }
+    }
+}

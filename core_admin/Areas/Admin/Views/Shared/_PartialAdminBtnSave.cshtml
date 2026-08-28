@@ -1,0 +1,27 @@
+﻿@{
+    string linkClose = (string)ViewBag.linkClose ?? "Index";
+}
+
+<hr class="navbar-divider mt-1">
+
+@*<div class="d-flex justify-content-between align-items-center mt-2 mb-2">
+    <button type="submit" class="btn btn btn-primary">Save</button>
+    @if (linkClose != "")
+    {
+    <button type="button" onclick="window.location.href='@linkClose'" class="btn btn-outline-secondary">Cancel</button>
+    }
+    </div>*@
+
+<div class="btn-group" id="section_btn">
+    <button type="submit" class="btn btn--primary" title="บันทึก" data-bs-toggle="tooltip" data-bs-placement="top">
+        <span class="btn-text">Save</span>
+    </button>
+    @if (linkClose != "")
+    {
+        <button type="button" class="btn btn--gray" onclick="window.location.href='@linkClose'" title="ยกเลิก"
+        data-bs-toggle="tooltip" data-bs-placement="top">
+            <span class="btn-text">Cancel</span>
+        </button>
+    }
+
+</div> <br /><br />

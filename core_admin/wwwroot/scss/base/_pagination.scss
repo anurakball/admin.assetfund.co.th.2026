@@ -1,0 +1,89 @@
+﻿.pagination{
+    margin-bottom: 0;
+    .page-item{
+        margin-right: 10px;
+        .page-link{
+            background-color: #f5f5f5;
+            border: none;
+            font-size: 1rem;
+            color: #333;
+        }
+        &.disabled{
+            opacity: 0.5;
+            cursor:not-allowed;
+            .page-link{
+                pointer-events: none;
+            }
+        }
+        &.active{
+            .page-link{
+                background-color: $color-primary;
+                color: #fff;
+            }
+        }
+        &:hover{
+            &.disabled{
+                .page-link{
+                    background-color: #f5f5f5;
+                    &:before{
+                        color: #333;
+                    }
+                }
+            }
+            .page-link{
+                background-color: $color-primary;
+                color: #fff;
+                &:before{
+                    color: #fff;
+                }
+            }
+        }
+    }
+    li{
+        &:first-child{
+            .page-link{
+                span{
+                    display: none;
+                }
+                &:before{
+                    content: "\F284";
+                    font-family: bootstrap-icons !important;
+                    font-style: normal;
+                    font-weight: normal !important;
+                    font-variant: normal;
+                    font-size: 1rem;
+                    color: #333;
+                    display: flex;
+                }
+            }
+        }
+        &:last-child{
+            .page-link{
+                span{
+                    display: none;
+                }
+                &:before{
+                    content: "\F285";
+                    font-family: bootstrap-icons !important;
+                    font-style: normal;
+                    font-weight: normal !important;
+                    font-variant: normal;
+                    font-size: 1rem;
+                    color: #333;
+                    display: flex;
+                }
+            }
+            
+        }
+    }
+
+    @media only screen and (max-width: 767px){
+        .page-item{
+            margin-right: 2px;
+            .page-link{
+                 background-color: #fff;
+                 padding: .25rem .5rem;
+            }
+        }
+    }
+}

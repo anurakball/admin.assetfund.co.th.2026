@@ -1,0 +1,159 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<style>
+    .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
+    .cms-section > legend { font-size:1.15rem; font-weight:700; color:#0047B6; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
+</style>
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+
+        <fieldset class="cms-section">
+            <legend>ข้อมูล SEO (Meta Tags)</legend>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Title <span class='fi fi-th'></span>", "title", (row["title"].ToString() ?? "").Trim()))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Title <span class='fi fi-us'></span>", "en_title", (row["en_title"].ToString() ?? "").Trim()))
+                </div>
+
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("Description <span class='fi fi-th'></span>", "des", (row["des"].ToString() ?? "")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("Description <span class='fi fi-us'></span>", "en_des", (row["en_des"].ToString() ?? "")))
+                </div>
+
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("Keyword <span class='fi fi-th'></span>", "info", (row["info"].ToString() ?? "")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("Keyword <span class='fi fi-us'></span>", "en_info", (row["en_info"].ToString() ?? "")))
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>สคริปต์ติดตาม (Tracking / Embed Scripts)</legend>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Google Analytics (Header Tags)", "ga_embed_head", (row["ga_embed_head"].ToString() ?? "")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Google Analytics (Body Tags)", "ga_embed_body", (row["ga_embed_body"].ToString() ?? "")))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Facebook Pixel (Header Tags)", "fb_embed_head", (row["fb_embed_head"].ToString() ?? "")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Facebook Pixel (Body Tags)", "fb_embed_body", (row["fb_embed_body"].ToString() ?? "")))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Other 1 (Header Tags)", "ot1_embed_head", (row["ot1_embed_head"].ToString() ?? "")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Other 1 (Body Tags)", "ot1_embed_body", (row["ot1_embed_body"].ToString() ?? "")))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Other 2 (Header Tags)", "ot2_embed_head", (row["ot2_embed_head"].ToString() ?? "")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Other 2 (Body Tags)", "ot2_embed_body", (row["ot2_embed_body"].ToString() ?? "")))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Other 3 (Header Tags)", "ot3_embed_head", (row["ot3_embed_head"].ToString() ?? "")))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Other 3 (Body Tags)", "ot3_embed_body", (row["ot3_embed_body"].ToString() ?? "")))
+            </div>
+        </div>
+        </fieldset>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    
+    /*
+    var jsonRow = Html.Raw(jsonRow)
+    */
+
+    function sConfirmCustom(form) {
+ 
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    
+    $(document).ready(function() {
+        
+        //checkLockedRow(modConfig, jsonRow);
+
+        
+          
+    });
+</script>
+}

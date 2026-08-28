@@ -1,0 +1,1205 @@
+﻿@{
+    ViewData["Title"] = "Creator";
+}
+
+@section pageCreator{
+    <link rel="stylesheet" href="~/css/pages/creator.min.css" asp-append-version="true" />
+}
+
+
+<nav>
+    <div class="action-page d-flex flex-wrap mt-3 mb-5">
+        <div class="action-back d-flex align-items-center mb-4">
+            <a href="#" class="link">
+                <i class="bi bi-arrow-left-short"></i> Back
+            </a>
+            <div class="icon-hover d-inline-block ms-4" data-bs-toggle="tooltip" data-bs-placement="right">
+                <i class="bi bi-lightbulb"></i>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary-deep btn-icon" id="btn_preview"><i class="bi bi-eye"></i> Preview</button>
+            <button type="button" class="btn btn-primary btn-icon"><i class="bi bi-save"></i> Save</button>
+        </div>
+    </div>
+</nav>
+<div class="creator--wrapper modify">
+
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+        <button class="nav-link " id="nav-tab1-tab" data-bs-toggle="tab" data-bs-target="#nav-tab1" type="button" role="tab" aria-controls="nav-tab1" aria-selected="true">
+            <h5>ตกแต่งเพจ</h5>
+        </button>
+            <button class="nav-link active" id="nav-tab2-tab" data-bs-toggle="tab" data-bs-target="#nav-tab2" type="button" role="tab" aria-controls="nav-tab2" aria-selected="false">
+            <h5>ข้อมูลเพจ</h5>
+        </button>
+    </div>
+    <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade " id="nav-tab1" role="tabpanel" aria-labelledby="nav-tab1-tab">
+            <div class="list-group list-group__left">
+                <div class="sticky--wrapper">
+                    <div class="sticky--nav">
+                        <div class="accordion" id="accordion_widget">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading_1">
+                                    <button class="accordion-button static" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_1" aria-expanded="true" aria-controls="collapse_1">
+                                        <div class="icon-widget">
+                                            <img src="~/images/icons-cms/creator/icon-widget-pic.svg" />
+                                        </div>
+                                        รูปภาพ
+                                    </button>
+                                </h2>
+                                <div id="collapse_1" class="accordion-collapse collapse show" aria-labelledby="heading_1" data-bs-parent="#accordion_widget">
+                                    <div class="accordion-body accordion-body__scroll" id="tools_widget">
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-pic.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Banner</p>
+                                                </div>
+                                                <div class="main-func"></div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-picSlide.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Carousel Banner</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    <div class="function-modify">
+                                                        <div class="group--tools icon-sort icon-sort__up">
+                                                            <i class="bi bi-arrow-up-short"></i>
+                                                        </div>
+                                                        <div class="group--tools icon-sort icon-sort__down">
+                                                            <i class="bi bi-arrow-down-short"></i>
+                                                        </div>
+                                                        <div 
+                                                            class="group--tools group--tools__setting" 
+                                                            title="setting" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#setting_section"
+                                                            onclick="urliFrame('/Home/Privacy')">
+                                                            <i class="bi bi-gear"></i>
+                                                        </div>
+                                                        <div class="group--tools group--tools__delete" title="delete">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="my-handle"></div>
+                                                    <section class="page--section">
+                                                        <div class="hero--slide">
+                                                            <div class="slide__item">
+                                                                <div class="slide__picture">
+                                                                    <img src="~/images/hero/banner-demo-2.jpg" />
+                                                                </div>
+
+                                                                <div class="slide__body">
+                                                                    <div class="container-fluid">
+                                                                        <div class="row justify-content-start">
+                                                                            <div class="col-xl-5 col-lg-6">
+                                                                                <h2 class="slide__title text-bold text-blue">
+                                                                                    เคียงข้างคุณ
+                                                                                </h2>
+                                                                                <p class="slide__subtitle text-gray">
+                                                                                    ไม่ว่าคุณจะเป็นใคร .. ทุกคนล้วนควรค่าแก่การถูก มองเห็นและมีใครสักคนคอยเคียงข้าง
+                                                                                </p>
+
+                                                                                <a href="#nogo" class="btn btn--lg btn--primary">
+                                                                                    <span class="btn__text">
+                                                                                        อ่านเพิ่มเติม
+                                                                                    </span>
+                                                                                    <span class="btn__icon">
+                                                                                        <i class="bi bi-chevron-right"></i>
+                                                                                    </span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="custom--dotted">
+                                                            <div class="container-fluid">
+                                                                <div class="dotted"></div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-iconText.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Icon Banner</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    <div class="function-modify">
+                                                        <div class="group--tools icon-sort icon-sort__up"> 
+                                                            <i class="bi bi-arrow-up-short"></i>
+                                                        </div>
+                                                        <div class="group--tools icon-sort icon-sort__down">
+                                                            <i class="bi bi-arrow-down-short"></i>
+                                                        </div>
+                                                        <div 
+                                                            class="group--tools group--tools__setting" 
+                                                            title="setting"
+                                                           data-bs-toggle="modal"
+                                                           data-bs-target="#setting_section"
+                                                           onclick="urliFrame('/Home/Testiframe')">
+                                                            <i class="bi bi-gear"></i>
+                                                        </div>
+                                                        <div class="group--tools group--tools__delete" title="delete">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="my-handle"></div>
+
+                                                    <section class="page--section">
+                                                        <div class="container">
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div class="card-deck card-deck--cards-1 card-deck--cards-md-2 card-deck--cards-lg-4 card--product__fix">
+                                                                        <div class="card card--product" data-aos="fade-up" data-aos-delay="50">
+                                                                            <figure class="card__figure">
+                                                                                <img src="~/images/product/saving.png" alt="เงินฝาก" class="card__image" />
+                                                                            </figure>
+                                                                            <div class="card__body">
+                                                                                <h5 class="card__title">
+                                                                                    เงินฝาก
+                                                                                </h5>
+                                                                                <p class="card__text">
+                                                                                    บริการหลากหลายด้านเงินฝาก พร้อมรับสิทธิพิเศษต่างๆ
+                                                                                </p>
+                                                                            </div>
+                                                                            <div class="card__actions">
+                                                                                <a href="#nogo" class="btn btn--md btn--primary">
+                                                                                    <span class="btn__text">
+                                                                                        อ่านเพิ่มเติม
+                                                                                    </span>
+                                                                                    <span class="btn__icon">
+                                                                                        <i class="bi bi-chevron-right"></i>
+                                                                                    </span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="card card--product" data-aos="fade-up" data-aos-delay="150">
+                                                                            <figure class="card__figure">
+                                                                                <img src="~/images/product/loan.png" alt="สินเชื่อเงินกู้" class="card__image" />
+                                                                            </figure>
+                                                                            <div class="card__body">
+                                                                                <h5 class="card__title">
+                                                                                    สินเชื่อเงินกู้
+                                                                                </h5>
+                                                                                <p class="card__text">
+                                                                                    สินเชื่อหมุนเวียนส่วนบุคคล
+                                                                                </p>
+                                                                            </div>
+                                                                            <div class="card__actions">
+                                                                                <a href="#nogo" class="btn btn--md btn--primary">
+                                                                                    <span class="btn__text">
+                                                                                        อ่านเพิ่มเติม
+                                                                                    </span>
+                                                                                    <span class="btn__icon">
+                                                                                        <i class="bi bi-chevron-right"></i>
+                                                                                    </span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="card card--product" data-aos="fade-up" data-aos-delay="250">
+                                                                            <figure class="card__figure">
+                                                                                <img src="~/images/product/promotion.png" alt="โปรโมชั่น" class="card__image" />
+                                                                            </figure>
+                                                                            <div class="card__body">
+                                                                                <h5 class="card__title">
+                                                                                    โปรโมชั่น
+                                                                                </h5>
+                                                                                <p class="card__text">
+                                                                                    โปรโมชั่นทางด้านการเงิน พร้อมรับสิทธิพิเศษต่างๆ
+                                                                                </p>
+                                                                            </div>
+                                                                            <div class="card__actions">
+                                                                                <a href="#nogo" class="btn btn--md btn--primary">
+                                                                                    <span class="btn__text">
+                                                                                        อ่านเพิ่มเติม
+                                                                                    </span>
+                                                                                    <span class="btn__icon">
+                                                                                        <i class="bi bi-chevron-right"></i>
+                                                                                    </span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="card card--product" data-aos="fade-up" data-aos-delay="350">
+                                                                            <figure class="card__figure">
+                                                                                <img src="~/images/product/services.png" alt="เงินฝาก" class="card__image" />
+                                                                            </figure>
+                                                                            <div class="card__body">
+                                                                                <h5 class="card__title">
+                                                                                    บริการอื่นๆ
+                                                                                </h5>
+                                                                                <p class="card__text">
+                                                                                    บริการอื่นๆ ครบวงจรเกี่ยวกับธุรกรรมทางการเงิน
+                                                                                </p>
+                                                                            </div>
+                                                                            <div class="card__actions">
+                                                                                <a href="#nogo" class="btn btn--md btn--primary">
+                                                                                    <span class="btn__text">
+                                                                                        อ่านเพิ่มเติม
+                                                                                    </span>
+                                                                                    <span class="btn__icon">
+                                                                                        <i class="bi bi-chevron-right"></i>
+                                                                                    </span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-picText.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Text Banner</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    <div class="function-modify">
+                                                        <div class="group--tools icon-sort icon-sort__up">
+                                                            <i class="bi bi-arrow-up-short"></i>
+                                                        </div>
+                                                        <div class="group--tools icon-sort icon-sort__down">
+                                                            <i class="bi bi-arrow-down-short"></i>
+                                                        </div>
+                                                        <div 
+                                                            class="group--tools group--tools__setting" 
+                                                            title="setting"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#setting_section"
+                                                            onclick="urliFrame('/Home/Demoiframe')">
+                                                            <i class="bi bi-gear"></i>
+                                                        </div>
+                                                        <div class="group--tools group--tools__delete" title="delete">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="my-handle"></div>
+                                                    <section class="page--section py-5 image--align">
+                                                        <div class="container">
+                                                            <div class="row align-items-center">
+                                                                <div class="col-lg-6 order-lg-last">
+                                                                    <figure>
+                                                                        <img src="~/images/news/img-demo-1.png" />
+                                                                    </figure>
+                                                                </div>
+                                                                <div class="col-lg-6">
+                                                                    <h5 class="text-lg text-bold">
+                                                                        สินเชื่อ SME กล้าให้ Standby OD
+                                                                    </h5>
+                                                                    <p class="text-sm">
+                                                                        วงเงินเบิกเกินบัญชีSMEกล้าให้ Standby OD สินเชื่อวงเงินเบิกเกินบัญชี
+                                                                        สำหรับผู้ประกอบการรายย่อย เพื่อใช้เป็นเงินทุนหมุนเวียน
+                                                                        และเสริมสภาพคล่องในการดำเนินธุรกิจ
+                                                                    </p>
+                                                                    <a href="#nogo" class="btn btn--primary">
+                                                                        <span class="btn__text">
+                                                                            อ่านเพิ่มเติม
+                                                                        </span>
+                                                                        <span class="btn__icon">
+                                                                            <i class="bi bi-chevron-right"></i>
+                                                                        </span>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @*<div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-picSlide.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">รูปภาพ+สไลด์</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    <div class="function-modify">
+                                                        <div class="group--tools icon-sort icon-sort__up"> 
+                                                            <i class="bi bi-arrow-up-short"></i>
+                                                        </div>
+                                                        <div class="group--tools icon-sort icon-sort__down">
+                                                            <i class="bi bi-arrow-down-short"></i>
+                                                        </div>
+                                                        <div 
+                                                            class="group--tools group--tools__setting" 
+                                                            title="setting"
+                                                           data-bs-toggle="modal"
+                                                           data-bs-target="#setting_section"
+                                                           onclick="urliFrame('/Home/Testiframe')">
+                                                            <i class="bi bi-gear"></i>
+                                                        </div>
+                                                        <div class="group--tools group--tools__delete" title="delete">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="my-handle"></div>
+                                                    <section class="page--section py-5 image--align">
+                                                        <div class="container">
+                                                            <div class="row align-items-center">
+                                                                <div class="col-lg-6">
+                                                                    <figure>
+                                                                        <img src="~/images/news/img-demo-1.png" />
+                                                                    </figure>
+                                                                </div>
+                                                                <div class="col-lg-6">
+                                                                    <h5 class="text-lg text-bold">
+                                                                        สินเชื่อ SME กล้าให้ Standby OD
+                                                                    </h5>
+                                                                    <p class="text-sm">
+                                                                        วงเงินเบิกเกินบัญชีSMEกล้าให้ Standby OD สินเชื่อวงเงินเบิกเกินบัญชี
+                                                                        สำหรับผู้ประกอบการรายย่อย เพื่อใช้เป็นเงินทุนหมุนเวียน
+                                                                        และเสริมสภาพคล่องในการดำเนินธุรกิจ
+                                                                    </p>
+                                                                    <a href="#nogo" class="btn btn--primary">
+                                                                        <span class="btn__text">
+                                                                            อ่านเพิ่มเติม
+                                                                        </span>
+                                                                        <span class="btn__icon">
+                                                                            <i class="bi bi-chevron-right"></i>
+                                                                        </span>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                </div>
+                                            </div>
+                                        </div>*@
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-picColumnBanner.svg" alt="icon pic"/>
+                                                    </div>
+                                                    <p class="text-thumbnail">Column Banner</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    <div class="function-modify">
+                                                        <div class="group--tools icon-sort icon-sort__up"> 
+                                                            <i class="bi bi-arrow-up-short"></i>
+                                                        </div>
+                                                        <div class="group--tools icon-sort icon-sort__down">
+                                                            <i class="bi bi-arrow-down-short"></i>
+                                                        </div>
+                                                        <div 
+                                                            class="group--tools group--tools__setting" 
+                                                            title="setting"
+                                                           data-bs-toggle="modal"
+                                                           data-bs-target="#setting_section"
+                                                           onclick="urliFrame('/Home/Testiframe')">
+                                                            <i class="bi bi-gear"></i>
+                                                        </div>
+                                                        <div class="group--tools group--tools__delete" title="delete">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="my-handle"></div>
+                                                    <section class="page--section">
+                                                        <div class="container">
+                                                            <div class="row row-cols-1 row-cols-md-3 row-cols-lg-3 no-gutters card--photo__fix">
+                                                                <div class="col">
+                                                                    <a href="#nogo" title="title text" class="card card--photo" data-aos="fade-up">
+                                                                        <figure class="card__figure">
+                                                                            <img src="~/images/img-demo-1.jpg" alt="title image" class="card__image" />
+                                                                        </figure>
+                                                                        <div class="card__header">
+                                                                            <p class="card__subtitle">
+                                                                                Investor Relations
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="card__body">
+
+                                                                            <h5 class="card__title">
+                                                                                ข้างใน
+                                                                            </h5>
+                                                                            <p class="card__text">
+                                                                                เพื่อการเติบโตที่ยั่งยืน ไทยเครดิตมุ่งหวังให้
+                                                                                คุณเข้าใจการวางแผนทางการเงิน
+                                                                            </p>
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+
+                                                                <div class="col">
+                                                                    <a href="#nogo" title="title text" class="card card--photo" data-aos="fade-up" data-aos-delay="200">
+                                                                        <figure class="card__figure">
+                                                                            <img src="~/images/img-demo-2.jpg" alt="title image" class="card__image" />
+                                                                        </figure>
+                                                                        <div class="card__header">
+                                                                            <p class="card__subtitle">
+                                                                                TCRB Life
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="card__body">
+
+                                                                            <h5 class="card__title">
+                                                                                ข้างสนาม
+                                                                            </h5>
+                                                                            <p class="card__text">
+                                                                                ทุกการต่อสู้แข่งขันทางธุรกิจ
+                                                                                คุณจะมีเราคอยสนับสนุนอยู่ข้างๆ
+                                                                            </p>
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+
+                                                                <div class="col">
+                                                                    <a href="#nogo" title="title text" class="card card--photo" data-aos="fade-up" data-aos-delay="400">
+                                                                        <figure class="card__figure">
+                                                                            <img src="~/images/img-demo-3.jpg" alt="title image" class="card__image" />
+                                                                        </figure>
+                                                                        <div class="card__header">
+                                                                            <p class="card__subtitle">
+                                                                                Social Responsilbility
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="card__body">
+
+                                                                            <h5 class="card__title">
+                                                                                เข้าข้าง
+                                                                            </h5>
+                                                                            <p class="card__text">
+                                                                                แม้ในช่วงเวลาลําบาก ที่หันหน้าหาใครไม่ได้แล้ว
+                                                                                คุณยังมีเราที่พร้อมจะเข้าข้างอยู่เสมอ
+                                                                            </p>
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-picBoard.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Board Banner</p>
+                                                </div>
+                                                <div class="main-func"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading_2">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_2" aria-expanded="false" aria-controls="collapse_2">
+                                        <div class="icon-widget">
+                                            <img src="~/images/icons-cms/creator/icon-widget-vdo.svg" />
+                                        </div>
+                                        วิดีโอ
+                                    </button>
+                                </h2>
+                                <div id="collapse_2" class="accordion-collapse collapse" aria-labelledby="heading_2" data-bs-parent="#accordion_widget">
+                                    <div class="accordion-body" id="tools_widget2">
+
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-video.svg" alt="icon video" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Video</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-videoText.svg" alt="icon video"/>
+                                                    </div>
+                                                    <p class="text-thumbnail">Text Video</p>
+                                                </div>
+                                                <div class="main-func">
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading_3">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_3" aria-expanded="false" aria-controls="collapse_3">
+                                        <div class="icon-widget">
+                                            <img src="~/images/icons-cms/creator/icon-widget-text.svg" />
+                                        </div>
+                                        หัวเรื่อง
+                                    </button>
+                                </h2>
+                                <div id="collapse_3" class="accordion-collapse collapse" aria-labelledby="heading_3" data-bs-parent="#accordion_widget">
+                                    <div class="accordion-body" id="tools_widget3">
+                                            <div class="itemDrag">
+                                                <div class="list-group-item">
+                                                    <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-texteditor.svg" alt="icon text" />
+                                                        </div>
+                                                        <p class="text-thumbnail">หัวเรื่อง</p>
+                                                    </div>
+                                                    <div class="main-func">
+                                                        <div class="function-modify">
+                                                            <div class="group--tools icon-sort icon-sort__up">
+                                                                <i class="bi bi-arrow-up-short"></i>
+                                                            </div>
+                                                            <div class="group--tools icon-sort icon-sort__down">
+                                                                <i class="bi bi-arrow-down-short"></i>
+                                                            </div>
+                                                            <div class="group--tools group--tools__setting"
+                                                             title="setting"
+                                                             data-bs-toggle="modal"
+                                                             data-bs-target="#setting_section">
+                                                                <i class="bi bi-gear"></i>
+                                                            </div>
+                                                            <div class="group--tools group--tools__delete" title="delete">
+                                                                <i class="bi bi-trash3"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="my-handle"></div>
+                                                        <section class="page--section py-5">
+                                                            <div class="container">
+                                                                <div class="row justify-content-center">
+                                                                    <div class="col-12 text-center">
+                                                                        <h5 class="text-lg text-bold text-darkgray text--animate">Let’s Try Something Different</h5>
+                                                                        <p class="text-sm text-gray text--animate">
+                                                                            We provide a new way of banking experience for you
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </section>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading_4">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_4" aria-expanded="false" aria-controls="collapse_4">
+                                        <div class="icon-widget">
+                                                <img src="~/images/icons-cms/creator/icon-widget-news.svg" />
+                                        </div>
+                                        ข่าว
+                                    </button>
+                                </h2>
+                                <div id="collapse_4" class="accordion-collapse collapse" aria-labelledby="heading_4" data-bs-parent="#accordion_widget">
+                                    <div class="accordion-body" id="tools_widget4">
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                    <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-newsCarousel.svg" alt="icon text" />
+                                                        </div>
+                                                        <p class="text-thumbnail">Carousel</p>
+                                                    </div>
+                                                <div class="main-func">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-newsColumn.svg" alt="icon text" />
+                                                        </div>
+                                                        <p class="text-thumbnail">Column News</p>
+                                                    </div>
+                                                <div class="main-func">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                    <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-newsCategory.svg" alt="icon text" />
+                                                        </div>
+                                                        <p class="text-thumbnail">Category</p>
+                                                    </div>
+                                                <div class="main-func">
+                                                </div>
+                                            </div>
+                                        </div>
+                                            <div class="itemDrag">
+                                                <div class="list-group-item">
+                                                    <div class="thumbnail">
+                                                        <div class="image-thumbnail">
+                                                            <img src="~/images/icons-cms/creator/widgets/icon-wg-newsCategory.svg" alt="icon text" />
+                                                        </div>
+                                                        <p class="text-thumbnail">Just of you</p>
+                                                    </div>
+                                                    <div class="main-func">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading_5">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_5" aria-expanded="false" aria-controls="collapse_5">
+                                        <div class="icon-widget">
+                                                <img src="~/images/icons-cms/creator/icon-widget-widget.svg" />
+                                        </div>
+                                        วิดเจ็ต
+                                    </button>
+                                </h2>
+                                <div id="collapse_5" class="accordion-collapse collapse" aria-labelledby="heading_5" data-bs-parent="#accordion_widget">
+                                    <div class="accordion-body accordion-body__scroll" id="tools_widget5">
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-widgetInterest.svg" alt="icon pic" />
+                                                    </div>
+                                                    <p class="text-thumbnail">Interest</p>
+                                                </div>
+                                                    <div class="main-func"></div>
+                                            </div>
+                                        </div>
+                                        <div class="itemDrag">
+                                            <div class="list-group-item">
+                                                <div class="thumbnail">
+                                                    <div class="image-thumbnail">
+                                                        <img src="~/images/icons-cms/creator/widgets/icon-wg-widgetExchange.svg" alt="icon pic" />
+                                                    </div>
+                                                        <p class="text-thumbnail">Exchange</p>
+                                                </div>
+                                                    <div class="main-func"></div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="list-group list-group__right">
+
+                @await Component.InvokeAsync("Header")
+            
+        
+                @*AreaDrag*@
+                <div id="tools_module" class="area-drag">
+                    <div class="area-drop"> <i class="bi bi-plus-circle"></i> วางที่นี่</div>
+                </div>
+        
+            
+                @*Footer*@
+                <div class="static">
+                    @await Component.InvokeAsync("Footer")
+                </div>
+            
+            </div>
+
+        </div>
+        
+        <div class="tab-pane fade show active" id="nav-tab2" role="tabpanel" aria-labelledby="nav-tab2-tab">
+            <div class="section section--information">
+                <h2 class="head-title">Page Detail</h2>
+                <div class="form-wrapper">
+                    <form>
+                        <div class="row">
+                            <div class="col-12 col-lg-6">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_1" class="form-label form-label--icon">ชื่อเพจ <img src="~/images/icons-cms/icont-flag-thailand.png" alt="icon thailand" /></label>
+                                                <input type="text" class="form-control" id="input_1">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_2" class="form-label form-label--icon">คำอธิบายเพจ <img src="~/images/icons-cms/icont-flag-thailand.png" alt="icon thailand" /></label>
+                                                <input type="text" class="form-control" id="input_2">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_2" class="form-label form-label--icon">คีย์เวิร์ดเพจ <img src="~/images/icons-cms/icont-flag-thailand.png" alt="icon thailand" /></label>
+                                                <input type="text" class="form-control" id="input_2">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_2" class="form-label form-label--icon">URL Friendly <img src="~/images/icons-cms/icont-flag-thailand.png" alt="icon thailand" /></label>
+                                                <input type="text" class="form-control" id="input_2">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_1" class="form-label form-label--icon">ชื่อเพจ <img src="~/images/icons-cms/icont-flag-us.png" alt="icon us" /></label>
+                                                <input type="text" class="form-control" id="input_1">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_2" class="form-label form-label--icon">คำอธิบายเพจ <img src="~/images/icons-cms/icont-flag-us.png" alt="icon us" /></label>
+                                                <input type="text" class="form-control" id="input_2">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="input_2" class="form-label form-label--icon">คีย์เวิร์ดเพจ <img src="~/images/icons-cms/icont-flag-us.png" alt="icon us" /></label>
+                                                <input type="text" class="form-control" id="input_2">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                    <label for="input_2" class="form-label form-label--icon">URL Friendly <img src="~/images/icons-cms/icont-flag-us.png" alt="icon us" /></label>
+                                                <input type="text" class="form-control" id="input_2">
+                                                <div class="invalid-feedback">
+                                                    Please provide a valid city.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <div class="input-group">
+                                        <label for="input_1" class="form-label form-label--icon">ประเภทเพจ</label>
+                                        <select class="form-select" aria-label="Default select example">
+                                          <option selected>Open this select menu</option>
+                                          <option value="1">One</option>
+                                          <option value="2">Two</option>
+                                          <option value="3">Three</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade modal--setting" id="setting_section" tabindex="-1" aria-labelledby="setting_section" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="iframe_full" height="600" src=""></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Dragdrop{
+
+    @*CDN*@
+    @*<script src="https://unpkg.com/sortablejs-make/Sortable.min.js"></script>*@
+    @*<script src="https://cdn.jsdelivr.net/npm/jquery-sortablejs@latest/jquery-sortable.js"></script>*@
+
+    @*Local*@
+    <script src="~/js/sortable.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery-sortable.js" asp-append-version="true"></script>
+
+    <script>
+        
+        $(document).ready(function () {
+            // tooltips 
+            $(function () { 
+                $('[data-bs-toggle="tooltip"]').tooltip({
+                    title: '&#183; ตกแต่งเพจด้วย Tool Bar' + '<br />' + '&#183; ใส่ข้อมูลเพจและ SEO' + '<br />' + '&#183; บันทึกเพจและอนุมัติที่หน้าจัดการเว็บไซต์',
+                    html: true
+                });
+            })
+            // function สำหรับลากมาวางแล้วให้ไอคอน(widget)หาย แล้วแสดงhtml แทน
+            function sortTemplate() {
+                $('#tools_module').find('.area-drop').addClass('hide').remove();
+
+                $('#tools_module').find('.thumbnail').addClass('hide');
+                $('#tools_module').find('.main-func').addClass('show');
+
+            };
+
+            // ** ถ้าจะสร้างGroupเพิ่ม ให้copyไปทั้งชุดแล้วเปลี่ยนidเอา (idห้ามซ้ำ) 
+            // ** widget Group1
+            new Sortable(tools_widget, {
+                group: {
+                    name: 'shared',
+                    pull: 'clone',
+                },
+                animation: 150,
+                sort: false,
+                filter: ".static",
+                draggable: ".itemDrag",
+                onEnd: function (evt) {
+                    var itemEl = evt.item; 
+
+                    var num_id = 0
+                    $('#tools_module.area-drag .list-group-item').each(function () {
+                        $(itemEl).attr('id',num_id);
+                        num_id++;
+                    });
+
+
+                    var selected = 0;
+                    var len = $('#tools_module.area-drag .itemDrag').length;
+                    //console.log(len);
+
+                    onClickMoveUPorDOWN();
+
+                },
+            });
+            // ** widget Group2
+            new Sortable(tools_widget2, {
+                group: {
+                    name: 'shared',
+                    pull: 'clone',
+                },
+                animation: 150,
+                sort: false,
+                filter: ".static",
+                draggable: ".itemDrag",
+                onEnd: function (evt) {
+                    var itemEl = evt.item;
+
+                    var num_id = 0
+                    $('#tools_module.area-drag .list-group-item').each(function () {
+                        $(itemEl).attr('id', num_id);
+                        num_id++;
+                    });
+
+
+                    var selected = 0;
+                    var len = $('#tools_module.area-drag .itemDrag').length;
+                    //console.log(len);
+
+                    onClickMoveUPorDOWN();
+                },
+            });
+            // ** widget Group3
+            new Sortable(tools_widget3, {
+                group: {
+                    name: 'shared',
+                    pull: 'clone',
+                },
+                animation: 150,
+                sort: false,
+                filter: ".static",
+                draggable: ".itemDrag",
+                onEnd: function (evt) {
+                    var itemEl = evt.item;
+
+                    var num_id = 0
+                    $('#tools_module.area-drag .list-group-item').each(function () {
+                        $(itemEl).attr('id', num_id);
+                        num_id++;
+                    });
+
+                    var selected = 0;
+                    var len = $('#tools_module.area-drag .itemDrag').length;
+                    //console.log(len);
+
+                    onClickMoveUPorDOWN();
+                },
+            });
+            // ** widget Group4
+            new Sortable(tools_widget4, {
+                group: {
+                    name: 'shared',
+                    pull: 'clone',
+                },
+                animation: 150,
+                sort: false,
+                filter: ".static",
+                draggable: ".itemDrag",
+                onEnd: function (evt) {
+                    var itemEl = evt.item;
+
+                    var num_id = 0
+                    $('#tools_module.area-drag .list-group-item').each(function () {
+                        $(itemEl).attr('id', num_id);
+                        num_id++;
+                    });
+
+                    var selected = 0;
+                    var len = $('#tools_module.area-drag .itemDrag').length;
+                    //console.log(len);
+
+                    onClickMoveUPorDOWN();
+
+                },
+            });
+            // ** widget Group5
+            new Sortable(tools_widget5, {
+                group: {
+                    name: 'shared',
+                    pull: 'clone',
+                },
+                animation: 150,
+                sort: false,
+                filter: ".static",
+                draggable: ".itemDrag",
+                onEnd: function (evt) {
+                    var itemEl = evt.item;
+
+                    var num_id = 0
+                    $('#tools_module.area-drag .list-group-item').each(function () {
+                        $(itemEl).attr('id', num_id);
+                        num_id++;
+                    });
+
+                    var selected = 0;
+                    var len = $('#tools_module.area-drag .itemDrag').length;
+                    //console.log(len);
+
+                    onClickMoveUPorDOWN();
+                },
+            });
+
+            // ส่วนนี้เป็นคำสั่งของพื้นที่ที่จะลากมาวาง
+            new Sortable(tools_module, {
+                group: 'shared',
+                animation: 150,
+                filter: ".static",
+                handle: ".my-handle",
+                ghostClass: "sortable-ghost",
+                chosenClass: "sortable-chosen",
+                dragClass: "sortable-drag",
+                onSort: sortTemplate,
+                onAdd: function (/**Event*/evt) {
+
+		            // same properties as onEnd
+                    //$(".card--slide").slick('setPosition');
+
+                    slickCarousel();
+
+	            },
+            });
+
+
+            $('#btn_preview').click(function(){
+                $('.creator--wrapper').toggleClass('modify');
+                $('#static_header .header--wrapper').toggleClass('position-absolute');
+
+
+            });
+        });
+    </script>
+
+    <script>
+        areaMove = document.getElementById('tools_module');
+
+        function onClickMoveUPorDOWN() {
+            var btn_moveDOWN = [...document.getElementsByClassName('icon-sort__down')]
+            var btn_moveUP = [...document.getElementsByClassName('icon-sort__up')]
+            btn_moveUP.forEach(onebyone => {
+                onebyone.addEventListener('click', ChangeUP)
+
+            })
+
+            btn_moveDOWN.forEach(onebyone => {
+                onebyone.addEventListener('click', ChangeDOWN)
+
+            })
+        }
+
+        function ChangeUP() {
+            CurrentElement_ToMove = this.parentElement.parentElement.parentElement.parentElement;
+            // CurrentElement_ToMove = closest(this, 'stoptillhere')
+            previousElement_ToMove = CurrentElement_ToMove.previousElementSibling;
+            if (previousElement_ToMove != null) {
+                areaMove.insertBefore(CurrentElement_ToMove, previousElement_ToMove);
+            } else {
+                //alert('cannot Move Further')
+                return false;
+            }
+        }
+
+        function ChangeDOWN() {
+            CurrentElement_ToMove = this.parentElement.parentElement.parentElement.parentElement;
+            nextElement_ToMove = CurrentElement_ToMove.nextElementSibling;
+            //console.log(nextElement_TOMOVE)
+            if (nextElement_ToMove != null) {
+                areaMove.insertBefore(nextElement_ToMove, CurrentElement_ToMove);
+            } else {
+                //alert('cannot Move Below')
+                return false;
+            }
+        }
+
+
+
+        // iframe in modal
+        var main_iframe_url = '';
+        function urliFrame(url) {
+            document.getElementById('iframe_full').src = '';
+            main_iframe_url = url;
+        }
+
+        $(document).ready(function () {
+            $('#setting_section').on('shown.bs.modal', function () {
+                $(this).find('iframe').attr('src', main_iframe_url);
+            });
+
+            // delete section dragdrop
+            $(".group--tools__delete").click(function () {
+                $(this).parents('.itemDrag').remove();
+            });
+
+        });
+        
+    </script>
+}
+
+
+@section Slide{
+    
+    <link href="~/Vendor/slick/slick.css" rel="stylesheet" />
+    <link href="~/Vendor/slick/slick-theme.css" rel="stylesheet" />
+    <script src="~/Vendor/slick/slick.min.js"></script>
+
+    <!-- initialize js -->
+    @*<script src="~/Scripts/function.js"></script>
+    <script src="~/Scripts/slick.js"></script>*@
+
+    <script>
+        //function destroyCarousel() {
+        //  if ($('.card--slide').hasClass('slick-initialized')) {
+        //    $('.card--slide').slick('destroy');
+        //  }      
+        //}
+
+        function slickCarousel() {
+            $(".slide-initialized").each(function (index, element) {
+                $(this).not('.slick-initialized').slick({
+                    dots: false,
+                    autoplay: false,
+                    infinite: true,
+                    arrows: true,
+                    touchMove: false,
+                    speed: 1000,
+                    //cssEase: 'linear',
+                    slidesToShow: 3,
+                    slidesToScroll: 1,
+                    responsive: [
+                        {
+                            breakpoint: 992,
+                            settings: {
+                                slidesToShow: 2,
+                            }
+                        },
+                        {
+                            breakpoint: 480,
+                            settings: {
+                                slidesToShow: 1,
+                            }
+                        }
+                    ]
+                });
+            });
+
+            //$('.list-group__left .accordion-item .accordion-collapse .accordion-body .itemDrag .list-group-item .main-func .slide-initialized').slick('destroy');
+            $('.list-group__right .area-drag .itemDrag .list-group-item .main-func .slide-initialized').slick('destroy');
+        }
+    </script>
+
+}

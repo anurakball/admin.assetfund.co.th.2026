@@ -1,0 +1,325 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var row = (System.Data.DataRow)ViewBag.itemEdit;
+    string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<script src="/js/spectrum.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/Admin/spectrum.min.css">
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">    
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            @{
+                //string cat_id = _session.GetString("admin_" + mod.Name + "_search_" + mod_config.TableCateField) ?? "0";
+                string cat_id = row["cat_id"].ToString() ?? "0";
+                <div class="col-12 mb-3">
+                    @Html.Raw(
+                    _admin.InputSelectDB(
+                    mod_config.TableCateLabel,
+                    mod_config.TableCateField,
+                    cat_id,
+                    showAllOption: true,
+                    mod_config.TableCate,
+                    value_field: "id",
+                    text_field: mod_config.TableCateTitle,
+                    order_by: mod_config.TableCateOrderby,
+                    sort: mod_config.TableCateSort,
+                    txtAllOption: "เลือก",
+                    ModuleID: mod_config.TableCateModuleID
+                    ))
+
+            </div>
+                        }
+        </div>
+         
+        @{
+            //string date_news = ""; try { date_news = ((DateTime)row["date_news"]).ToLocalTime().ToString("dd/MM/yyyy"); } catch { date_news = System.DateTime.Now.ToString("dd/MM/yyyy"); }
+            string date_news = row["date_news"].ToString();
+         }
+       
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDate("ประจำวันที่", "date_news", date_news))  
+            </div>
+        </div>
+         
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title",  (row["title"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title",  (row["en_title"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("URL Friendly <span class='fi fi-th'></span>", "seo_url", (row["seo_url"].ToString() ?? "").Trim(), "", 200))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("URL Friendly <span class='fi fi-us'></span>", "en_seo_url", (row["en_seo_url"].ToString() ?? "").Trim(), "", 200))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("คำอธิบาย <span class='fi fi-th'></span>", "des", (row["des"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("คำอธิบาย <span class='fi fi-us'></span>", "en_des", (row["en_des"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+       
+
+        <div class="row">
+            @Html.Raw(_admin.InputTextEditor("รายละเอียด <span class='fi fi-th'></span>", "info", (row["info"].ToString() ?? "").Trim()))
+        </div>
+
+        <div class="row">
+            @Html.Raw(_admin.InputTextEditor("รายละเอียด <span class='fi fi-us'></span>", "en_info", (row["en_info"].ToString() ?? "").Trim()))
+        </div>
+
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("รูปภาพ <span class='fi fi-th'></span> <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 1200 x 800 (3:2))</span>", "img1", (row["img1"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("รูปภาพ <span class='fi fi-us'></span> <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 1200 x 800 (3:2))</span>", "en_img1", (row["en_img1"].ToString() ?? "").Trim()))
+            </div>
+        </div>
+
+        <br />
+
+        
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("รูปภาพ Mobile <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 750 x 1040)</span>", "img2", (row["img2"].ToString() ?? "").Trim()))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("รูปภาพ Mobile <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 750 x 1040)</span>", "en_img2", (row["en_img2"].ToString() ?? "").Trim()))
+            </div>
+        </div> 
+        <br />
+       
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("ไฟล์ดาวน์โหลด <span class='fi fi-th'></span>  <span style='font-weight: normal;color: orange;'>(.pdf ไม่เกิน 50MB)</span>", "file1", (row["file1"].ToString() ?? "").Trim(), "application/pdf"))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputFileManeger("ไฟล์ดาวน์โหลด <span class='fi fi-us'></span>  <span style='font-weight: normal;color: orange;'>(.pdf ไม่เกิน 50MB)</span>", "en_file1", (row["en_file1"].ToString() ?? "").Trim(), "application/pdf"))
+            </div>
+        </div>
+         
+        <br />
+          
+        <script>
+            $(document).ready(function () {
+                $(":input[name='issue_date_config']").click(function () {
+                    if ($(this).val() == '2') {
+                        $('#div_id_issue_date').stop(true, false).slideDown();
+                    }
+                    else {
+                        $('#div_id_issue_date').stop(true, false).slideUp();
+                    }
+                });
+            });
+        </script>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">วันที่แสดงผล</label>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="issue_date_config" id="id_issue_date_config_1" value="1" checked>
+                                <label class="form-check-label" for="id_issue_date_config_1">
+                                    แสดงตลอดเวลา
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="issue_date_config" id="id_issue_date_config_2" value="2">
+                                <label class="form-check-label" for="id_issue_date_config_2">
+                                    กำหนดเอง
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="" id="div_id_issue_date" style="display:none;">
+            <div class="row">
+                @{
+                    string issue_date = ""; try { issue_date = ((DateTime)row["issue_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { issue_date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm"); }
+                    string expiry_date = ""; try { expiry_date = ((DateTime)row["expiry_date"]).ToLocalTime().ToString("dd/MM/yyyy HH:mm"); } catch { expiry_date = System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm"); }
+                }
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", issue_date))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", expiry_date))
+                </div>
+            </div>
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+@{
+    if ((row["issue_date_config"].ToString() ?? "").Trim() == "2")
+    {
+        <script>
+            document.getElementById('id_issue_date_config_2').checked = true;
+            document.getElementById('div_id_issue_date').style.display = '';
+        </script>
+    }
+    else
+    {
+        <script>
+            document.getElementById('id_issue_date_config_1').checked = true;
+            document.getElementById('div_id_issue_date').style.display = 'none';
+        </script>
+    }
+}
+
+@await Component.InvokeAsync("LinkHelper")
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
+    var jsonRow = @Html.Raw(jsonRow)
+    function sConfirmCustom(form) {
+
+                if (document.getElementById('id_issue_date_config_2').checked == true) {
+                    if (
+                        $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+                        $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+                    ) {
+                        sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+                        return false;
+                    }
+                }
+
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        if ($('#id_seo_url').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL Friendly (TH)", "warning");
+            $('#id_seo_url').focus();
+            return false;
+        }
+        if ($('#id_en_seo_url').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL Friendly (EN)", "warning").then(() => { $('#id_en_seo_url').focus(); });
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    
+    $(document).ready(function() {
+
+        checkLockedRow(modConfig, jsonRow);
+
+        $('#id_seo_url').on('keyup', function () {
+            var val = replace_for_url(document.getElementById('id_seo_url').value);
+            document.getElementById('id_seo_url').value = val.replace(/\//g, '');
+        });
+        $('#id_en_seo_url').on('keyup', function () {
+            var val = replace_for_url(document.getElementById('id_en_seo_url').value);
+            document.getElementById('id_en_seo_url').value = val.replace(/\//g, '');
+        });
+        $('#id_seo_url').on('blur', function () {
+            var val = replace_for_url($(this).val().trim());
+            val = val.replace(/\//g, '');
+            val = val.replace(/[^a-zA-Z0-9ก-๙\-_.]/g, '-');
+            val = val.replace(/-{2,}/g, '-');
+            val = val.replace(/^-+|-+$/g, '');
+            val = val.toLowerCase();
+            $(this).val(val);
+        });
+        $('#id_en_seo_url').on('blur', function () {
+            var val = replace_for_url($(this).val().trim());
+            val = val.replace(/\//g, '');
+            val = val.replace(/[^a-zA-Z0-9ก-๙\-_.]/g, '-');
+            val = val.replace(/-{2,}/g, '-');
+            val = val.replace(/^-+|-+$/g, '');
+            val = val.toLowerCase();
+            $(this).val(val);
+        });
+        $('#id_title').on('blur', function () {
+            if ($('#id_seo_url').val().trim() === '') {
+                $('#id_seo_url').val($(this).val());
+                $('#id_seo_url').trigger('blur');
+            }
+        });
+        $('#id_en_title').on('blur', function () {
+            if ($('#id_en_seo_url').val().trim() === '') {
+                $('#id_en_seo_url').val($(this).val());
+                $('#id_en_seo_url').trigger('blur');
+            }
+        });
+
+        setTimeout(function(){
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0
+            });
+        },500);
+    });
+</script>
+}

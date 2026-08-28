@@ -1,0 +1,269 @@
+﻿@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600&display=swap");
+/*@font-face {
+    font-family: 'noto_sansregular';
+    src: url('../../fonts/notosans-regular-webfont.woff2') format('woff2'), url('../../fonts/notosans-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'noto_sanssemibold';
+    src: url('../../fonts/notosans-semibold-webfont.woff2') format('woff2'), url('../../fonts/notosans-semibold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'noto_sanslight';
+    src: url('../../fonts/notosans-light-webfont.woff2') format('woff2'), url('../../fonts/notosans-light-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+$font-light: 'noto_sanslight'; //300
+$font-regular: 'noto_sansregular';//400
+$font-semibold: 'noto_sanssemibold';//600*/
+@font-face {
+  font-family: "db_helvethaica_x";
+  src: url("../../fonts/db_helvethaica_x_li_v3.2.woff2") format("woff2"), url("../../fonts/db_helvethaica_x_li_v3.2.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "db_helvethaica_x";
+  src: url("../../fonts/db_helvethaica_x_v3.2.woff2") format("woff2"), url("../../fonts/db_helvethaica_x_v3.2.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+}
+:root {
+  /* Font-size
+   ================================================================= */
+  /*font-size: 2.375rem;
+  line-height: 3.125rem;
+
+
+  font-size: 1.5rem;
+  line-height: 2.5rem;*/
+  /* Color
+   ================================================================= */
+  --color-primary-50: #E5EBF6;
+  --color-primary-100: #B0C3E3;
+  --color-primary-200: #8AA5D6;
+  --color-primary-300: #557CC3;
+  --color-primary-400: #3462B7;
+  --color-primary-500: #013BA7;
+  --color-primary-600: #013898;
+  --color-primary-700: #012B74;
+  --color-primary-800: #01205B;
+  --color-primary-900: #001947;
+  --color-secondary-50: #FFF1E6;
+  --color-secondary-100: #FFD5B2;
+  --color-secondary-200: #FFBE8A;
+  --color-secondary-300: #FFA257;
+  --color-secondary-400: #FF8F33;
+  --color-secondary-500: #FF7300;
+  --color-secondary-600: #E96A01;
+  --color-secondary-700: #B75301;
+  --color-secondary-800: #8E4001;
+  --color-secondary-900: #6B3000;
+  --color-neutral-50: #EBEDEF;
+  --color-neutral-100: #C5CAD3;
+  --color-neutral-200: #A9B0BC;
+  --color-neutral-300: #808B9D;
+  --color-neutral-400: #677489;
+  --color-neutral-500: #41516C;
+  --color-neutral-600: #3B4A63;
+  --color-neutral-700: #2F394C;
+  --color-neutral-800: #242D3D;
+  --color-neutral-900: #1D232F;
+  --color-gray-50: #F5F5F5;
+  --color-gray-100: #E3E3E3;
+  --color-gray-200: #D6D6D6;
+  --color-gray-300: #C2C2C2;
+  --color-gray-400: #B8B8B8;
+  --color-gray-500: #A6A6A6;
+  --color-gray-600: #969696;
+  --color-gray-700: #757575;
+  --color-gray-800: #5C5C5C;
+  --color-gray-900: #454545;
+}
+
+.form-wrapper .input-group {
+  margin-bottom: 1rem;
+}
+.form-wrapper .input-group .form-label {
+  font-size: 1.125rem;
+}
+.form-wrapper .input-group .form-label--icon img {
+  width: 32px;
+  margin-left: 10px;
+}
+.form-wrapper .input-group .form-control {
+  width: 100%;
+  height: 40px;
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  font-weight: 300;
+  color: var(--color-neutral-500);
+  border-radius: 6px !important;
+  background-color: white;
+  border: 2px solid var(--color-neutral-50);
+}
+.form-wrapper .input-group .form-control:focus {
+  outline: none;
+  box-shadow: none;
+  border: 2px solid var(--color-primary-500);
+}
+.form-wrapper .input-group .invalid-feedback {
+  display: block;
+  font-size: 1.125rem;
+}
+.form-wrapper .input-group__icon {
+  position: relative;
+}
+.form-wrapper .input-group__icon .icon-input {
+  position: absolute;
+  z-index: 9;
+  height: 100%;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.form-wrapper .input-group__icon .icon-input img {
+  width: 18px;
+}
+.form-wrapper .input-group__icon .icon-input-password {
+  cursor: pointer;
+  position: absolute;
+  z-index: 9;
+  right: 0;
+  height: 100%;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.form-wrapper .input-group__icon .icon-input-password img {
+  width: 18px;
+}
+.form-wrapper .input-group__icon .form-control {
+  padding-left: 40px;
+}
+.form-wrapper .form-select {
+  width: 100%;
+  height: 40px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 300;
+  color: var(--color-neutral-500);
+  border-radius: 6px !important;
+  background-color: white;
+  border: 2px solid var(--color-neutral-50);
+}
+.form-wrapper .form-select:focus {
+  outline: none;
+  box-shadow: none;
+  border: 2px solid var(--color-primary-500);
+}
+.form-wrapper .form-check .form-check-input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1875rem;
+  border-color: #B8B8B8;
+}
+.form-wrapper .form-check .form-check-input:focus {
+  box-shadow: none;
+}
+.form-wrapper .form-check .form-check-input:checked {
+  box-shadow: none;
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+}
+.form-wrapper .form-check .form-check-label {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 300;
+}
+
+.btn-group__full {
+  width: 100%;
+}
+.btn-group .btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px !important;
+  font-family: "Noto Sans Thai", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.5rem 1.5rem;
+  margin: 0 1.5rem;
+  color: white;
+}
+.btn-group .btn.btn-icon i {
+  font-size: 1rem;
+  display: flex;
+  margin-right: 10px;
+}
+.btn-group .btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+.btn-group .btn.btn-primary-deep {
+  background-color: var(--color-primary-800);
+  border-color: var(--color-primary-800);
+  transition: all 0.3s ease-out;
+}
+.btn-group .btn.btn-primary-deep:hover {
+  background-color: var(--color-secondary-800);
+  border-color: var(--color-secondary-800);
+  transition: all 0.3s ease-out;
+}
+.btn-group .btn.btn-primary {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  transition: all 0.3s ease-out;
+}
+.btn-group .btn.btn-primary:hover {
+  background-color: var(--color-secondary-500);
+  border-color: var(--color-secondary-500);
+  transition: all 0.3s ease-out;
+}
+
+.tooltip-arrow:before {
+  border-right-color: var(--color-primary-500);
+  border-bottom-color: var(--color-primary-500) !important;
+}
+
+.tooltip-inner {
+  text-align: left;
+  font-family: "Noto Sans Thai", sans-serif;
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+.icon-hover {
+  cursor: pointer;
+}
+
+.action-page {
+  justify-content: space-between;
+}
+.action-page .action-back .link {
+  display: flex;
+  align-items: center;
+  font-family: "Noto Sans Thai", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: #000;
+  text-decoration: none;
+}
+.action-page .action-back .link i {
+  font-size: 20px;
+  display: flex;
+  margin-right: 5px;
+}
+
+body {
+  position: relative;
+  font-family: "Noto Sans Thai", sans-serif;
+  font-weight: 400;
+}

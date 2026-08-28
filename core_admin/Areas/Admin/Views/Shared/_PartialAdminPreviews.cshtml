@@ -1,0 +1,82 @@
+﻿@{
+    string previewsURL = (string)ViewBag.previewsURL ?? "";
+}
+@if (previewsURL != "")
+{
+    <div class="popoverWrapper" >
+        <div class="popover-opener">
+            <div class="btn-group mt-3 mb-4">
+                <div class="btn btn--outline--secondary">
+                    <span class="btn-icon"><i class="bi bi-eye"></i></span>
+                    <span class="btn-text">Preview</span>
+                </div>
+            </div>
+        </div>
+        <div class="popover-content shadow">
+            <div class="close-popover"><i class="bi bi-x-lg"></i></div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="field">
+                        <label class="form-label mb-2">ภาษา</label>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="radio" name="preview_content" id="preview_th" value="th" checked>
+                                    <label class="form-check-label" for="preview_th">ไทย</label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="radio" name="preview_content" id="preview_en" value="en">
+                                    <label class="form-check-label" for="preview_en">อังกฤษ</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="field">
+                        <label class="form-label mb-2">หน้าจอ</label>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="display display__sm" onclick="previewModal('@previewsURL', $(':input[name=preview_content]:checked').val(),'')">
+                                    <i class="bi bi-phone-fill"></i>
+                                    <p class="text">mobile</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="display display__md" onclick="previewModal('@previewsURL', $(':input[name=preview_content]:checked').val(),'xl')">
+                                    <i class="bi bi-tablet-fill"></i>
+                                    <p class="text">tablet</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="display display__lg" onclick="previewModal('@previewsURL', $(':input[name=preview_content]:checked').val(),'full')">
+                                    <i class="bi bi-pc-display"></i>
+                                    <p class="text">desktop</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ตัวอย่างการแสดงผล</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="height: 90vh;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+}

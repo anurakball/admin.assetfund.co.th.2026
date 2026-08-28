@@ -1,0 +1,548 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+}
+@section NavbarBack
+{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+ 
+<link rel="stylesheet" href="/lib/flag-icons-main/css/flag-icons.min.css" /> 
+<br />
+<div class="creator--wrapper modify">
+    <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
+        @Html.AntiForgeryToken()
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-tab1-tab" data-bs-toggle="tab" data-bs-target="#nav-tab1" type="button" role="tab" aria-controls="nav-tab1" aria-selected="true">
+                <h5>ข้อมูลเพจ</h5>
+            </button> 
+        </div>      
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade  show active" id="nav-tab1" role="tabpanel" aria-labelledby="nav-tab1-tab">
+                <div class="section section--information">
+                    <div class="form-wrapper">
+                        @{
+                            int parent_lv = _session.GetInt32("admin_" + mod.Name + "_parent_lv") ?? 0;
+                            int parent_id = Convert.ToInt32(_session.GetString("admin_" + mod.Name + "_search_" + mod_config.FieldCMSPage) ?? "0");
+                        }
+                        <h5>
+                        กลุ่ม :
+                        @{
+                            if(parent_lv > 1)
+                            {
+                                <span id="span_page_cat_name">@await Component.InvokeAsync("AdminBreadcrumb2", new { Module = mod })</span>
+                            }
+                            else
+                            {
+                                <text>เมนูหลัก</text>
+                            }
+                        } 
+                        </h5>
+                        <br />
+                        <input type="hidden" name="cat_id" id="cat_id" value="@parent_id" />
+                        <input type="hidden" name="parent_id" id="id_parent_id" value="@parent_id" />
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", ""))
+                            </div>
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", ""))
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("URL Friendly <span class='fi fi-th'></span>", "seo_url", "", "", 200))
+                            </div>
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputText("URL Friendly <span class='fi fi-us'></span>", "en_seo_url", "", "", 200))
+                            </div>
+                        </div>
+                        <div class="row" id="div_textarea">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-th'></span>", "des", ""))
+                            </div>
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                @Html.Raw(_admin.InputTextArea("รายละเอียดย่อ <span class='fi fi-us'></span>", "en_des", ""))
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                <div class="field">
+                                    <label class="form-label">ประเภท</label>
+                                    <div class="row">
+                                        @{
+                                            int for_check_level_a = 3;
+                                            if(mod.Name == "FooterLink")
+                                            {
+                                                for_check_level_a = 4;
+                                            }
+                                            if (parent_lv < for_check_level_a)
+                                            {
+                                                <div class="col-md-3 col-sm-3 col-3" id="div_group_menu">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_1" value="1" checked>
+                                                        <label class="form-check-label" for="id_page_type_1">
+                                                            Group Menu
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            } 
+                                        }
+                                        <div class="col-md-3 col-sm-3 col-3" id="div_page_menu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_3" value="3">
+                                                <label class="form-check-label" for="id_page_type_3">
+                                                    Page Content
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-3 col-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="page_type" id="id_page_type_2" value="2">
+                                                <label class="form-check-label" for="id_page_type_2">
+                                                   URL Link
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        @{
+                                            if(mod.Name == "FooterLink")
+                                            {
+                                                <div class="col-md-3 col-sm-3 col-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_5" value="5">
+                                                        <label class="form-check-label" for="id_page_type_5">
+                                                        File Link
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if((_session.GetInt32("admin_web_id") ?? 0) == 0)
+                                            {
+                                                <div class="col-md-3 col-sm-3 col-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="page_type" id="id_page_type_4" value="4">
+                                                        <label class="form-check-label" for="id_page_type_4">
+                                                        System Link
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="type_div_1">
+                            
+                        </div>
+                        <div id="type_div_2" style="display:none;">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextLinkCMSPage("URL <span class='fi fi-th'></span>", "url", ""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextLinkCMSPage("URL <span class='fi fi-us'></span>", "en_url", ""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputUrlTarget("URL Target", "url_target", ""))
+                                </div>
+                            </div>
+                        </div>
+                        <div id="type_div_3" style="display:none;">
+                            
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("SEO Keyword", "seo_kw", ""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("SEO Description", "seo_de", ""))
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("Script Header", "script_head", ""))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextArea("Script Body", "script_body", ""))
+                                </div>
+                            </div>
+                            <div class="row">
+                                @Html.Raw(_admin.InputTextEditor_Eform("เนื้อหา <span class='fi fi-th'></span>", "info", ""))
+                                @Html.Raw(_admin.InputTextEditor_Eform("เนื้อหา <span class='fi fi-us'></span>", "en_info", ""))
+                            </div>
+                            <br />
+                        </div>
+                        <div id="type_div_4" style="display:none;">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputTextLinkCMSPage2("System", "box_data", ""))
+                                </div> 
+                            </div>
+                        </div>
+                        <div id="type_div_5" style="display:none;"> 
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputFileManeger("ไฟล์ดาวน์โหลด <span class='fi fi-th'></span> <span style='font-weight: normal;color: orange;'>(.pdf ไม่เกิน 50MB)</span>", "page_type_sub", "", "application/pdf"))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputFileManeger("ไฟล์ดาวน์โหลด <span class='fi fi-us'></span> <span style='font-weight: normal;color: orange;'>(.pdf ไม่เกิน 50MB)</span>", "page_type_sub_core", "", "application/pdf"))
+                                </div>
+                            </div>
+                        </div>
+                        @*<input type="hidden" name="page_type_sub_core_data" id="page_type_sub_core_data" value="" />*@
+                        <br />
+                        <script> 
+                        $(document).ready(function() 
+                        {
+                            $(":input[name='issue_date_config']").click(function() 
+                            {
+                                if ($(this).val() == '2') 
+                                {
+                                    $('#div_id_issue_date').stop(true, false).slideDown();
+                                }
+                                else 
+                                {
+                                    $('#div_id_issue_date').stop(true, false).slideUp();
+                                }
+                            });
+                        });
+                        </script>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 mb-3">
+                                <div class="field">
+                                    <label class="form-label">วันที่แสดงผล</label>
+                                    <div class="row">
+                                        <div class="col-md-6 col-sm-6 col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="issue_date_config" id="id_issue_date_config_1" value="1" checked>
+                                                <label class="form-check-label" for="id_issue_date_config_1">
+                                                    แสดงตลอดเวลา
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6 col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="issue_date_config" id="id_issue_date_config_2" value="2">
+                                                <label class="form-check-label" for="id_issue_date_config_2">
+                                                    กำหนดเอง
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="" id="div_id_issue_date" style="display:none;">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputDateTime("วันที่แสดงผล", "issue_date", System.DateTime.Now.ToString("dd/MM/yyyy HH:mm")))
+                                </div>
+                                <div class="col-lg-6 col-md-6 mb-3">
+                                    @Html.Raw(_admin.InputDateTime("วันที่สิ้นสุดแสดงผล", "expiry_date", System.DateTime.Now.AddYears(1).ToString("dd/MM/yyyy HH:mm")))
+                                </div>
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div> 
+        </div>
+
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+
+        <input type="hidden" name="box_layout" id="box_layout" />
+        <input type="hidden" name="box_data2" id="box_data" />
+        <input type="hidden" name="box_data_sub" id="box_data_sub" />
+         
+    </form>
+    
+    <script> 
+    @{
+        int for_check_level_b = 3;
+        if(mod.Name == "FooterLink")
+        {
+            for_check_level_b = 4;
+        }
+        if (parent_lv < for_check_level_b)
+        {
+
+        }
+        else
+        {
+            <text>
+            $("#id_page_type_3").trigger("click");
+            $('#type_div_1').stop(true, false).slideUp();
+            $('#type_div_2').stop(true, false).slideUp();
+            $('#type_div_3').stop(true, false).slideDown();
+            $('#type_div_4').stop(true, false).slideUp();
+            </text>
+        }
+
+        if(mod.Name == "CMSPageFooter1" || mod.Name == "CMSPageFooter2") 
+        {
+            <text>
+            $("#id_page_type_3").trigger("click"); 
+            $('#type_div_1').stop(true, false).slideUp();
+            $('#type_div_2').stop(true, false).slideUp();
+            $('#type_div_3').stop(true, false).slideDown();
+            $('#type_div_4').stop(true, false).slideUp();
+            document.getElementById('div_group_menu').style.display = 'none';
+            </text>
+        }
+
+        if(mod.Name == "FooterLink") 
+        {
+            <text> 
+            $("#id_page_type_2").trigger("click"); 
+            $('#type_div_1').stop(true, false).slideUp();
+            $('#type_div_3').stop(true, false).slideUp();
+            $('#type_div_2').stop(true, false).slideDown();
+            $('#type_div_4').stop(true, false).slideUp();
+            document.getElementById('div_page_menu').style.display = 'none';
+            document.getElementById('div_textarea').style.display = 'none';
+            </text>
+        }
+    }  
+    </script>
+   
+</div>
+
+@await Component.InvokeAsync("LinkHelper")
+@await Component.InvokeAsync("LinkHelper2")
+@await Component.InvokeAsync("AddForm")
+
+@section Slide
+{
+    <link href="~/Vendor/slick/slick.css" rel="stylesheet" />
+    <link href="~/Vendor/slick/slick-theme.css" rel="stylesheet" />
+    <script src="~/Vendor/slick/slick.min.js"></script>
+    <script>
+
+    function sConfirmCustom(form) 
+    {
+        document.getElementById('box_layout').value = "";
+        if (document.getElementById('id_issue_date_config_2').checked == true) 
+        {
+            if (
+                $('#id_issue_date').val() != '' && $('#id_expiry_date').val() != '' &&
+                $('#id_issue_date').datetimepicker('getValue') > $('#id_expiry_date').datetimepicker('getValue')
+            ) 
+            {
+                sAlert("วันที่ไม่ถูกต้อง", "วันที่สิ้นสุด ต้องมากกว่า วันที่แสดงผล", "warning");
+                return false;
+            }
+        }
+ 
+        if ($('#id_title').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก หัวข้อ (TH)", "warning");
+            $('#id_title').focus();
+            return false;
+        }
+        if ($('#id_en_title').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก หัวข้อ (EN)", "warning");
+            $('#id_en_title').focus();
+            return false;
+        }
+        if ($('#id_seo_url').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL Friendly (TH)", "warning");
+            $('#id_seo_url').focus();
+            return false;
+        }
+        if ($('#id_en_seo_url').val().trim() === '') {
+            sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL Friendly (EN)", "warning").then(() => { $('#id_en_seo_url').focus(); });
+            return false;
+        }
+
+        if ($(':input[name="page_type"]:checked').val() === '2') {
+            if ($('#id_url').val().trim() === '') {
+                sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL (TH)", "warning").then(() => { $('#id_url').focus(); });
+                return false;
+            }
+            if ($('#id_en_url').val().trim() === '') {
+                sAlert("กรุณากรอกข้อมูล", "กรุณากรอก URL (EN)", "warning").then(() => { $('#id_en_url').focus(); });
+                return false;
+            }
+        }
+
+        // Validate required fields
+        var titleField = $('[name="title"]');
+        if (titleField.length > 0 && titleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            titleField.focus();
+            return false;
+        }
+        var enTitleField = $('[name="en_title"]');
+        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
+            enTitleField.focus();
+            return false;
+        }
+        Swal.fire({
+            title: 'ยืนยัน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0047B6',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ปิด',
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__bounceOut'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            } else {
+                return false;
+            }
+        });
+        return false;
+    }
+    function slickCarousel() 
+    {
+        $(".card--slide").each(function (index, element) 
+        {
+            $(this).not('.slick-initialized').slick(
+            {
+                dots: false,
+                autoplay: false,
+                infinite: true,
+                arrows: true,
+                touchMove: false,
+                speed: 1000,
+                //cssEase: 'linear',
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                responsive: [
+                {
+                    breakpoint: 992,
+                    settings: {
+                        slidesToShow: 2,
+                    }
+                },
+                {
+                    breakpoint: 480,
+                    settings: {
+                        slidesToShow: 1,
+                    }
+                }]
+            });
+        });
+        $('.list-group__left .accordion-item .accordion-collapse .accordion-body .itemDrag .list-group-item .main-func .card--slide').slick('destroy');
+    }
+    $(document).ready(function () 
+    { 
+        $(":input[name='page_type']").click(function () 
+        {
+            if ($(this).val() == '1') {
+                $('#type_div_1').stop(true, false).slideDown();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '2') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideDown();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '3') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideDown();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '4') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideDown();
+                $('#type_div_5').stop(true, false).slideUp();
+            }
+            else if ($(this).val() == '5') {
+                $('#type_div_1').stop(true, false).slideUp();
+                $('#type_div_2').stop(true, false).slideUp();
+                $('#type_div_3').stop(true, false).slideUp();
+                $('#type_div_4').stop(true, false).slideUp();
+                $('#type_div_5').stop(true, false).slideDown();
+            }
+        }); 
+        
+        setTimeout(function () 
+        {
+            $(':input[name="issue_date"]').datetimepicker("destroy");
+            $(':input[name="issue_date"]').datetimepicker({
+                format: 'd/m/Y H:i',
+                minDate: 0,
+                onClose: function (current_time, $input) 
+                { 
+                    /*
+                    if ($input.val() != '' && $input.datetimepicker('getValue') < new Date().addHours(-1)) 
+                    {
+                        $input.val('');
+                        sAlert("วันที่ไม่ถูกต้อง", "ไม่สามารถเลือกวันที่ น้อยวันที่ปัจจุบันได้", "warning"); 
+                    }
+                    */
+                },
+            });
+        }, 500);
+
+        $('#id_seo_url').on('keyup', function ()
+        {
+            var val = replace_for_url(document.getElementById('id_seo_url').value);
+            document.getElementById('id_seo_url').value = val.replace(/\//g, '');
+        });
+        $('#id_en_seo_url').on('keyup', function () {
+            var val = replace_for_url(document.getElementById('id_en_seo_url').value);
+            document.getElementById('id_en_seo_url').value = val.replace(/\//g, '');
+        });
+        $('#id_seo_url').on('blur', function () {
+            var val = replace_for_url($(this).val().trim());
+            val = val.replace(/\//g, '');
+            val = val.replace(/[^a-zA-Z0-9ก-๙\-_.]/g, '-');
+            val = val.replace(/-{2,}/g, '-');
+            val = val.replace(/^-+|-+$/g, '');
+            val = val.toLowerCase();
+            $(this).val(val);
+        });
+        $('#id_en_seo_url').on('blur', function () {
+            var val = replace_for_url($(this).val().trim());
+            val = val.replace(/\//g, '');
+            val = val.replace(/[^a-zA-Z0-9ก-๙\-_.]/g, '-');
+            val = val.replace(/-{2,}/g, '-');
+            val = val.replace(/^-+|-+$/g, '');
+            val = val.toLowerCase();
+            $(this).val(val);
+        });
+        $('#id_title').on('blur', function () {
+            if ($('#id_seo_url').val().trim() === '') {
+                $('#id_seo_url').val($(this).val());
+                $('#id_seo_url').trigger('blur');
+            }
+        });
+        $('#id_en_title').on('blur', function () {
+            if ($('#id_en_seo_url').val().trim() === '') {
+                $('#id_en_seo_url').val($(this).val());
+                $('#id_en_seo_url').trigger('blur');
+            }
+        });
+
+        $('#fm_cms').find('input[type="text"], textarea').attr('maxlength', 255);
+
+        $('.header--primary').css("display", "none");
+    });
+    </script>
+}
