@@ -211,7 +211,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
 
                 int rowCount = ws.Dimension.Rows;
-                var now = DateTime.Now;
+                // ผูก offset ของเครื่องไปด้วย เพราะคอลัมน์ปลายทางเป็น datetimeoffset
+                var now = new DateTimeOffset(DateTime.Now);
 
                 for (int row = 2; row <= rowCount; row++)
                 {
@@ -462,7 +463,7 @@ WHERE id = @id";
                             using var seqCmd = new SqlCommand("SELECT COUNT(*) + 1 FROM [2026_web_agent] WHERE codeid LIKE @prefix", conn);
                             seqCmd.Transaction = tx;
                             seqCmd.Parameters.AddWithValue("prefix", $"{datePrefix}%");
-                            long nextSeq = (long)(seqCmd.ExecuteScalar() ?? 1L);
+                            long nextSeq = Convert.ToInt64(seqCmd.ExecuteScalar() ?? 1L);
                             codeId = $"{datePrefix}{nextSeq:D4}";
                         }
 

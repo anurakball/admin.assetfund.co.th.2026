@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Linq;
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
 {
@@ -39,6 +40,64 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 defaultConnectionString = value;
             }*/
         }
+        /// <summary>
+        /// ทำให้คอลัมน์เวลาหน้าตาเหมือนเดิมสมัยใช้ PostgreSQL
+        ///
+        /// คอลัมน์ <c>datetimeoffset</c> ของ SQL Server อ่านออกมาเป็น <see cref="DateTimeOffset"/>
+        /// แต่โค้ดทั้งระบบ (View/Controller) รับเป็น <see cref="DateTime"/> แบบ UTC แล้วค่อยเรียก
+        /// <c>.ToLocalTime()</c> เอง ซึ่งเป็นพฤติกรรมที่ Npgsql เคยให้ไว้
+        /// จึงแปลงกลับตรงนี้จุดเดียว แทนการไล่แก้ทุกจุดที่ cast เป็น DateTime
+        /// </summary>
+        private static void NormalizeDateTimeColumns(DataTable dt)
+        {
+            var targets = dt.Columns.Cast<DataColumn>()
+                            .Where(c => c.DataType == typeof(DateTimeOffset))
+                            .ToList();
+
+            foreach (var col in targets)
+            {
+                int ordinal = col.Ordinal;
+                string name = col.ColumnName;
+                string temp = name + "__utc";
+
+                var replacement = new DataColumn(temp, typeof(DateTime));
+                dt.Columns.Add(replacement);
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    row[temp] = row[name] == DBNull.Value
+                        ? (object)DBNull.Value
+                        : ((DateTimeOffset)row[name]).UtcDateTime;
+                }
+
+                dt.Columns.Remove(col);
+                replacement.ColumnName = name;
+                replacement.SetOrdinal(ordinal);
+            }
+
+            if (targets.Count > 0) dt.AcceptChanges();
+        }
+
+        /// <summary>
+        /// เตรียมค่าก่อนส่งเป็นพารามิเตอร์
+        ///
+        /// คอลัมน์เวลาของระบบเป็น <c>datetimeoffset</c> (แปลงมาจาก <c>timestamptz</c> ของ PostgreSQL)
+        /// ถ้าส่ง <see cref="System.DateTime"/> เข้าไปตรง ๆ SQL Server จะถือว่า offset เป็น +00:00
+        /// ทำให้เวลาที่บันทึกเพี้ยนไป 7 ชั่วโมงเทียบกับข้อมูลเดิม จึงผูก offset ของเครื่องให้ก่อน
+        /// (PostgreSQL เดิมใช้ TimeZone ของ session เติมให้อัตโนมัติ)
+        /// </summary>
+        private static object? ToParamValue(object? value)
+        {
+            if (value is DateTime dt)
+            {
+                return dt.Kind == DateTimeKind.Utc
+                    ? new DateTimeOffset(dt)
+                    : new DateTimeOffset(DateTime.SpecifyKind(dt, DateTimeKind.Unspecified),
+                                         TimeZoneInfo.Local.GetUtcOffset(dt));
+            }
+            return value;
+        }
+
         /// <summary>ชื่อตารางสำหรับ T-SQL — เติม prefix 2026_ และครอบ [] (ดู <see cref="Db.T"/>)</summary>
         private static string QuoteTable(string table) => Db.T(table);
 
@@ -71,7 +130,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 {
                     foreach (var item in parameters)
                     {
-                        filters.Add(new SqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, ToParamValue(item.Value) ?? DBNull.Value));
                     }
                 }
                 a = Query(query, filters);
@@ -123,7 +182,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 {
                     foreach (var item in parameters)
                     {
-                        filters.Add(new SqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, ToParamValue(item.Value) ?? DBNull.Value));
                     }
                 }
 
@@ -196,7 +255,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 {
                     foreach (var item in parameters)
                     {
-                        filters.Add(new SqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, ToParamValue(item.Value) ?? DBNull.Value));
                     }
                 }
 
@@ -264,7 +323,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 {
                     foreach (var item in parametersFieldValue)
                     {
-                        filters.Add(new SqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, ToParamValue(item.Value) ?? DBNull.Value));
                     }
                 }
 
@@ -272,7 +331,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 {
                     foreach (var item in parametersCondition)
                     {
-                        filters.Add(new SqlParameter(item.Key, item.Value));
+                        filters.Add(new SqlParameter(item.Key, ToParamValue(item.Value) ?? DBNull.Value));
                     }
                 }
 
@@ -452,6 +511,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     }
                     da = new SqlDataAdapter(command);
                     da.Fill(dt);
+                    NormalizeDateTimeColumns(dt);
                 }
                 finally
                 {
