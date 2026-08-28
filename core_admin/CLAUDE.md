@@ -20,8 +20,17 @@ ASP.NET Core 10 MVC application serving an admin panel for the SAM website (`adm
 
 | Role | Type | Database | Config key |
 |---|---|---|---|
-| Primary | PostgreSQL | `asset_fund_temp` | `DBConnection` |
+| Primary | SQL Server | `asset_plus_uat` (ตาราง prefix `2026_`) | `DBConnection` |
 | Secondary | MySQL | `sam_npa` | `MySQLConnection` |
+
+> **ชื่อตาราง**: ตารางของระบบนี้อยู่ใน `asset_plus_uat` ร่วมกับตารางของระบบเดิมอีก 127 ตัว (ชื่อชนกันหลายตัว)
+> จึงเติม prefix `2026_` ทุกตาราง และเพราะชื่อขึ้นต้นด้วยตัวเลข T-SQL บังคับให้ครอบ `[ ]` เสมอ
+> เวลาเขียน SQL ใหม่ให้ใช้ `Db.T("web_admin")` แทนการพิมพ์ชื่อตรง ๆ
+>
+> **ข้อควรระวังของ T-SQL** (ต่างจาก PostgreSQL เดิม): ไม่มี `LIMIT` (ใช้ `TOP` / `OFFSET…FETCH` ซึ่งต้องมี `ORDER BY`),
+> ไม่มี `ILIKE` (คอลเลชัน `Thai_CI_AS` ไม่สนตัวพิมพ์อยู่แล้ว), ไม่มี `::cast` (ใช้ `CAST`/`TRY_CAST`),
+> `GROUP BY` ห้ามมี subquery และอ้างลำดับคอลัมน์ไม่ได้, `SUM(CASE…)` คืน `NULL` เมื่อไม่มีแถว (ครอบ `COALESCE`),
+> `COUNT(*)` คืน `int` (ไม่ใช่ `bigint`), และ database นี้อยู่ที่ compatibility level 100 จึงใช้ `OPENJSON`/`STRING_SPLIT` ไม่ได้
 
 All queries are raw parameterized SQL — no ORM. `DBHelper.cs` wraps Npgsql and MySqlConnector and logs queries to console in Development (except module/access-check queries).
 
@@ -32,7 +41,7 @@ All queries are raw parameterized SQL — no ORM. `DBHelper.cs` wraps Npgsql and
 - `docs/frontend-to-backend-map.md` — ทุกหน้า front-end (7169) map ไปเมนูหลังบ้าน (#N อ้างไฟล์บน)
 
 ข้อเท็จจริงสถาปัตยกรรมหลัก (durable — ใช้ตั้งต้นได้เลย):
-- **ทรัพย์สิน NPA ทุกใบอยู่ MySQL `sam_npa.tb_product2`** (ค้นหา/detail/แผนที่/นับ/LED source=2/AI). PostgreSQL `asset_fund_temp` เป็น overlay เท่านั้น: `web_npa_status` (สถานะ/highlight/ผูกย่าน+facility), `web_core_group` (ย่าน=NpaLocate, facility=NpaFacility), + เก็บ submission
+- **ทรัพย์สิน NPA ทุกใบอยู่ MySQL `sam_npa.tb_product2`** (ค้นหา/detail/แผนที่/นับ/LED source=2/AI). SQL Server `asset_plus_uat` เป็น overlay เท่านั้น: `web_npa_status` (สถานะ/highlight/ผูกย่าน+facility), `web_core_group` (ย่าน=NpaLocate, facility=NpaFacility), + เก็บ submission
 - **Approval workflow** ใช้คอลัมน์คู่ `pb_*` (pending) — front-end อ่าน `pb_*` (ค่าที่อนุมัติแล้ว); กด Approve จึง copy `pb_*`→ฟิลด์จริง
 - เมนูหลังบ้านเกือบทั้งหมดเป็น thin wrapper ของ `AdminCoreController` + config กลางใน `Helpers/AdminMenu.cs` (`AllModule()`); "เครื่องยนต์เนื้อหา" ใช้ซ้ำ 4 แบบ: `web_core_single` (1 เมนู=1 ระเบียน แก้ไข t1..t50 เป็น section 2 ภาษา), `web_core_item` (การ์ดซ้ำ), `web_core_group` (หมวด), `web_core_news` (บทความเต็ม)
 - Front-end (`D:\Project\sam.or.th`) มี 3 controllers; routing หลักอยู่ใน `HomeController.Index()` (~9,000 บรรทัด) resolve หน้า CMS จาก `web_cms_page.seo_url` แล้ว switch ตามโค้ด `pb_box_data` (เช่น `abo-vis`, `dep-ove`) เลือก table/view
@@ -72,11 +81,12 @@ Session-based auth (no ASP.NET Identity). Session keys: `admin_login`, `admin_us
 
 | File | Purpose |
 |---|---|
-| `Helpers/DBHelper.cs` | Raw SQL execution (PostgreSQL + MySQL) |
+| `Helpers/DBHelper.cs` | Raw SQL execution (SQL Server + MySQL) |
+| `Helpers/Db.cs` | `Db.T("web_admin")` → `[2026_web_admin]` — ชื่อตรรกะ → ชื่อจริงใน SQL Server |
 | `Helpers/AdminHelpers.cs` | Session auth, menu loading |
 | `Helpers/Utility.cs` | BCrypt hashing, Serilog logging, MailKit email |
 | `Helpers/WebService.cs` | HTTP client calls to the backend API |
-| `Services/AuditLogService.cs` | Writes to `api_audit_log` (PostgreSQL, scoped) |
+| `Services/AuditLogService.cs` | Writes to `2026_api_audit_log` (SQL Server, scoped) |
 
 ### Conventions for New Controllers
 
@@ -143,7 +153,7 @@ Static assets under `wwwroot/`. No npm/bundler pipeline — libraries are commit
 ## Database Connections (Development)
 
 ```
-PostgreSQL: Host=localhost; Database=asset_fund_temp; Username=postgres; Password=<see appsettings.Development.json>
+SQL Server: Server=.; Database=asset_plus_uat; User ID=sa; Password=<see appsettings.Development.json>
 MySQL:      Server=localhost; Database=sam_npa;        UserID=root;     Password=<see appsettings.Development.json>
 ```
 
@@ -159,7 +169,7 @@ MySQL:      Server=localhost; Database=sam_npa;        UserID=root;     Password
 
 ## เว็บไซต์ front-end (เว็บสาธารณะ / public site)
 
-Front-end คือ**คนละแอป**กับ admin นี้ อยู่คนละโปรเจกต์ — เดิมใช้ PostgreSQL `sam` ร่วมกัน แต่ admin ย้ายมาใช้ `asset_fund_temp` (สำเนาของ `sam`) แล้ว จึง**ไม่ได้ใช้ฐานข้อมูลตัวเดียวกันอีก**
+Front-end คือ**คนละแอป**กับ admin นี้ อยู่คนละโปรเจกต์ — เดิมใช้ PostgreSQL `sam` ร่วมกัน แต่ admin ย้ายมาใช้ SQL Server `asset_plus_uat` (ตาราง prefix `2026_`) แล้ว จึง**ไม่ได้ใช้ฐานข้อมูลตัวเดียวกันอีก**
 
 | แอป | โปรเจกต์ | URL (dev) |
 |---|---|---|
