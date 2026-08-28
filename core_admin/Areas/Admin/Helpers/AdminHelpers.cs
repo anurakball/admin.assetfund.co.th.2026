@@ -1345,18 +1345,22 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         public string InputDate(string input_label, string input_name, string input_value)
         {
             string update_value = "";
-            if(input_value.IndexOf('/') > -1)
+            input_value = (input_value ?? "").Trim();
+
+            if (input_value.IndexOf('/') > -1)
             {
                 update_value = input_value;
             }
-            else
+            else if (input_value.Length >= 8)
             {
+                //----- รูปแบบ yyyyMMdd → dd/MM/yyyy
                 string y1 = input_value.Substring(0, 4);
                 string m1 = input_value.Substring(4, 2);
                 string d1 = input_value.Substring(6, 2);
 
-                update_value = d1+"/"+m1+"/"+y1;
+                update_value = d1 + "/" + m1 + "/" + y1;
             }
+            //----- ค่าว่าง/NULL หรือสั้นกว่า 8 ตัว = ปล่อยช่องว่างไว้ ไม่ใช่ทำให้ทั้งหน้าพัง
             
             string html = @"
                 <div class=""field"">
