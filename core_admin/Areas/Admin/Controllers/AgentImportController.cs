@@ -5,6 +5,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class AgentImportController : AdminCoreController
@@ -308,7 +309,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     if (string.IsNullOrEmpty(skipReason))
                     {
                         var chk = _db.ExecuteQuery(
-                            "SELECT id, uid, codeid FROM web_agent WHERE idcard = @idcard ORDER BY id LIMIT 1",
+                            "SELECT top 1 id, uid, codeid FROM [2026_web_agent] WHERE idcard = @idcard ORDER BY id",
                             new Dictionary<string, object> { { "idcard", agt_idcard } });
                         if (chk.Rows.Count > 0)
                         {
@@ -321,7 +322,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                             if (uid > 0)
                             {
                                 var m = _db.ExecuteQuery(
-                                    "SELECT id FROM web_member WHERE id = @id LIMIT 1",
+                                    "SELECT top 1 id FROM [2026_web_member] WHERE id = @id",
                                     new Dictionary<string, object> { { "id", uid } });
                                 if (m.Rows.Count > 0) existMemberId = uid;
                             }
@@ -332,14 +333,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     if (string.IsNullOrEmpty(skipReason))
                     {
                         var chk = _db.ExecuteQuery(
-                            "SELECT id FROM web_member WHERE LOWER(username) = LOWER(@username) AND id <> @self LIMIT 1",
+                            "SELECT top 1 id FROM [2026_web_member] WHERE LOWER(username) = LOWER(@username) AND id <> @self",
                             new Dictionary<string, object> { { "username", mem_username }, { "self", existMemberId } });
                         if (chk.Rows.Count > 0) skipReason = "username ซ้ำ";
                     }
                     if (string.IsNullOrEmpty(skipReason))
                     {
                         var chk = _db.ExecuteQuery(
-                            "SELECT id FROM web_member WHERE LOWER(email) = LOWER(@email) AND id <> @self LIMIT 1",
+                            "SELECT top 1 id FROM [2026_web_member] WHERE LOWER(email) = LOWER(@email) AND id <> @self",
                             new Dictionary<string, object> { { "email", mem_email }, { "self", existMemberId } });
                         if (chk.Rows.Count > 0) skipReason = "email ซ้ำ";
                     }
@@ -395,17 +396,17 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         {
                             // ---- INSERT web_member ----
                             const string memberSql = @"
-INSERT INTO web_member
+INSERT INTO [2026_web_member]
   (type, title, titleoth, firstname, surname, username, email, mobile, lineuid,
    password, reg_date, last_login, accept_mail, confirm_otp, confirm_email,
    refemail, lineid, web_id, sort, pb_status, show_front, status,
    created_at, updated_at, created_by, updated_by)
+OUTPUT INSERTED.id
 VALUES
   (@type, @title, @titleoth, @firstname, @surname, @username, @email, @mobile, @lineuid,
    @password, @now, @now, 1, 0, 1,
    NULL, NULL, 0, 1, 1, 1, 1,
-   @now, @now, 'import', 'import')
-RETURNING id";
+   @now, @now, 'import', 'import')";
 
                             using var cmd = new SqlCommand(memberSql, conn);
                             cmd.Transaction = tx;
@@ -427,7 +428,7 @@ RETURNING id";
                             // ---- UPDATE web_member (ทับทุกฟิลด์ที่มาจากไฟล์ ยกเว้นรหัสผ่าน/วันสมัคร) ----
                             memberId = existMemberId;
                             const string memberUpdSql = @"
-UPDATE web_member SET
+UPDATE [2026_web_member] SET
   type = @type, title = @title, titleoth = @titleoth,
   firstname = @firstname, surname = @surname,
   username = @username, email = @email, mobile = @mobile, lineuid = @lineuid,
@@ -458,7 +459,7 @@ WHERE id = @id";
                         else
                         {
                             string datePrefix = now.ToString("yyyyMMdd");
-                            using var seqCmd = new SqlCommand("SELECT COUNT(*) + 1 FROM web_agent WHERE codeid LIKE @prefix", conn);
+                            using var seqCmd = new SqlCommand("SELECT COUNT(*) + 1 FROM [2026_web_agent] WHERE codeid LIKE @prefix", conn);
                             seqCmd.Transaction = tx;
                             seqCmd.Parameters.AddWithValue("prefix", $"{datePrefix}%");
                             long nextSeq = (long)(seqCmd.ExecuteScalar() ?? 1L);
@@ -504,7 +505,7 @@ WHERE id = @id";
                             // ไม่แตะ status/approved/adddate/upfile* เพื่อไม่ให้สถานะที่อนุมัติไว้แล้วเปลี่ยน
                             string npaSet = string.Join(",\n  ", Helpers.AdminMenu.NpaFields.Select(f => $"{f} = @{f}"));
                             string agentUpdSql = $@"
-UPDATE web_agent SET
+UPDATE [2026_web_agent] SET
   codeid = @codeid, uid = @uid, title = @title, name = @name, surname = @surname, idcard = @idcard,
   cus_base_addr = @cus_base_addr, cus_base_moo = @cus_base_moo,
   cus_base_soi = @cus_base_soi, cus_base_road = @cus_base_road,
@@ -532,7 +533,7 @@ WHERE id = @id";
                             string npaCols = string.Join(", ", Helpers.AdminMenu.NpaFields);
                             string npaVals = string.Join(", ", Helpers.AdminMenu.NpaFields.Select(f => "@" + f));
                             string agentSql = $@"
-INSERT INTO web_agent
+INSERT INTO [2026_web_agent]
   (codeid, uid, title, name, surname, idcard,
    cus_base_addr, cus_base_moo, cus_base_soi, cus_base_road,
    cus_base_tambol, cus_base_amphur, cus_base_province, cus_base_zipcode,
@@ -543,6 +544,7 @@ INSERT INTO web_agent
    upfile1, upfile2, upfile3, upfile4,
    adddate, status, approved, codefile, web_id, sort, pb_status, show_front,
    created_at, updated_at, created_by, updated_by)
+OUTPUT INSERTED.id
 VALUES
   (@codeid, @uid, @title, @name, @surname, @idcard,
    @cus_base_addr, @cus_base_moo, @cus_base_soi, @cus_base_road,
@@ -553,8 +555,7 @@ VALUES
    {npaVals},
    NULL, NULL, NULL, NULL,
    @now, 1, 1, NULL, 0, 1, 1, 1,
-   @now, @now, 'import', 'import')
-RETURNING id";
+   @now, @now, 'import', 'import')";
 
                             using var cmd = new SqlCommand(agentSql, conn);
                             cmd.Transaction = tx;
@@ -651,11 +652,11 @@ RETURNING id";
 
             // ── มีอยู่จริง + เป็นลูกของกันตามลำดับชั้น (กันตำบลเชียงใหม่ไปอยู่ใต้จังหวัดกรุงเทพฯ) ──
             var chk = _db.ExecuteQuery(
-                $@"select s.zip_code
-                   from {Helpers.GeoHelper.SubdistrictTable} s
-                   join {Helpers.GeoHelper.DistrictTable}    d on d.id = s.district_id
-                   join {Helpers.GeoHelper.ProvinceTable}    p on p.id = d.province_id
-                   where s.code = @t and d.code = @a and p.code = @p limit 1",
+                $@"select top 1 s.zip_code
+                   from {Db.T(Helpers.GeoHelper.SubdistrictTable)} s
+                   join {Db.T(Helpers.GeoHelper.DistrictTable)}    d on d.id = s.district_id
+                   join {Db.T(Helpers.GeoHelper.ProvinceTable)}    p on p.id = d.province_id
+                   where s.code = @t and d.code = @a and p.code = @p",
                 new Dictionary<string, object>
                 {
                     { "t", int.Parse(tambol) }, { "a", int.Parse(amphur) }, { "p", int.Parse(province) }

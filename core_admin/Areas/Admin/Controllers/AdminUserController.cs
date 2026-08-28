@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 using thaicredit_hr_admin.Areas.Admin.Models;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class AdminUserController : AdminCoreController
@@ -54,7 +55,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 #endregion
 
                 #region Check username
-                var checkUser = _db.ExecuteQuery("select id from web_admin where TRIM(username) = TRIM(@username) and web_id = @web_id limit 1", new() { { "username", collection["username"].ToString() }, { "web_id", _currentWebID } });
+                var checkUser = _db.ExecuteQuery("select top 1 id from [2026_web_admin] where TRIM(username) = TRIM(@username) and web_id = @web_id", new() { { "username", collection["username"].ToString() }, { "web_id", _currentWebID } });
                 if (checkUser.Rows.Count > 0)
                 {
                     TempData["alert_class"] = "alert-danger";
@@ -83,7 +84,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         #region ############### ตรวจสอบการตั้งรหัสผ่านเดิม ##############
                         var Config_Password = _config.GetSection("ConfigPassword");
                         string Config_Password_Times = Config_Password.GetSection("LastPassword").Value.ToString();
-                        var SQL_Old_Password_Last = _db.ExecuteQuery("SELECT password FROM web_admin_password_log WHERE admin_user=@admin_user and web_id = @web_id ORDER BY created_at DESC Limit " + Config_Password_Times.ToString(), new Dictionary<string, object>() { { "admin_user", (insertFields["username"] + "").ToString() }, { "web_id", _currentWebID } });
+                        var SQL_Old_Password_Last = _db.ExecuteQuery("SELECT TOP (" + Config_Password_Times.ToString() + ") password FROM [2026_web_admin_password_log] WHERE admin_user=@admin_user and web_id = @web_id ORDER BY created_at DESC", new Dictionary<string, object>() { { "admin_user", (insertFields["username"] + "").ToString() }, { "web_id", _currentWebID } });
                         if (SQL_Old_Password_Last.Rows.Count > 0)
                         {
                             foreach (System.Data.DataRow r_Old_Password_Last in SQL_Old_Password_Last.Rows)
@@ -112,7 +113,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 if (affected != 0)
                 {
                     int access_id = 0;
-                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc LIMIT 1", Module.Config.Table), new() { { "web_id", _currentWebID } });
+                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT top 1 MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc", Db.T(Module.Config.Table)), new() { { "web_id", _currentWebID } });
 
                     if (lastInsert.Rows.Count > 0 && !string.IsNullOrEmpty(lastInsert.Rows[0]["last_id"].ToString()) && _utility.isInt(lastInsert.Rows[0]["last_id"] + ""))
                     {
@@ -178,7 +179,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 #region Select Item Edit 
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการแก้ไข";
@@ -231,7 +232,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         #region ############### ตรวจสอบการตั้งรหัสผ่านเดิม ##############
                         var Config_Password = _config.GetSection("ConfigPassword");
                         string Config_Password_Times = Config_Password.GetSection("LastPassword").Value.ToString();
-                        var SQL_Old_Password_Last = _db.ExecuteQuery("SELECT password FROM web_admin_password_log WHERE admin_user=@admin_user and web_id = @web_id ORDER BY created_at DESC Limit " + Config_Password_Times.ToString(), new Dictionary<string, object>() { { "admin_user", (itemEdit.Rows[0]["username"] + "").ToString() }, { "web_id", _currentWebID } });
+                        var SQL_Old_Password_Last = _db.ExecuteQuery("SELECT TOP (" + Config_Password_Times.ToString() + ") password FROM [2026_web_admin_password_log] WHERE admin_user=@admin_user and web_id = @web_id ORDER BY created_at DESC", new Dictionary<string, object>() { { "admin_user", (itemEdit.Rows[0]["username"] + "").ToString() }, { "web_id", _currentWebID } });
                         if (SQL_Old_Password_Last.Rows.Count > 0)
                         {
                             foreach (System.Data.DataRow r_Old_Password_Last in SQL_Old_Password_Last.Rows)
@@ -366,12 +367,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         foreach (string id in allIDar)
                         {
                             #region ----- select item delete -----
-                            var itemDelete = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
+                            var itemDelete = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
                             #endregion
 
                             if (_utility.isInt(id) && itemDelete.Rows.Count > 0)
                             {
-                                var affected = _db.ExecuteNonQuery(string.Format("delete from {0} where id = @id and web_id = @web_id", Module.Config.Table), new() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
+                                var affected = _db.ExecuteNonQuery(string.Format("delete from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
                                 rowDel += affected;
 
                                 if (affected > 0)
@@ -425,7 +426,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             
             try
             { 
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", tb), new Dictionary<string, object>() { { "id", Convert.ToInt64(id) }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(tb)), new Dictionary<string, object>() { { "id", Convert.ToInt64(id) }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 { 
                     return Content("2");
@@ -475,7 +476,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             
             try
             { 
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", tb), new Dictionary<string, object>() { { "id", Convert.ToInt64(id) }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(tb)), new Dictionary<string, object>() { { "id", Convert.ToInt64(id) }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 { 
                     return Content("2");

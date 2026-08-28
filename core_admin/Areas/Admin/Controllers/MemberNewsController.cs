@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using thaicredit_hr_admin.Areas.Admin.Helpers;
 
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
@@ -34,7 +34,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     }
                 }
 
-                string sqlMember = "SELECT email FROM web_member WHERE status = '1'";
+                string sqlMember = "SELECT email FROM [2026_web_member] WHERE status = '1'";
                 if (memberTypePlaceholders.Count > 0)
                 {
                     sqlMember += " AND member_type IN (" + string.Join(",", memberTypePlaceholders) + ")";

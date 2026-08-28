@@ -2,6 +2,7 @@
 using MySqlConnector;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class NpaStatusController : AdminCoreController
@@ -15,12 +16,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         public override IActionResult Create()
         {
             var npaLocateList = _db.ExecuteQuery(
-                "SELECT id, title FROM web_core_group WHERE module_id = '18' ORDER BY title ASC"
+                "SELECT id, title FROM [2026_web_core_group] WHERE module_id = '18' ORDER BY title ASC"
             );
             ViewBag.NpaLocateList = npaLocateList;
 
             var npaFacilityList = _db.ExecuteQuery(
-                "SELECT id, title FROM web_core_group WHERE module_id = '19' ORDER BY title ASC"
+                "SELECT id, title FROM [2026_web_core_group] WHERE module_id = '19' ORDER BY title ASC"
             );
             ViewBag.NpaFacilityList = npaFacilityList;
 
@@ -69,12 +70,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         public override IActionResult Edit(int id)
         {
             var npaLocateList = _db.ExecuteQuery(
-                "SELECT id, title FROM web_core_group WHERE module_id = '18' ORDER BY title ASC"
+                "SELECT id, title FROM [2026_web_core_group] WHERE module_id = '18' ORDER BY title ASC"
             );
             ViewBag.NpaLocateList = npaLocateList;
 
             var npaFacilityList = _db.ExecuteQuery(
-                "SELECT id, title FROM web_core_group WHERE module_id = '19' ORDER BY title ASC"
+                "SELECT id, title FROM [2026_web_core_group] WHERE module_id = '19' ORDER BY title ASC"
             );
             ViewBag.NpaFacilityList = npaFacilityList;
 
@@ -88,7 +89,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 var itemEdit = _db.ExecuteQuery(
-                    string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table),
+                    string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)),
                     new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } }
                 );
                 if (itemEdit.Rows.Count == 0)
@@ -150,10 +151,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
-                    SELECT id, product_code, project, product_desc_th
+                    SELECT top 50 id, product_code, project, product_desc_th
                     FROM tb_product2
-                    WHERE product_code LIKE @q OR project LIKE @q
-                    LIMIT 50";
+                    WHERE product_code LIKE @q OR project LIKE @q";
                 cmd.Parameters.AddWithValue("@q", "%" + q + "%");
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())

@@ -33,7 +33,7 @@ namespace thaicredit_hr_admin.Controllers
             {
                 return Ok(ss.Rows[0]["admin_name"]);
             }*/
-            /*var ss2 = _db.ExecuteQuery("select * from web_admin_log");
+            /*var ss2 = _db.ExecuteQuery("select * from [2026_web_admin_log]");
             if (ss2.Rows.Count > 0)
             {
                 return Ok(ss2.Rows[0]["admin_name"]);

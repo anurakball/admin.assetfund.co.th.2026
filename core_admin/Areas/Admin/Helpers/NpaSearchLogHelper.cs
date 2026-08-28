@@ -1,4 +1,4 @@
-namespace thaicredit_hr_admin.Areas.Admin.Helpers
+﻿namespace thaicredit_hr_admin.Areas.Admin.Helpers
 {
     // ตัวช่วยของเมนู Logs/คำค้นหาทรัพย์ NPA (ตาราง api_npa_search_log)
     //
@@ -87,11 +87,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             var where = new System.Text.StringBuilder("WHERE 1=1");
 
             var kw = q("q_kw");
-            if (!string.IsNullOrEmpty(kw)) { where.Append(" AND l.keyword ILIKE @p_kw"); prms["p_kw"] = "%" + kw + "%"; }
+            if (!string.IsNullOrEmpty(kw)) { where.Append(" AND l.keyword LIKE @p_kw"); prms["p_kw"] = "%" + kw + "%"; }
 
             var hasKw = q("q_haskw");
-            if (hasKw == "1")      where.Append(" AND l.keyword IS NOT NULL AND btrim(l.keyword) <> ''");
-            else if (hasKw == "0") where.Append(" AND (l.keyword IS NULL OR btrim(l.keyword) = '')");
+            if (hasKw == "1")      where.Append(" AND l.keyword IS NOT NULL AND LTRIM(RTRIM(l.keyword)) <> ''");
+            else if (hasKw == "0") where.Append(" AND (l.keyword IS NULL OR LTRIM(RTRIM(l.keyword)) = '')");
 
             var mode = q("q_mode");
             if (mode == "__none__")            where.Append(" AND (l.search_mode IS NULL OR l.search_mode = '')");
@@ -105,12 +105,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             else if (result == "notfound") where.Append(" AND COALESCE(l.result_count, 0) = 0");
 
             var fkey = q("q_fkey");
-            if (fkey == "__any__")             where.Append(" AND l.filters IS NOT NULL AND l.filters <> '{}'::jsonb");
-            else if (fkey == "__none__")       where.Append(" AND (l.filters IS NULL OR l.filters = '{}'::jsonb)");
+            if (fkey == "__any__")             where.Append(" AND l.filters IS NOT NULL AND l.filters <> '{}'");
+            else if (fkey == "__none__")       where.Append(" AND (l.filters IS NULL OR l.filters = '{}')");
             else if (!string.IsNullOrEmpty(fkey)) { where.Append(" AND jsonb_exists(l.filters, @p_fkey)"); prms["p_fkey"] = fkey; }
 
             var ip = q("q_ip");
-            if (!string.IsNullOrEmpty(ip)) { where.Append(" AND l.client_ip ILIKE @p_ip"); prms["p_ip"] = "%" + ip + "%"; }
+            if (!string.IsNullOrEmpty(ip)) { where.Append(" AND l.client_ip LIKE @p_ip"); prms["p_ip"] = "%" + ip + "%"; }
 
             var ds = q("q_date_start");
             if (!string.IsNullOrEmpty(ds))

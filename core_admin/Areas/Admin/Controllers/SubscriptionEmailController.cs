@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using thaicredit_hr_admin.Areas.Admin.Helpers;
 
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
@@ -27,7 +27,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             if (recipientType == "all")
             {
                 var dt = _db.ExecuteQuery(
-                    "SELECT email FROM web_subscription WHERE status = '1'",
+                    "SELECT email FROM [2026_web_subscription] WHERE status = '1'",
                     new Dictionary<string, object>());
                 foreach (System.Data.DataRow row in dt.Rows)
                 {
@@ -67,12 +67,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 string adminUser = _session.GetString("admin_user") ?? "";
                 _db.ExecuteNonQuery(
-                    @"INSERT INTO web_subscription_news
+                    @"INSERT INTO [2026_web_subscription_news]
                         (created_at, updated_at, created_by, updated_by, web_id, status, pb_status,
                          recipient_type, subject, body, file1, file2, file3,
                          total_count, success_count, fail_count)
                       VALUES
-                        (now(), now(), @created_by, @updated_by, @web_id, 1, 1,
+                        (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), @created_by, @updated_by, @web_id, 1, 1,
                          @recipient_type, @subject, @body, @file1, @file2, @file3,
                          @total_count, @success_count, @fail_count)",
                     new Dictionary<string, object>()

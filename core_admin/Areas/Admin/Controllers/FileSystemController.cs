@@ -49,7 +49,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         {
             int access_id = HttpContext.Session.GetInt32("admin_access_id") ?? 0;  
             int webID = HttpContext.Session.GetInt32("admin_web_id") ?? 0;
-            var access = _db.ExecuteQuery("select * from web_admin_module where access_id = '"+ access_id + "' and web_id = '" + webID + "' and mod_name = 'FileManager' limit 1");  
+            var access = _db.ExecuteQuery("select top 1 * from [2026_web_admin_module] where access_id = '"+ access_id + "' and web_id = '" + webID + "' and mod_name = 'FileManager'");  
             if (access.Rows.Count == 0)
             {
                 return Content("access denied...", MediaTypeNames.Application.Json);

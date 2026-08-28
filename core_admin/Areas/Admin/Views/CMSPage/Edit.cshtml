@@ -519,7 +519,7 @@ var sortableMain = null;
             @{
                 @*----- จำนวนกลุ่มต้องอิงจาก DB ไม่ใช่ค่าคงที่ 3 ไม่งั้นกลุ่มที่เกินมาจะลากไม่ได้ *@
                 var wgGroupCount = ViewBag._db.ExecuteQuery(
-                    string.Format("select count(*) as c from {0}", _admin.WidgetGroupTable())).Rows[0]["c"];
+                    string.Format("select count(*) as c from {0}", Db.T(_admin.WidgetGroupTable()))).Rows[0]["c"];
                 for(int i=0;i<Convert.ToInt32(wgGroupCount);i++)
                 {
                     <text>

@@ -579,21 +579,21 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         {
             var list = new List<KeyValuePair<string, string>>();
             void Add(string expr, string label) => list.Add(new(expr, label));
-            // ดึงค่าจาก form_json ด้วย ->> (คืน text)
-            void Fj(string key, string label) => list.Add(new($"form_json->>'{key}'", label));
+            // ดึงค่าจาก form_json (JSON ที่เก็บในคอลัมน์ nvarchar) ด้วย JSON_VALUE ของ T-SQL
+            void Fj(string key, string label) => list.Add(new($"JSON_VALUE(form_json, '$.{key}')", label));
 
             #region คอลัมน์จริงในตาราง (แปลงค่ารหัสให้เป็นข้อความ)
             Add("id", "รหัสใบสมัคร");
-            Add("TO_CHAR(submitted_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่ส่งใบสมัคร");
-            Add("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่บันทึก");
-            Add("TO_CHAR(updated_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่แก้ไขล่าสุด");
+            Add("FORMAT(submitted_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่ส่งใบสมัคร");
+            Add("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่บันทึก");
+            Add("FORMAT(updated_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่แก้ไขล่าสุด");
             Add("created_by", "สร้างโดย");
             Add("updated_by", "แก้ไขโดย");
-            Add("CASE WHEN status = 1 THEN 'ใช้งาน' WHEN status = 0 THEN 'ปกติ' ELSE status::text END", "สถานะข้อมูล");
+            Add("CASE WHEN status = 1 THEN 'ใช้งาน' WHEN status = 0 THEN 'ปกติ' ELSE CAST(status AS nvarchar(max)) END", "สถานะข้อมูล");
             Add("CASE WHEN pb_status = 1 THEN 'เผยแพร่แล้ว' ELSE 'รออนุมัติ' END", "สถานะเผยแพร่");
             Add("CASE WHEN show_front = 1 THEN 'แสดง' ELSE 'ไม่แสดง' END", "แสดงหน้าเว็บ");
             Add("cat_id", "รหัสตำแหน่ง (cat_id)");
-            Add("COALESCE(NULLIF(job_title, ''), (SELECT title FROM web_core_news wcn WHERE wcn.id = web_job_submit_full.cat_id LIMIT 1))", "ตำแหน่งที่สมัคร");
+            Add("COALESCE(NULLIF(job_title, ''), (SELECT TOP 1 title FROM [2026_web_core_news] wcn WHERE wcn.id = web_job_submit_full.cat_id))", "ตำแหน่งที่สมัคร");
             // ตำแหน่งที่สมัครลำดับที่ 2/3 — ผู้สมัครเลือกก็ได้ ไม่เลือกก็ได้ (ว่าง = ไม่ได้เลือก)
             Add("NULLIF(cat_id2, 0)", "รหัสตำแหน่งลำดับที่ 2 (cat_id2)");
             Add("job_title2", "ตำแหน่งที่สมัคร (ลำดับที่ 2)");
@@ -761,7 +761,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             #endregion
 
             // เก็บข้อมูลดิบทั้งก้อนไว้ท้ายสุด เผื่อมีรายการเกินจำนวนคอลัมน์ที่คลี่ไว้ (เช่น พี่น้อง/งาน เกิน 3)
-            Add("form_json::text", "ข้อมูลดิบทั้งหมด (JSON)");
+            Add("CAST(form_json AS nvarchar(max))", "ข้อมูลดิบทั้งหมด (JSON)");
 
             return list;
         }
@@ -2051,9 +2051,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                             new ("email", "อีเมล"),
                             new ("confirm_email", "ยืนยันอีเมล"),
                             new ("lineuid", "LINE UUID"),
-                            new ("TO_CHAR(reg_date, 'DD-MM-YYYY HH24:MI:SS')", "วันที่สมัคร"),
-                            new ("TO_CHAR(updated_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่แก้ไขข้อมูล"),
-                            new ("TO_CHAR(last_login, 'DD-MM-YYYY HH24:MI:SS')", "เข้าสู่ระบบล่าสุด"),
+                            new ("FORMAT(reg_date, 'dd-MM-yyyy HH:mm:ss')", "วันที่สมัคร"),
+                            new ("FORMAT(updated_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่แก้ไขข้อมูล"),
+                            new ("FORMAT(last_login, 'dd-MM-yyyy HH:mm:ss')", "เข้าสู่ระบบล่าสุด"),
                         },
                         FieldSearch = new()
                         {
@@ -2524,14 +2524,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่บันทึก"),
-                            new ("TO_CHAR(updated_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่แก้ไข"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่บันทึก"),
+                            new ("FORMAT(updated_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่แก้ไข"),
                             new ("title", "ทรัพย์ที่บันทึก"),
                             new ("npa_id", "รหัสทรัพย์ (npa_id)"),
                             new ("member_id", "รหัสสมาชิก"),
-                            new ("COALESCE(NULLIF(title2, ''), (SELECT TRIM(CONCAT(m.firstname, ' ', m.surname)) FROM web_member m WHERE m.id = web_npa_fav.member_id))", "สมาชิก"),
-                            new ("(SELECT m.email FROM web_member m WHERE m.id = web_npa_fav.member_id)", "อีเมลสมาชิก"),
-                            new ("(SELECT m.mobile FROM web_member m WHERE m.id = web_npa_fav.member_id)", "เบอร์โทรสมาชิก"),
+                            new ("COALESCE(NULLIF(title2, ''), (SELECT TRIM(CONCAT(m.firstname, ' ', m.surname)) FROM [2026_web_member] m WHERE m.id = web_npa_fav.member_id))", "สมาชิก"),
+                            new ("(SELECT m.email FROM [2026_web_member] m WHERE m.id = web_npa_fav.member_id)", "อีเมลสมาชิก"),
+                            new ("(SELECT m.mobile FROM [2026_web_member] m WHERE m.id = web_npa_fav.member_id)", "เบอร์โทรสมาชิก"),
                             new ("CASE pb_status WHEN 1 THEN 'อนุมัติ' ELSE 'รออนุมัติ' END", "สถานะ"),
                         }
                     }
@@ -2655,7 +2655,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("title", "หัวข้อ"),
                             new ("product_code", "รหัสทรัพย์"),
                             new ("data_fname", "ชื่อ-นามสกุล"),
@@ -2770,7 +2770,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("data_fname", "ชื่อ"),
                             new ("data_lname", "นามสกุล"),
                             new ("data_mobile", "เบอร์มือถือ"),
@@ -2929,7 +2929,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "วันที่แจ้ง"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "วันที่แจ้ง"),
                             new ("product_code", "รหัสทรัพย์"),
                             new ("data_fname", "ชื่อ - นามสกุล"),
                             new ("data_mobile", "เบอร์โทรศัพท์"),
@@ -3211,7 +3211,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("des", "ip"),
                             new ("utm_id", "utm_id"),
                             new ("utm_source", "utm_source"),
@@ -3349,7 +3349,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("data_fname", "ชื่อ-นามสกุล"),
                             new ("data_company", "ชื่อสถานประกอบการ"),
                             new ("data_building", "ชื่ออาคาร"),
@@ -3596,7 +3596,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"), 
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"), 
                             new ("data_fname", "ชื่อ-นามสกุล"),
                             new ("data_company", "ชื่อสถานประกอบการ"),
                             new ("data_building", "ชื่ออาคาร"),
@@ -3647,7 +3647,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("cat_id", "ตำแหน่ง"),
                             new ("data_fname", "ชื่อ-นามสกุล"),
                             new ("data_age", "อายุ"),
@@ -3765,7 +3765,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("data_pre_name", "คำนำหน้า"),
                             new ("data_fname", "ชื่อ-นามสกุล"),
                             new ("data_mobile", "เบอร์โทรศัพท์"),
@@ -4017,7 +4017,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("data_fname", "ชื่อ-นามสกุล"),
                             new ("data_email", "อีเมล"),
                             new ("data_url", "URL"),
@@ -4088,7 +4088,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                             new ("id", "id"),
                             new ("title", "Browser"),
                             new ("en_title", "IP Address"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                         },
                     }
                 },
@@ -4136,7 +4136,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                             new ("id", "id"),
                             new ("title", "Browser"),
                             new ("en_title", "IP Address"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                         },
                     }
                 },
@@ -5332,7 +5332,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         ExportData = new()
                         {
                             new ("id", "id"),
-                            new ("TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')", "create"),
+                            new ("FORMAT(created_at, 'dd-MM-yyyy HH:mm:ss')", "create"),
                             new ("admin_user_id", "user id"),
                             new ("admin_username", "username"),
                             new ("action", "action"),

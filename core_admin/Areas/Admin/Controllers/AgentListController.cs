@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
@@ -6,6 +6,7 @@ using System.Data;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 using thaicredit_hr_admin.Areas.Admin.Models;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class AgentListController : AdminCoreController
@@ -159,7 +160,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 var itemEdit = _db.ExecuteQuery(
-                    string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table),
+                    string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)),
                     new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } }
                 );
                 if (itemEdit.Rows.Count == 0)
@@ -272,7 +273,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     return Json(new { success = false, message = "สถานะไม่ถูกต้อง" });
 
                 var itemEdit = _db.ExecuteQuery(
-                    "select * from web_agent where id = @id and web_id = @web_id limit 1",
+                    "select top 1 * from [2026_web_agent] where id = @id and web_id = @web_id",
                     new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } }
                 );
                 if (itemEdit.Rows.Count == 0)
@@ -388,10 +389,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 var rows = _db.ExecuteQuery(
-                    @"select a.id, a.uid, a.name, a.surname, a.welcome_mail_sent, m.email
-                      from web_agent a
-                      left join web_member m on m.id = a.uid
-                      where a.id = @id and a.web_id = @web_id limit 1",
+                    @"select top 1 a.id, a.uid, a.name, a.surname, a.welcome_mail_sent, m.email
+                      from [2026_web_agent] a
+                      left join [2026_web_member] m on m.id = a.uid
+                      where a.id = @id and a.web_id = @web_id",
                     new Dictionary<string, object>() { { "id", agentId }, { "web_id", _currentWebID } }
                 );
                 if (rows.Rows.Count == 0) return false;
@@ -443,10 +444,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 var rows = _db.ExecuteQuery(
-                    @"select a.id, a.uid, a.codeid, a.name, a.surname, m.email
-                      from web_agent a
-                      left join web_member m on m.id = a.uid
-                      where a.id = @id and a.web_id = @web_id limit 1",
+                    @"select top 1 a.id, a.uid, a.codeid, a.name, a.surname, m.email
+                      from [2026_web_agent] a
+                      left join [2026_web_member] m on m.id = a.uid
+                      where a.id = @id and a.web_id = @web_id",
                     new Dictionary<string, object>() { { "id", agentId }, { "web_id", _currentWebID } }
                 );
                 if (rows.Rows.Count == 0) return false;
@@ -525,7 +526,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         {
             try
             {
-                var rows = _db.ExecuteQuery("SELECT pb_tel FROM web_home_footer WHERE id = 1 LIMIT 1");
+                var rows = _db.ExecuteQuery("SELECT top 1 pb_tel FROM [2026_web_home_footer] WHERE id = 1");
                 if (rows.Rows.Count > 0)
                 {
                     string tel = (rows.Rows[0]["pb_tel"]?.ToString() ?? "").Trim();
@@ -547,7 +548,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var list = new List<string>();
             try
             {
-                var rows = _db.ExecuteQuery("SELECT pb_t2 FROM web_core_single WHERE module_id = '26' LIMIT 1");
+                var rows = _db.ExecuteQuery("SELECT top 1 pb_t2 FROM [2026_web_core_single] WHERE module_id = '26'");
                 if (rows.Rows.Count > 0)
                 {
                     string raw = rows.Rows[0]["pb_t2"]?.ToString() ?? "";
@@ -576,8 +577,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 var dt = _db.ExecuteQuery(
                     @"select d.code, d.name_in_thai
-                      from web_data_districts d
-                      join web_data_provinces p on p.id = d.province_id
+                      from [2026_web_data_districts] d
+                      join [2026_web_data_provinces] p on p.id = d.province_id
                       where p.code = @code order by d.name_in_thai",
                     new Dictionary<string, object>() { { "code", int.Parse(provinceCode.Trim()) } }
                 );
@@ -598,8 +599,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 var dt = _db.ExecuteQuery(
                     @"select s.code, s.name_in_thai, s.zip_code
-                      from web_data_subdistricts s
-                      join web_data_districts d on d.id = s.district_id
+                      from [2026_web_data_subdistricts] s
+                      join [2026_web_data_districts] d on d.id = s.district_id
                       where d.code = @code order by s.name_in_thai",
                     new Dictionary<string, object>() { { "code", int.Parse(districtCode.Trim()) } }
                 );

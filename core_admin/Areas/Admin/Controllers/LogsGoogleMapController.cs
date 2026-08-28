@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -26,11 +26,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var where = new System.Text.StringBuilder("WHERE 1=1");
             var prms  = new Dictionary<string, object>();
 
-            if (!string.IsNullOrEmpty(qApi))    { where.Append(" AND l.api_name ILIKE @p_api");    prms["p_api"]    = "%" + qApi + "%"; }
+            if (!string.IsNullOrEmpty(qApi))    { where.Append(" AND l.api_name LIKE @p_api");    prms["p_api"]    = "%" + qApi + "%"; }
             if (!string.IsNullOrEmpty(qMethod)) { where.Append(" AND l.http_method = @p_method");  prms["p_method"] = qMethod; }
-            if (!string.IsNullOrEmpty(qIp))     { where.Append(" AND l.client_ip ILIKE @p_ip");    prms["p_ip"]     = "%" + qIp + "%"; }
-            if (qSuccess == "true")             { where.Append(" AND l.success = TRUE"); }
-            else if (qSuccess == "false")       { where.Append(" AND l.success = FALSE"); }
+            if (!string.IsNullOrEmpty(qIp))     { where.Append(" AND l.client_ip LIKE @p_ip");    prms["p_ip"]     = "%" + qIp + "%"; }
+            if (qSuccess == "true")             { where.Append(" AND l.success = 1"); }
+            else if (qSuccess == "false")       { where.Append(" AND l.success = 0"); }
 
             if (!string.IsNullOrEmpty(qDateStart)) {
                 try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND l.created_at >= @p_ds"); prms["p_ds"] = d; } catch { }
@@ -44,7 +44,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                        l.api_name, l.endpoint, l.http_method,
                        l.response_status, l.success, l.response_time_ms,
                        l.error_message, l.client_ip, l.user_agent
-                FROM api_google_map_logs l
+                FROM [2026_api_google_map_logs] l
                 {where}
                 ORDER BY l.created_at DESC", prms);
 

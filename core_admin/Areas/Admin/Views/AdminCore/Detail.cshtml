@@ -43,7 +43,7 @@
                 }
                 else if ((mod.Name == "AnnounceSubmit" || mod.Name == "AnnounceJobSubmit" || mod.Name == "DownloadSubmit") && item.Key == "cat_id")
                 {
-                    var a = ViewBag._db.ExecuteQuery(string.Format("select title from web_core_news where id = @id"), new Dictionary<string, object>() { { "id", row["cat_id"] } });
+                    var a = ViewBag._db.ExecuteQuery(string.Format("select title from [2026_web_core_news] where id = @id"), new Dictionary<string, object>() { { "id", row["cat_id"] } });
 
                     if (a.Rows.Count > 0)
                     {
@@ -52,7 +52,7 @@
                 }
                 else if ((mod.Name == "ContactSubmit") && item.Key == "cat_id")
                 {
-                    var a = ViewBag._db.ExecuteQuery(string.Format("select title from web_core_group where id = @id"), new Dictionary<string, object>() { { "id", row["cat_id"] } });
+                    var a = ViewBag._db.ExecuteQuery(string.Format("select title from [2026_web_core_group] where id = @id"), new Dictionary<string, object>() { { "id", row["cat_id"] } });
 
                     if (a.Rows.Count > 0)
                     {

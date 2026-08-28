@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 using thaicredit_hr_admin.Areas.Admin.Models;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class AdminAccessController : AdminCoreController
@@ -32,7 +33,7 @@ return View();
                 if (affected != 0)
                 {
                     int access_id = 0;
-                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc LIMIT 1", Module.Config.Table), new() { { "web_id", _currentWebID } });
+                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT top 1 MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc", Db.T(Module.Config.Table)), new() { { "web_id", _currentWebID } });
 
                     if (lastInsert.Rows.Count > 0 && !string.IsNullOrEmpty(lastInsert.Rows[0]["last_id"].ToString()) && _utility.isInt(lastInsert.Rows[0]["last_id"] + ""))
                     {
@@ -108,7 +109,7 @@ return View();
                                 }
                             }
 
-                            var selectAccess = _db.ExecuteQuery("select id from web_admin_module where access_id = @access_id and mod_name = @mod_name and web_id = @web_id limit 1", new() { { "access_id", access_id }, { "mod_name", item.ModuleName }, { "web_id", _currentWebID } });
+                            var selectAccess = _db.ExecuteQuery("select top 1 id from [2026_web_admin_module] where access_id = @access_id and mod_name = @mod_name and web_id = @web_id", new() { { "access_id", access_id }, { "mod_name", item.ModuleName }, { "web_id", _currentWebID } });
                             if (selectAccess.Rows.Count > 0)
                             {
                                 _db.Update("web_admin_module", "WHERE id = @id", para, new() { { "id", Convert.ToInt32(selectAccess.Rows[0]["id"]) } });
@@ -150,7 +151,7 @@ return View();
             try
             {
                 #region Select Item Edit #########
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการแก้ไข";
@@ -246,7 +247,7 @@ return View();
                                 }
                             }
 
-                            var selectAccess = _db.ExecuteQuery("select id from web_admin_module where access_id = @access_id and mod_name = @mod_name and web_id = @web_id limit 1", new() { { "access_id", access_id }, { "mod_name", item.ModuleName }, { "web_id", _currentWebID } });
+                            var selectAccess = _db.ExecuteQuery("select top 1 id from [2026_web_admin_module] where access_id = @access_id and mod_name = @mod_name and web_id = @web_id", new() { { "access_id", access_id }, { "mod_name", item.ModuleName }, { "web_id", _currentWebID } });
                             if (selectAccess.Rows.Count > 0)
                             {
                                 _db.Update("web_admin_module", "WHERE id = @id", para, new() { { "id", Convert.ToInt32(selectAccess.Rows[0]["id"]) } });
@@ -260,7 +261,7 @@ return View();
                         }
                         else if (item.ModuleName != null && !collection.ContainsKey(item.ModuleName))
                         {
-                            _db.ExecuteNonQuery("DELETE FROM web_admin_module where access_id = @access_id and mod_name = @mod_name and web_id = @web_id ", new() { { "access_id", access_id }, { "mod_name", item.ModuleName }, { "web_id", _currentWebID } });
+                            _db.ExecuteNonQuery("DELETE FROM [2026_web_admin_module] where access_id = @access_id and mod_name = @mod_name and web_id = @web_id ", new() { { "access_id", access_id }, { "mod_name", item.ModuleName }, { "web_id", _currentWebID } });
                         }
                     }
                     #endregion

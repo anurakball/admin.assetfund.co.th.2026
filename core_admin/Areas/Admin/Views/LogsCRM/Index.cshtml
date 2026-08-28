@@ -1,4 +1,4 @@
-@using System.Data
+﻿@using System.Data
 @using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -62,15 +62,15 @@
     var where = new System.Text.StringBuilder("WHERE 1=1");
     var prms  = new Dictionary<string, object>();
 
-    if (!string.IsNullOrEmpty(qService)) { where.Append(" AND l.service_name ILIKE @p_svc");   prms["p_svc"]   = "%" + qService + "%"; }
-    if (!string.IsNullOrEmpty(qModule))  { where.Append(" AND l.module_name ILIKE @p_mod");    prms["p_mod"]   = "%" + qModule + "%"; }
+    if (!string.IsNullOrEmpty(qService)) { where.Append(" AND l.service_name LIKE @p_svc");   prms["p_svc"]   = "%" + qService + "%"; }
+    if (!string.IsNullOrEmpty(qModule))  { where.Append(" AND l.module_name LIKE @p_mod");    prms["p_mod"]   = "%" + qModule + "%"; }
     if (!string.IsNullOrEmpty(qMethod))  { where.Append(" AND l.http_method = @p_method");     prms["p_method"]= qMethod; }
     if (!string.IsNullOrEmpty(qEnv))     { where.Append(" AND l.environment_name = @p_env");   prms["p_env"]   = qEnv; }
-    if (!string.IsNullOrEmpty(qTrace))   { where.Append(" AND l.trace_id ILIKE @p_trace");     prms["p_trace"] = "%" + qTrace + "%"; }
-    if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND l.client_ip ILIKE @p_ip");       prms["p_ip"]    = "%" + qIp + "%"; }
+    if (!string.IsNullOrEmpty(qTrace))   { where.Append(" AND l.trace_id LIKE @p_trace");     prms["p_trace"] = "%" + qTrace + "%"; }
+    if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND l.client_ip LIKE @p_ip");       prms["p_ip"]    = "%" + qIp + "%"; }
 
-    if (qSuccess == "1")      { where.Append(" AND l.is_success = TRUE"); }
-    else if (qSuccess == "0") { where.Append(" AND l.is_success = FALSE"); }
+    if (qSuccess == "1")      { where.Append(" AND l.is_success = 1"); }
+    else if (qSuccess == "0") { where.Append(" AND l.is_success = 0"); }
 
     if (!string.IsNullOrEmpty(qDateStart)) {
         try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND l.created_at >= @p_ds"); prms["p_ds"] = d; } catch {}
@@ -82,7 +82,7 @@
     var w = where.ToString();
 
     var dtCount = _db.ExecuteQuery($@"
-        SELECT COUNT(*) AS cnt FROM public.api_crm_logs l {w}", prms);
+        SELECT COUNT(*) AS cnt FROM [2026_api_crm_logs] l {w}", prms);
     long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
     int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
 
@@ -98,25 +98,25 @@
                l.member_id, l.created_by,
                l.trace_id, l.correlation_id,
                l.environment_name, l.remark
-        FROM public.api_crm_logs l
+        FROM [2026_api_crm_logs] l
         {w}
         ORDER BY l.created_at DESC
-        LIMIT {perPage} OFFSET {offset}", prms);
+        OFFSET {offset} ROWS FETCH NEXT {perPage} ROWS ONLY", prms);
 
     // Dropdowns
     var dtServices = _db.ExecuteQuery(
-        "SELECT DISTINCT service_name FROM public.api_crm_logs WHERE service_name IS NOT NULL ORDER BY service_name");
+        "SELECT DISTINCT service_name FROM [2026_api_crm_logs] WHERE service_name IS NOT NULL ORDER BY service_name");
     var dtEnvs = _db.ExecuteQuery(
-        "SELECT DISTINCT environment_name FROM public.api_crm_logs WHERE environment_name IS NOT NULL ORDER BY environment_name");
+        "SELECT DISTINCT environment_name FROM [2026_api_crm_logs] WHERE environment_name IS NOT NULL ORDER BY environment_name");
 
     // Stats
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            COUNT(*) FILTER (WHERE l.is_success = TRUE)  AS cnt_success,
-            COUNT(*) FILTER (WHERE l.is_success = FALSE) AS cnt_failed,
-            COUNT(*) FILTER (WHERE l.created_at >= NOW() - INTERVAL '24 hours') AS cnt_today,
-            ROUND(AVG(l.duration_ms) FILTER (WHERE l.duration_ms IS NOT NULL))::BIGINT AS avg_duration
-        FROM public.api_crm_logs l {w}", prms);
+            SUM(CASE WHEN l.is_success = 1 THEN 1 ELSE 0 END)  AS cnt_success,
+            SUM(CASE WHEN l.is_success = 0 THEN 1 ELSE 0 END) AS cnt_failed,
+            SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END) AS cnt_today,
+            CAST(ROUND(AVG(CASE WHEN l.duration_ms IS NOT NULL THEN l.duration_ms END)) AS bigint) AS avg_duration
+        FROM [2026_api_crm_logs] l {w}", prms);
 
     long cntSuccess    = dtStats.Rows.Count > 0 && dtStats.Rows[0]["cnt_success"]  != DBNull.Value ? Convert.ToInt64(dtStats.Rows[0]["cnt_success"])  : 0;
     long cntFailed     = dtStats.Rows.Count > 0 && dtStats.Rows[0]["cnt_failed"]   != DBNull.Value ? Convert.ToInt64(dtStats.Rows[0]["cnt_failed"])   : 0;

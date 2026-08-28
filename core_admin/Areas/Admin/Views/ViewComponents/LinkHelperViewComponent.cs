@@ -23,7 +23,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Views.ViewComponents
         {
             /*
             _admin.SetSessionWebID();
-            var All_Page = _db.ExecuteQuery(string.Format("select * from web_cms_page where web_id = @web_id "), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+            var All_Page = _db.ExecuteQuery(string.Format("select * from [2026_web_cms_page] where web_id = @web_id "), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
             ViewBag.All_Page = All_Page;
             */
 

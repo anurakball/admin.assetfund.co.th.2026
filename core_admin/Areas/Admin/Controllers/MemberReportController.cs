@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
@@ -19,37 +19,39 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 var p = new Dictionary<string, object>() { { "web_id", _currentWebID } };
 
                 // ---- web_member stats ----
-                var dtMemberTotal = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE web_id = @web_id", p);
-                var dtMemberActive = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE status = 1 AND web_id = @web_id", p);
-                var dtMemberEmailConfirmed = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE confirm_email = 1 AND web_id = @web_id", p);
-                var dtMemberType1 = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE type = 1 AND web_id = @web_id", p);
-                var dtMemberType2 = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE type = 2 AND web_id = @web_id", p);
-                var dtMemberToday = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE DATE(reg_date AT TIME ZONE 'Asia/Bangkok') = CURRENT_DATE AND web_id = @web_id", p);
-                var dtMemberMonth = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_member WHERE DATE_TRUNC('month', reg_date) = DATE_TRUNC('month', NOW()) AND web_id = @web_id", p);
-                var dtMemberWithAgent = _db.ExecuteQuery("SELECT COUNT(DISTINCT m.id) AS cnt FROM web_member m INNER JOIN web_agent a ON m.id = a.uid WHERE m.web_id = @web_id", p);
+                var dtMemberTotal = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE web_id = @web_id", p);
+                var dtMemberActive = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE status = 1 AND web_id = @web_id", p);
+                var dtMemberEmailConfirmed = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE confirm_email = 1 AND web_id = @web_id", p);
+                var dtMemberType1 = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE type = 1 AND web_id = @web_id", p);
+                var dtMemberType2 = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE type = 2 AND web_id = @web_id", p);
+                var dtMemberToday = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE CAST(reg_date AT TIME ZONE 'SE Asia Standard Time' AS date) = CAST(SYSDATETIME() AS date) AND web_id = @web_id", p);
+                var dtMemberMonth = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_member] WHERE YEAR(reg_date) = YEAR(SYSDATETIMEOFFSET()) AND MONTH(reg_date) = MONTH(SYSDATETIMEOFFSET()) AND web_id = @web_id", p);
+                var dtMemberWithAgent = _db.ExecuteQuery("SELECT COUNT(DISTINCT m.id) AS cnt FROM [2026_web_member] m INNER JOIN [2026_web_agent] a ON m.id = a.uid WHERE m.web_id = @web_id", p);
 
                 // ---- web_agent stats ----
-                var dtAgentTotal = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_agent WHERE web_id = @web_id", p);
-                var dtAgentApproved = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_agent WHERE approved = 1 AND web_id = @web_id", p);
-                var dtAgentPending = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_agent WHERE approved = 0 AND web_id = @web_id", p);
-                var dtAgentActive = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_agent WHERE status = 1 AND web_id = @web_id", p);
-                var dtAgentToday = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_agent WHERE DATE(adddate AT TIME ZONE 'Asia/Bangkok') = CURRENT_DATE AND web_id = @web_id", p);
-                var dtAgentMonth = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM web_agent WHERE DATE_TRUNC('month', adddate) = DATE_TRUNC('month', NOW()) AND web_id = @web_id", p);
+                var dtAgentTotal = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_agent] WHERE web_id = @web_id", p);
+                var dtAgentApproved = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_agent] WHERE approved = 1 AND web_id = @web_id", p);
+                var dtAgentPending = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_agent] WHERE approved = 0 AND web_id = @web_id", p);
+                var dtAgentActive = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_agent] WHERE status = 1 AND web_id = @web_id", p);
+                var dtAgentToday = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_agent] WHERE CAST(adddate AT TIME ZONE 'SE Asia Standard Time' AS date) = CAST(SYSDATETIME() AS date) AND web_id = @web_id", p);
+                var dtAgentMonth = _db.ExecuteQuery("SELECT COUNT(*) AS cnt FROM [2026_web_agent] WHERE YEAR(adddate) = YEAR(SYSDATETIMEOFFSET()) AND MONTH(adddate) = MONTH(SYSDATETIMEOFFSET()) AND web_id = @web_id", p);
 
                 // ---- monthly trend last 6 months (member + agent) ----
                 var dtMemberTrend = _db.ExecuteQuery(@"
-                    SELECT TO_CHAR(DATE_TRUNC('month', reg_date), 'YYYY-MM') AS ym,
+                    SELECT FORMAT(reg_date, 'yyyy-MM') AS ym,
                            COUNT(*) AS cnt
-                    FROM web_member
-                    WHERE web_id = @web_id AND reg_date >= NOW() - INTERVAL '6 months'
-                    GROUP BY ym ORDER BY ym", p);
+                    FROM [2026_web_member]
+                    WHERE web_id = @web_id AND reg_date >= DATEADD(month, -6, SYSDATETIMEOFFSET())
+                    GROUP BY FORMAT(reg_date, 'yyyy-MM')
+                    ORDER BY FORMAT(reg_date, 'yyyy-MM')", p);
 
                 var dtAgentTrend = _db.ExecuteQuery(@"
-                    SELECT TO_CHAR(DATE_TRUNC('month', adddate), 'YYYY-MM') AS ym,
+                    SELECT FORMAT(adddate, 'yyyy-MM') AS ym,
                            COUNT(*) AS cnt
-                    FROM web_agent
-                    WHERE web_id = @web_id AND adddate >= NOW() - INTERVAL '6 months'
-                    GROUP BY ym ORDER BY ym", p);
+                    FROM [2026_web_agent]
+                    WHERE web_id = @web_id AND adddate >= DATEADD(month, -6, SYSDATETIMEOFFSET())
+                    GROUP BY FORMAT(adddate, 'yyyy-MM')
+                    ORDER BY FORMAT(adddate, 'yyyy-MM')", p);
 
                 // ---- ViewBag ----
                 int _access_id = _session.GetInt32("admin_access_id") ?? 0;

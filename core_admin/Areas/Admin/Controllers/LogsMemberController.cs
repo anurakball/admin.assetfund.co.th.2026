@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -29,14 +29,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var prms  = new Dictionary<string, object>();
 
             if (!string.IsNullOrEmpty(qMember)) {
-                where.Append(" AND (CAST(l.member_id AS VARCHAR) = @p_mid OR m.username ILIKE @p_mlike OR m.email ILIKE @p_mlike)");
+                where.Append(" AND (CAST(l.member_id AS VARCHAR) = @p_mid OR m.username LIKE @p_mlike OR m.email LIKE @p_mlike)");
                 prms["p_mid"] = qMember; prms["p_mlike"] = "%" + qMember + "%";
             }
             if (!string.IsNullOrEmpty(qCode))     { where.Append(" AND l.activity_code = @p_code");  prms["p_code"]   = qCode; }
             if (!string.IsNullOrEmpty(qCategory)) { where.Append(" AND t.category = @p_cat");        prms["p_cat"]    = qCategory; }
             if (!string.IsNullOrEmpty(qSeverity)) { where.Append(" AND t.severity = @p_sev");        prms["p_sev"]    = qSeverity; }
             if (!string.IsNullOrEmpty(qStatus))   { where.Append(" AND l.status = @p_status");       prms["p_status"] = qStatus; }
-            if (!string.IsNullOrEmpty(qIp))       { where.Append(" AND l.ip_address ILIKE @p_ip");   prms["p_ip"]     = "%" + qIp + "%"; }
+            if (!string.IsNullOrEmpty(qIp))       { where.Append(" AND l.ip_address LIKE @p_ip");   prms["p_ip"]     = "%" + qIp + "%"; }
 
             if (!string.IsNullOrEmpty(qDateStart)) {
                 try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND l.activity_at >= @p_ds"); prms["p_ds"] = d; } catch { }
@@ -55,9 +55,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                        l.duration_ms, l.request_url, l.request_method,
                        l.description, l.activity_at,
                        m.username, m.email
-                FROM web_member_activity_log l
-                LEFT JOIN web_member_activity_type t ON l.activity_type_id = t.id
-                LEFT JOIN web_member m ON l.member_id = m.id
+                FROM [2026_web_member_activity_log] l
+                LEFT JOIN [2026_web_member_activity_type] t ON l.activity_type_id = t.id
+                LEFT JOIN [2026_web_member] m ON l.member_id = m.id
                 {where}
                 ORDER BY l.activity_at DESC", prms);
 

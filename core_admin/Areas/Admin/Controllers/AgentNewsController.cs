@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using thaicredit_hr_admin.Areas.Admin.Helpers;
 
@@ -34,13 +34,13 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     return;
 
                 var dt = _db.ExecuteQuery(
-                    @"select a.id, a.uid, a.title, a.name, a.surname,
+                    @"select top 1 a.id, a.uid, a.title, a.name, a.surname,
                              a.upfile1, a.upfile2, a.upfile3, a.upfile4,
                              m.email
-                      from web_agent a
-                      left join web_member m on m.id = a.uid
+                      from [2026_web_agent] a
+                      left join [2026_web_member] m on m.id = a.uid
                       where a.uid = @uid and a.web_id = @web_id
-                      order by a.id desc limit 1",
+                      order by a.id desc",
                     new Dictionary<string, object>() { { "uid", memberId }, { "web_id", _currentWebID } }
                 );
                 if (dt.Rows.Count == 0) return;
@@ -141,7 +141,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             if (recipientType == "all")
             {
                 var dt = _db.ExecuteQuery(
-                    "SELECT wm.email FROM web_agent wa INNER JOIN web_member wm ON wm.id = wa.uid WHERE wa.status = '1'",
+                    "SELECT wm.email FROM [2026_web_agent] wa INNER JOIN [2026_web_member] wm ON wm.id = wa.uid WHERE wa.status = '1'",
                     new Dictionary<string, object>());
                 foreach (System.Data.DataRow row in dt.Rows)
                 {

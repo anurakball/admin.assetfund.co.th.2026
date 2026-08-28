@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
 {
@@ -183,7 +183,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         // widget หน้าแรก (web_home_*, web_core_single) ทั้งหน้า -> พรีวิวแล้วไม่เห็นค่าที่แก้
                         // (คอลัมน์ is_home มีเฉพาะ web_cms_page)
                         string homeCond = t == "web_cms_page" ? " OR COALESCE(is_home,'') = '1'" : "";
-                        Block(db, $@"SELECT id FROM {t}
+                        Block(db, $@"SELECT id FROM {Db.T(t)}
                                      WHERE COALESCE(page_type,'') NOT IN ('3','4')
                                         OR COALESCE(box_data,'') = ANY(@box){homeCond}",
                               new() { { "box", NoPreviewBoxData } });
@@ -192,13 +192,13 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     // ลิงค์หน่วยงาน (กลุ่ม): Views/Contact/Organization.cshtml ข้ามกลุ่มที่ไม่มีลิงก์ทั้งกลุ่ม
                     //   (if members.Count == 0 -> continue) -> กลุ่มว่างพรีวิวไม่เห็นอะไร
                     case "page" when moduleName!.Equals("LinkGroup", StringComparison.OrdinalIgnoreCase):
-                        Block(db, @"SELECT g.id FROM web_core_group g
+                        Block(db, @"SELECT g.id FROM [2026_web_core_group] g
                                     WHERE g.module_id = 15 AND NOT EXISTS (
-                                        SELECT 1 FROM web_core_news n
-                                        WHERE n.module_id = 12 AND n.cat_id::text = g.id::text
+                                        SELECT 1 FROM [2026_web_core_news] n
+                                        WHERE n.module_id = 12 AND CAST(n.cat_id AS nvarchar(max)) = CAST(g.id AS nvarchar(max))
                                           AND n.status = '1' AND n.show_front = '1'
                                           AND (n.pb_issue_date_config = '1'
-                                               OR (n.pb_issue_date <= now() AND n.pb_expiry_date >= now())))");
+                                               OR (n.pb_issue_date <= SYSDATETIMEOFFSET() AND n.pb_expiry_date >= SYSDATETIMEOFFSET())))");
                         break;
 
                     // คณะผู้บริหารระดับสูง (กลุ่ม): Views/About/Executives.cshtml
@@ -206,35 +206,35 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     //   - และ "ไม่แสดงหัวข้อกลุ่มแรก" (if groupIndex > 0) -> กลุ่มแรกตาม sort พรีวิวไม่เห็นผล
                     case "page" when moduleName!.Equals("AboutBoard3cat", StringComparison.OrdinalIgnoreCase):
                         Block(db, @"WITH shown AS (
-                                        SELECT g.id, g.sort FROM web_core_group g
+                                        SELECT g.id, g.sort FROM [2026_web_core_group] g
                                         WHERE g.module_id = 2 AND EXISTS (
-                                            SELECT 1 FROM web_core_item i
-                                            WHERE i.module_id = 7 AND i.cat_id::text = g.id::text
+                                            SELECT 1 FROM [2026_web_core_item] i
+                                            WHERE i.module_id = 7 AND CAST(i.cat_id AS nvarchar(max)) = CAST(g.id AS nvarchar(max))
                                               AND i.status = '1' AND i.show_front = '1')
                                     )
-                                    SELECT g.id FROM web_core_group g
+                                    SELECT g.id FROM [2026_web_core_group] g
                                     WHERE g.module_id = 2
                                       AND (g.id NOT IN (SELECT id FROM shown)
-                                           OR g.id = (SELECT id FROM shown ORDER BY sort ASC, id ASC LIMIT 1))");
+                                           OR g.id = (SELECT TOP 1 id FROM shown ORDER BY sort ASC, id ASC))");
                         break;
 
                     // รายการ ย่าน/ทำเล: หน้าแรกสร้างชิปย่านจาก "ช่องย่าน" ของ widget บ้านเด่นทำเลดี
                     //   (web_core_single module 6 คอลัมน์ pb_t2..pb_t11 เก็บ id ของ web_core_group module 18)
                     //   ย่านที่ไม่ได้ถูกเลือกไว้ในช่องเหล่านี้ ไม่ถูกเรนเดอร์ที่ไหนเลย -> พรีวิวไม่เห็นผล
                     case "page" when moduleName!.Equals("NpaLocate", StringComparison.OrdinalIgnoreCase):
-                        Block(db, @"SELECT g.id FROM web_core_group g
+                        Block(db, @"SELECT g.id FROM [2026_web_core_group] g
                                     WHERE g.module_id = 18
-                                      AND g.id::text NOT IN (
-                                        SELECT x.v FROM web_core_single s,
-                                          LATERAL (VALUES (s.pb_t2),(s.pb_t3),(s.pb_t4),(s.pb_t5),(s.pb_t6),
+                                      AND CAST(g.id AS nvarchar(max)) NOT IN (
+                                        SELECT x.v FROM [2026_web_core_single] s
+                                          CROSS APPLY (VALUES (s.pb_t2),(s.pb_t3),(s.pb_t4),(s.pb_t5),(s.pb_t6),
                                                           (s.pb_t7),(s.pb_t8),(s.pb_t9),(s.pb_t10),(s.pb_t11)) AS x(v)
                                         WHERE s.module_id = 6 AND COALESCE(x.v,'') <> '')");
                         break;
 
                     case "page" when SingleLatestOnly.ContainsKey(moduleName!):
-                        Block(db, @"SELECT id FROM web_core_single
+                        Block(db, @"SELECT id FROM [2026_web_core_single]
                                     WHERE module_id = @mid
-                                      AND id <> (SELECT MAX(id) FROM web_core_single WHERE module_id = @mid)",
+                                      AND id <> (SELECT MAX(id) FROM [2026_web_core_single] WHERE module_id = @mid)",
                               new() { { "mid", SingleLatestOnly[moduleName!] } });
                         break;
                 }

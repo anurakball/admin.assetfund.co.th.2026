@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 using thaicredit_hr_admin.Areas.Admin.Models;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class HomeSamText6Controller : AdminCoreController
@@ -20,7 +21,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 Module.Config.TextBreadcrumb = Module.Config.TextBreadcrumb + "/แก้ไข";
 
                 var itemEdit = _db.ExecuteQuery(
-                    string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table),
+                    string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)),
                     new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } }
                 );
                 if (itemEdit.Rows.Count == 0)
@@ -31,12 +32,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
 
                 var groupDT = _db.ExecuteQuery(
-                    "SELECT id, title FROM web_core_group WHERE module_id = @module_id ORDER BY title ASC",
+                    "SELECT id, title FROM [2026_web_core_group] WHERE module_id = @module_id ORDER BY title ASC",
                     new Dictionary<string, object>() { { "module_id", 18 } }
                 );
 
                 var facilityDT = _db.ExecuteQuery(
-                    "SELECT id, title FROM web_core_group WHERE module_id = @module_id ORDER BY title ASC",
+                    "SELECT id, title FROM [2026_web_core_group] WHERE module_id = @module_id ORDER BY title ASC",
                     new Dictionary<string, object>() { { "module_id", 19 } }
                 );
 

@@ -108,7 +108,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             ViewBag.AllMicrosite = null;
             //----- แสดง microsite ทั้งหมด (ไม่กรอง approve/ช่วงวันที่) ให้ผู้ใช้เลือกไซต์ตอน login
             //      ใช้ pb_title (ค่าที่อนุมัติแล้ว) ถ้าว่างให้ fallback เป็น title
-            string sql = $"select id, case when coalesce(pb_title, '') <> '' then pb_title else title end as pb_title from web_microsite where id > 0 order by title asc";
+            string sql = $"select id, case when coalesce(pb_title, '') <> '' then pb_title else title end as pb_title from [2026_web_microsite] where id > 0 order by title asc";
             var selectSite = _db.ExecuteQuery(sql);
             if (selectSite.Rows.Count > 0)
             {
@@ -837,7 +837,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     #region ############### ตรวจสอบการตั้งรหัสผ่านเดิม ##############
                     var Config_Password = _config.GetSection("ConfigPassword");
                     string Config_Password_Times = Config_Password.GetSection("LastPassword").Value.ToString();
-                    var SQL_Old_Password_Last = _db.ExecuteQuery("SELECT password FROM web_admin_password_log WHERE admin_user=@admin_user and web_id = @web_id ORDER BY created_at DESC Limit " + Config_Password_Times.ToString(), new Dictionary<string, object>() { { "admin_user", (admin_user["username"] + "").ToString() }, { "web_id", _currentWebID } });
+                    var SQL_Old_Password_Last = _db.ExecuteQuery("SELECT TOP (" + Config_Password_Times.ToString() + ") password FROM [2026_web_admin_password_log] WHERE admin_user=@admin_user and web_id = @web_id ORDER BY created_at DESC", new Dictionary<string, object>() { { "admin_user", (admin_user["username"] + "").ToString() }, { "web_id", _currentWebID } });
 
                     if (SQL_Old_Password_Last.Rows.Count > 0)
                     {
@@ -915,7 +915,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             ViewBag.user = _admin.AdminInfo(_session.GetString("admin_user"));
 
             ViewBag.activ_logs = null;
-            var activ_logs = _db.ExecuteQuery("select created_at, admin_username, action_info from web_admin_log where admin_user_id = @id and web_id = @web_id and (action <> 'login' AND action <> 'logout') order by created_at desc limit 10", new() { { "id", Convert.ToInt32(_session.GetInt32("admin_user_id")) }, { "web_id", _currentWebID } });
+            var activ_logs = _db.ExecuteQuery("select top 10 created_at, admin_username, action_info from [2026_web_admin_log] where admin_user_id = @id and web_id = @web_id and (action <> 'login' AND action <> 'logout') order by created_at desc", new() { { "id", Convert.ToInt32(_session.GetInt32("admin_user_id")) }, { "web_id", _currentWebID } });
             if (activ_logs != null && activ_logs.Rows.Count > 0)
             {
                 ViewBag.activ_logs = activ_logs.Rows;
@@ -934,17 +934,17 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             ViewBag.total_user_today = null;
             ViewBag.sum_weekly = null;
                 
-            var r = _db.ExecuteQuery("select distinct admin_username from web_admin_log where web_id = @web_id AND created_at > '" + DateTime.Now.ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 00:00:00' AND created_at < '" + DateTime.Now.ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 23:59:59'",new() {{"web_id",_currentWebID}});
+            var r = _db.ExecuteQuery("select distinct admin_username from [2026_web_admin_log] where web_id = @web_id AND created_at > '" + DateTime.Now.ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 00:00:00' AND created_at < '" + DateTime.Now.ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 23:59:59'",new() {{"web_id",_currentWebID}});
             if (r != null && r.Rows.Count > 0)
             {
                 ViewBag.active_user_today = r.Rows.Count;
             }
-            r = _db.ExecuteQuery("select * from web_admin", new() { { "web_id", _currentWebID } });
+            r = _db.ExecuteQuery("select * from [2026_web_admin]", new() { { "web_id", _currentWebID } });
             if (r != null && r.Rows.Count > 0)
             {
                 ViewBag.total_user_today = r.Rows.Count;
             }
-            r = _db.ExecuteQuery("select distinct admin_username from web_admin_log where web_id = @web_id AND created_at > '" + DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 00:00:00' AND created_at < '" + DateTime.Now.AddDays(7).ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 23:59:59'", new() {{"web_id",_currentWebID}});
+            r = _db.ExecuteQuery("select distinct admin_username from [2026_web_admin_log] where web_id = @web_id AND created_at > '" + DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 00:00:00' AND created_at < '" + DateTime.Now.AddDays(7).ToString("yyyy-MM-dd", new CultureInfo("en-US")) + " 23:59:59'", new() {{"web_id",_currentWebID}});
             if (r != null && r.Rows.Count > 0)
             {
                 var all_r = Convert.ToDouble(ViewBag.total_user_today);
@@ -961,7 +961,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 ViewBag.sum_weekly = re_r.ToString("0.00");
             }
 
-            r = _db.ExecuteQuery("SELECT mod_name, mod_name_txt FROM ( SELECT DISTINCT ON (mod_name) mod_name, mod_name_txt, id FROM web_admin_log WHERE action IN ('add','edit','delete') ORDER BY mod_name, id DESC ) t ORDER BY id DESC LIMIT 8", new() { { "web_id", _currentWebID } });
+            r = _db.ExecuteQuery("SELECT top 8 mod_name, mod_name_txt FROM ( " +
+                "  SELECT mod_name, mod_name_txt, id, " +
+                "         ROW_NUMBER() OVER (PARTITION BY mod_name ORDER BY id DESC) AS rn " +
+                "  FROM [2026_web_admin_log] WHERE action IN ('add','edit','delete') " +
+                ") t WHERE rn = 1 ORDER BY id DESC", new() { { "web_id", _currentWebID } });
             if (r != null && r.Rows.Count > 0)
             {
                 ViewBag.LastUse = r.Rows;
@@ -970,7 +974,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             ViewBag._admin = _admin;
             ViewBag.user = _admin.AdminInfo(_session.GetString("admin_user"));
              
-            var activ_logs = _db.ExecuteQuery("select created_at, admin_username, action_info from web_admin_log where admin_user_id = @id and web_id = @web_id and (action <> 'login' AND action <> 'logout') order by created_at desc limit 10", new() { { "id", Convert.ToInt32(_session.GetInt32("admin_user_id")) }, { "web_id", _currentWebID } });
+            var activ_logs = _db.ExecuteQuery("select top 10 created_at, admin_username, action_info from [2026_web_admin_log] where admin_user_id = @id and web_id = @web_id and (action <> 'login' AND action <> 'logout') order by created_at desc", new() { { "id", Convert.ToInt32(_session.GetInt32("admin_user_id")) }, { "web_id", _currentWebID } });
             if (activ_logs != null && activ_logs.Rows.Count > 0)
             {
                 ViewBag.activ_logs = activ_logs.Rows; 
@@ -1009,9 +1013,13 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             return Content(re.ToString());
         }
 
+        //----- จำนวนแถวต่อ 1 คำสั่ง INSERT/UPDATE ของการซิงก์ราคาทรัพย์
+        //      SQL Server รับพารามิเตอร์ได้สูงสุด 2100 ตัวต่อคำสั่ง (ที่นี่ใช้ 3 ตัวต่อแถว)
+        private const int NpaSyncBatch = 200;
+
         // ==================================================================
         // NPA Price Sync : /user/update_npa_price
-        // ซิงก์ราคาทรัพย์ NPA จาก MySQL (tb_product2) -> PostgreSQL (web_npa_price)
+        // ซิงก์ราคาทรัพย์ NPA จาก MySQL (tb_product2) -> SQL Server (web_npa_price)
         // ตรวจจับ "ทรัพย์ใหม่" และ "ทรัพย์ปรับราคา" แล้วส่งอีเมลแจ้งเตือน
         // ==================================================================
         [HttpGet]
@@ -1030,12 +1038,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 // ---------- 1.1 : reset new = 'N' ทุก row ----------
-                _db.ExecuteNonQuery("UPDATE web_npa_price SET \"new\" = 'N'");
+                _db.ExecuteNonQuery("UPDATE [2026_web_npa_price] SET [new] = 'N'");
 
                 // ---------- 1.2 : ตรวจจับ + เพิ่มทรัพย์ใหม่ ----------
                 // ดึง npa_id ที่มีอยู่แล้วใน PG
                 var existingIds = new HashSet<long>();
-                var existDt = _db.ExecuteQuery("SELECT npa_id FROM web_npa_price WHERE npa_id IS NOT NULL");
+                var existDt = _db.ExecuteQuery("SELECT npa_id FROM [2026_web_npa_price] WHERE npa_id IS NOT NULL");
                 foreach (DataRow r in existDt.Rows)
                 {
                     existingIds.Add(Convert.ToInt64(r["npa_id"]));
@@ -1091,16 +1099,25 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 int insertedNew = 0;
                 if (newIds.Count > 0)
                 {
-                    _db.ExecuteNonQuery(
-                        "INSERT INTO web_npa_price (npa_id, product_code, price, old_price, \"new\") " +
-                        "SELECT t.id, t.code, t.price, t.price, 'Y' " +
-                        "FROM unnest(@ids::int[], @codes::text[], @prices::int[]) AS t(id, code, price)",
-                        new Dictionary<string, object>
+                    // T-SQL ไม่มี unnest() ของ PostgreSQL และ OPENJSON ใช้ไม่ได้ที่ compatibility level 100
+                    // จึงส่งเป็น VALUES หลายแถวต่อคำสั่ง แบ่งชุดละ 200 แถว (คุมไม่ให้เกินลิมิต 2100 พารามิเตอร์)
+                    for (int off = 0; off < newIds.Count; off += NpaSyncBatch)
+                    {
+                        int take = Math.Min(NpaSyncBatch, newIds.Count - off);
+                        var rowsSql = new List<string>(take);
+                        var pars = new Dictionary<string, object>();
+                        for (int k = 0; k < take; k++)
                         {
-                            { "ids", newIds.ToArray() },
-                            { "codes", newCodes.ToArray() },
-                            { "prices", newPrices.ToArray() }
-                        });
+                            rowsSql.Add($"(@i{k}, @c{k}, @p{k})");
+                            pars[$"i{k}"] = newIds[off + k];
+                            pars[$"c{k}"] = newCodes[off + k];
+                            pars[$"p{k}"] = newPrices[off + k];
+                        }
+                        _db.ExecuteNonQuery(
+                            "INSERT INTO [2026_web_npa_price] (npa_id, product_code, price, old_price, [new]) " +
+                            "SELECT t.id, t.code, t.price, t.price, 'Y' " +
+                            "FROM (VALUES " + string.Join(",", rowsSql) + ") AS t(id, code, price)", pars);
+                    }
                     insertedNew = newIds.Count;
                 }
 
@@ -1108,24 +1125,33 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 int priceUpdated = 0;
                 if (updCodes.Count > 0)
                 {
-                    priceUpdated = _db.ExecuteNonQuery(
-                        "UPDATE web_npa_price w SET price = t.price " +
-                        "FROM unnest(@codes::text[], @prices::int[]) AS t(code, price) " +
-                        "WHERE TRIM(w.product_code) = t.code",
-                        new Dictionary<string, object>
+                    for (int off = 0; off < updCodes.Count; off += NpaSyncBatch)
+                    {
+                        int take = Math.Min(NpaSyncBatch, updCodes.Count - off);
+                        var rowsSql = new List<string>(take);
+                        var pars = new Dictionary<string, object>();
+                        for (int k = 0; k < take; k++)
                         {
-                            { "codes", updCodes.ToArray() },
-                            { "prices", updPrices.ToArray() }
-                        });
+                            rowsSql.Add($"(@c{k}, @p{k})");
+                            pars[$"c{k}"] = updCodes[off + k];
+                            pars[$"p{k}"] = updPrices[off + k];
+                        }
+                        // T-SQL วาง UPDATE ... SET ... FROM <source> โดยอ้างตารางเป้าหมายด้วย alias
+                        priceUpdated += _db.ExecuteNonQuery(
+                            "UPDATE w SET w.price = t.price " +
+                            "FROM [2026_web_npa_price] w " +
+                            "INNER JOIN (VALUES " + string.Join(",", rowsSql) + ") AS t(code, price) " +
+                            "  ON LTRIM(RTRIM(w.product_code)) = t.code", pars);
+                    }
                 }
 
                 // ---------- 1.4 : เช็ค 2 เงื่อนไข + ส่งอีเมล ----------
                 // เงื่อนไข 2 : ทรัพย์ใหม่ (new = 'Y')
                 var newAssets = _db.ExecuteQuery(
-                    "SELECT product_code, price, old_price, npa_id FROM web_npa_price WHERE \"new\" = 'Y' ORDER BY npa_id");
+                    "SELECT product_code, price, old_price, npa_id FROM [2026_web_npa_price] WHERE [new] = 'Y' ORDER BY npa_id");
                 // เงื่อนไข 1 : ราคาเปลี่ยน (price <> old_price) — ตัดทรัพย์ใหม่ออก (ทรัพย์ใหม่ price = old_price อยู่แล้ว)
                 var priceChanges = _db.ExecuteQuery(
-                    "SELECT product_code, price, old_price, npa_id FROM web_npa_price " +
+                    "SELECT product_code, price, old_price, npa_id FROM [2026_web_npa_price] " +
                     "WHERE price IS DISTINCT FROM old_price ORDER BY npa_id");
 
                 // ส่งอีเมลเฉพาะเมื่อมีรายการ (ทรัพย์ใหม่ หรือ ปรับราคา อย่างน้อย 1 รายการ)
@@ -1138,8 +1164,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
 
                 // ---------- 1.5 : จัดข้อมูลให้พร้อมสำหรับรอบถัดไป ----------
-                _db.ExecuteNonQuery("UPDATE web_npa_price SET \"new\" = 'N'");   // 1.5.1
-                _db.ExecuteNonQuery("UPDATE web_npa_price SET old_price = price"); // 1.5.2
+                _db.ExecuteNonQuery("UPDATE [2026_web_npa_price] SET [new] = 'N'");   // 1.5.1
+                _db.ExecuteNonQuery("UPDATE [2026_web_npa_price] SET old_price = price"); // 1.5.2
 
                 return Json(new
                 {

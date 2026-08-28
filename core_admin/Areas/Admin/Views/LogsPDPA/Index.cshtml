@@ -1,4 +1,4 @@
-@using System.Data
+﻿@using System.Data
 @using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -43,15 +43,15 @@
     var prms  = new Dictionary<string, object>();
 
     if (!string.IsNullOrEmpty(qMember)) {
-        where.Append(" AND (CAST(c.member_id AS VARCHAR) = @p_mid OR m.username ILIKE @p_mlike OR m.email ILIKE @p_mlike OR c.email ILIKE @p_mlike)");
+        where.Append(" AND (CAST(c.member_id AS VARCHAR) = @p_mid OR m.username LIKE @p_mlike OR m.email LIKE @p_mlike OR c.email LIKE @p_mlike)");
         prms["p_mid"] = qMember; prms["p_mlike"] = "%" + qMember + "%";
     }
     if (!string.IsNullOrEmpty(qCode))    { where.Append(" AND c.consent_code = @p_code");           prms["p_code"]    = qCode; }
     if (!string.IsNullOrEmpty(qVersion)) { where.Append(" AND c.policy_version = @p_version");       prms["p_version"] = qVersion; }
-    if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND c.ip_address ILIKE @p_ip");            prms["p_ip"]      = "%" + qIp + "%"; }
+    if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND c.ip_address LIKE @p_ip");            prms["p_ip"]      = "%" + qIp + "%"; }
 
-    if (qAccept == "1")       { where.Append(" AND c.is_accept = TRUE"); }
-    else if (qAccept == "0")  { where.Append(" AND c.is_accept = FALSE"); }
+    if (qAccept == "1")       { where.Append(" AND c.is_accept = 1"); }
+    else if (qAccept == "0")  { where.Append(" AND c.is_accept = 0"); }
 
     if (!string.IsNullOrEmpty(qDateStart)) {
         try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND c.consent_at >= @p_ds"); prms["p_ds"] = d; } catch {}
@@ -64,8 +64,8 @@
 
     var dtCount = _db.ExecuteQuery($@"
         SELECT COUNT(*) AS cnt
-        FROM web_pdpa_consent c
-        LEFT JOIN web_member m ON c.member_id = m.id
+        FROM [2026_web_pdpa_consent] c
+        LEFT JOIN [2026_web_member] m ON c.member_id = m.id
         {w}", prms);
     long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
     int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
@@ -76,29 +76,29 @@
                c.consent_at, c.ip_address, c.user_agent,
                c.policy_version, c.created_at,
                m.username
-        FROM web_pdpa_consent c
-        LEFT JOIN web_member m ON c.member_id = m.id
+        FROM [2026_web_pdpa_consent] c
+        LEFT JOIN [2026_web_member] m ON c.member_id = m.id
         {w}
-        ORDER BY c.consent_at DESC NULLS LAST, c.id DESC
-        LIMIT {perPage} OFFSET {offset}", prms);
+        ORDER BY CASE WHEN c.consent_at IS NULL THEN 1 ELSE 0 END, c.consent_at DESC, c.id DESC
+        OFFSET {offset} ROWS FETCH NEXT {perPage} ROWS ONLY", prms);
 
     // distinct consent codes สำหรับ dropdown ค้นหา
     var dtCodes = _db.ExecuteQuery(
-        "SELECT DISTINCT consent_code FROM web_pdpa_consent ORDER BY consent_code");
+        "SELECT DISTINCT consent_code FROM [2026_web_pdpa_consent] ORDER BY consent_code");
 
     // distinct policy_version สำหรับ dropdown ค้นหา
     var dtVersions = _db.ExecuteQuery(
-        "SELECT DISTINCT policy_version FROM web_pdpa_consent WHERE policy_version IS NOT NULL ORDER BY policy_version");
+        "SELECT DISTINCT policy_version FROM [2026_web_pdpa_consent] WHERE policy_version IS NOT NULL ORDER BY policy_version");
 
     // Stats
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            COUNT(*) FILTER (WHERE c.is_accept = TRUE)  AS cnt_accept,
-            COUNT(*) FILTER (WHERE c.is_accept = FALSE) AS cnt_reject,
-            COUNT(DISTINCT c.member_id) FILTER (WHERE c.member_id IS NOT NULL) AS cnt_members,
-            COUNT(*) FILTER (WHERE c.consent_at >= NOW() - INTERVAL '24 hours') AS cnt_today
-        FROM web_pdpa_consent c
-        LEFT JOIN web_member m ON c.member_id = m.id
+            SUM(CASE WHEN c.is_accept = 1 THEN 1 ELSE 0 END)  AS cnt_accept,
+            SUM(CASE WHEN c.is_accept = 0 THEN 1 ELSE 0 END) AS cnt_reject,
+            COUNT(DISTINCT CASE WHEN c.member_id IS NOT NULL THEN c.member_id END) AS cnt_members,
+            SUM(CASE WHEN c.consent_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END) AS cnt_today
+        FROM [2026_web_pdpa_consent] c
+        LEFT JOIN [2026_web_member] m ON c.member_id = m.id
         {w}", prms);
 
     long cntAccept  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_accept"])  : 0;

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -28,15 +28,15 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var prms  = new Dictionary<string, object>();
 
             if (!string.IsNullOrEmpty(qMember)) {
-                where.Append(" AND (CAST(c.member_id AS VARCHAR) = @p_mid OR m.username ILIKE @p_mlike OR m.email ILIKE @p_mlike OR c.email ILIKE @p_mlike)");
+                where.Append(" AND (CAST(c.member_id AS VARCHAR) = @p_mid OR m.username LIKE @p_mlike OR m.email LIKE @p_mlike OR c.email LIKE @p_mlike)");
                 prms["p_mid"] = qMember; prms["p_mlike"] = "%" + qMember + "%";
             }
             if (!string.IsNullOrEmpty(qCode))    { where.Append(" AND c.consent_code = @p_code");      prms["p_code"]    = qCode; }
             if (!string.IsNullOrEmpty(qVersion)) { where.Append(" AND c.policy_version = @p_version"); prms["p_version"] = qVersion; }
-            if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND c.ip_address ILIKE @p_ip");      prms["p_ip"]      = "%" + qIp + "%"; }
+            if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND c.ip_address LIKE @p_ip");      prms["p_ip"]      = "%" + qIp + "%"; }
 
-            if (qAccept == "1")      { where.Append(" AND c.is_accept = TRUE"); }
-            else if (qAccept == "0") { where.Append(" AND c.is_accept = FALSE"); }
+            if (qAccept == "1")      { where.Append(" AND c.is_accept = 1"); }
+            else if (qAccept == "0") { where.Append(" AND c.is_accept = 0"); }
 
             if (!string.IsNullOrEmpty(qDateStart)) {
                 try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND c.consent_at >= @p_ds"); prms["p_ds"] = d; } catch { }
@@ -51,10 +51,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                        c.consent_at, c.ip_address, c.user_agent,
                        c.policy_version, c.created_at,
                        m.username
-                FROM web_pdpa_consent c
-                LEFT JOIN web_member m ON c.member_id = m.id
+                FROM [2026_web_pdpa_consent] c
+                LEFT JOIN [2026_web_member] m ON c.member_id = m.id
                 {where}
-                ORDER BY c.consent_at DESC NULLS LAST, c.id DESC", prms);
+                ORDER BY CASE WHEN c.consent_at IS NULL THEN 1 ELSE 0 END, c.consent_at DESC, c.id DESC", prms);
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using var excel = new ExcelPackage();

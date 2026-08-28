@@ -1,4 +1,4 @@
-@using System.Data
+﻿@using System.Data
 @using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -36,7 +36,7 @@
     var prms = new Dictionary<string, object>();
     var w = NpaSearchLogHelper.BuildWhere(Q, prms);
 
-    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM api_npa_search_log l {w}", prms);
+    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM [2026_api_npa_search_log] l {w}", prms);
     long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
     int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
 
@@ -44,19 +44,19 @@
         SELECT l.id, l.created_at, l.keyword, l.search_mode, l.lang,
                l.filters, l.sort, l.page, l.result_count,
                l.query_string, l.client_ip, l.user_agent, l.referer
-        FROM api_npa_search_log l
+        FROM [2026_api_npa_search_log] l
         {w}
         ORDER BY l.created_at DESC
-        LIMIT {perPage} OFFSET {offset}", prms);
+        OFFSET {offset} ROWS FETCH NEXT {perPage} ROWS ONLY", prms);
 
     //----- สรุปตัวเลขของ "ชุดผลลัพธ์ที่กำลังกรองอยู่"
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            COUNT(DISTINCT btrim(l.keyword)) FILTER (WHERE l.keyword IS NOT NULL AND btrim(l.keyword) <> '') AS cnt_distinct_kw,
-            COUNT(*) FILTER (WHERE COALESCE(l.result_count, 0) = 0)                                          AS cnt_zero,
-            COUNT(*) FILTER (WHERE l.keyword IS NULL OR btrim(l.keyword) = '')                                AS cnt_nokw,
-            COUNT(*) FILTER (WHERE l.created_at >= NOW() - INTERVAL '24 hours')                               AS cnt_today
-        FROM api_npa_search_log l {w}", prms);
+            COUNT(DISTINCT CASE WHEN l.keyword IS NOT NULL AND LTRIM(RTRIM(l.keyword)) <> '' THEN LTRIM(RTRIM(l.keyword)) END) AS cnt_distinct_kw,
+            SUM(CASE WHEN COALESCE(l.result_count, 0) = 0 THEN 1 ELSE 0 END)                                          AS cnt_zero,
+            SUM(CASE WHEN l.keyword IS NULL OR LTRIM(RTRIM(l.keyword)) = '' THEN 1 ELSE 0 END)                                AS cnt_nokw,
+            SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END)                               AS cnt_today
+        FROM [2026_api_npa_search_log] l {w}", prms);
 
     long cntDistinctKw = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_distinct_kw"]) : 0;
     long cntZero       = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_zero"])        : 0;
@@ -65,27 +65,25 @@
 
     //----- คำค้นหายอดนิยม / คำค้นหาที่ไม่พบผลลัพธ์ (ตามเงื่อนไขค้นหาปัจจุบัน)
     var dtTopKw = _db.ExecuteQuery($@"
-        SELECT btrim(l.keyword) AS kw, COUNT(*) AS cnt,
-               COALESCE(AVG(l.result_count), 0)::BIGINT AS avg_result,
+        SELECT top 10 LTRIM(RTRIM(l.keyword)) AS kw, COUNT(*) AS cnt,
+               CAST(COALESCE(AVG(l.result_count), 0) AS bigint) AS avg_result,
                MAX(l.created_at) AS last_at
-        FROM api_npa_search_log l
-        {w} AND l.keyword IS NOT NULL AND btrim(l.keyword) <> ''
-        GROUP BY btrim(l.keyword)
-        ORDER BY cnt DESC, last_at DESC
-        LIMIT 10", prms);
+        FROM [2026_api_npa_search_log] l
+        {w} AND l.keyword IS NOT NULL AND LTRIM(RTRIM(l.keyword)) <> ''
+        GROUP BY LTRIM(RTRIM(l.keyword))
+        ORDER BY cnt DESC, last_at DESC", prms);
 
     var dtZeroKw = _db.ExecuteQuery($@"
-        SELECT btrim(l.keyword) AS kw, COUNT(*) AS cnt, MAX(l.created_at) AS last_at
-        FROM api_npa_search_log l
-        {w} AND l.keyword IS NOT NULL AND btrim(l.keyword) <> ''
+        SELECT top 10 LTRIM(RTRIM(l.keyword)) AS kw, COUNT(*) AS cnt, MAX(l.created_at) AS last_at
+        FROM [2026_api_npa_search_log] l
+        {w} AND l.keyword IS NOT NULL AND LTRIM(RTRIM(l.keyword)) <> ''
           AND COALESCE(l.result_count, 0) = 0
-        GROUP BY btrim(l.keyword)
-        ORDER BY cnt DESC, last_at DESC
-        LIMIT 10", prms);
+        GROUP BY LTRIM(RTRIM(l.keyword))
+        ORDER BY cnt DESC, last_at DESC", prms);
 
     //----- ตัวเลือกใน dropdown อ่านจากข้อมูลจริง (ไม่ผูกกับเงื่อนไขค้นหา จะได้ไม่หายไปหลังกรอง)
-    var dtModes = _db.ExecuteQuery("SELECT DISTINCT search_mode FROM api_npa_search_log WHERE search_mode IS NOT NULL AND search_mode <> '' ORDER BY search_mode");
-    var dtLangs = _db.ExecuteQuery("SELECT DISTINCT lang FROM api_npa_search_log WHERE lang IS NOT NULL AND lang <> '' ORDER BY lang");
+    var dtModes = _db.ExecuteQuery("SELECT DISTINCT search_mode FROM [2026_api_npa_search_log] WHERE search_mode IS NOT NULL AND search_mode <> '' ORDER BY search_mode");
+    var dtLangs = _db.ExecuteQuery("SELECT DISTINCT lang FROM [2026_api_npa_search_log] WHERE lang IS NOT NULL AND lang <> '' ORDER BY lang");
 
     //----- query string สำหรับลิงก์แบ่งหน้า / ปุ่ม Export
     var qsParts = new List<string>();

@@ -160,8 +160,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
         public DataRow? getAccess(string ModuleName = "", int access_id = 0)
         {
-            var accessMaster = _db.ExecuteQuery("select id from web_admin_access where id = @access_id and web_id = @web_id limit 1", new() { { "access_id", access_id }, { "web_id", _currentWebID } });
-            var access = _db.ExecuteQuery("select * from web_admin_module where access_id = @access_id and mod_name = @mod_name and web_id = @web_id limit 1", new() { { "access_id", access_id }, { "mod_name", ModuleName }, { "web_id", _currentWebID } });
+            var accessMaster = _db.ExecuteQuery("select top 1 id from [2026_web_admin_access] where id = @access_id and web_id = @web_id", new() { { "access_id", access_id }, { "web_id", _currentWebID } });
+            var access = _db.ExecuteQuery("select top 1 * from [2026_web_admin_module] where access_id = @access_id and mod_name = @mod_name and web_id = @web_id", new() { { "access_id", access_id }, { "mod_name", ModuleName }, { "web_id", _currentWebID } });
             if (access.Rows.Count > 0 && accessMaster.Rows.Count > 0)
             {
                 return access.Rows[0];
@@ -246,7 +246,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 sql_param.Add("web_id", webID);
             }
 
-            string sql = $"select * from web_admin where username = @username {sql_password} limit 1";
+            string sql = $"select top 1 * from [2026_web_admin] where username = @username {sql_password}";
             var admin_user = _db.ExecuteQuery(sql, sql_param);
             if (admin_user.Rows.Count > 0)
             {
@@ -296,7 +296,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         {
             var sql_param = new Dictionary<string, object>() { { "id", userID }, { "web_id", webID } };
             
-            string sql = $"select id from web_admin where id = @id and web_id = @web_id limit 1";
+            string sql = $"select top 1 id from [2026_web_admin] where id = @id and web_id = @web_id";
             var admin_user = _db.ExecuteQuery(sql, sql_param);
 
             //----- เช็คแค่ว่ามีไซต์นี้จริง ไม่ผูกกับ approve/ช่วงวันที่แสดงผล (เกณฑ์นั้นใช้กับ front-end)
@@ -514,7 +514,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 while (parent_id != "0")
                 {
                     //string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.FieldCMSPage) ?? "0";
-                    var parentDT = _db.ExecuteQuery(string.Format("select id, {1}, title from {0} where cast(id as text) = cast(@cate_val as text) and web_id = @web_id limit 1", Module.Config.Table, Module.Config.FieldCMSPage), new Dictionary<string, object>() { { "cate_val", parent_id }, { "web_id", _currentWebID} });
+                    var parentDT = _db.ExecuteQuery(string.Format("select top 1 id, {1}, title from {0} where cast(id as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id", Db.T(Module.Config.Table), Module.Config.FieldCMSPage), new Dictionary<string, object>() { { "cate_val", parent_id }, { "web_id", _currentWebID} });
                     if (parentDT.Rows.Count > 0)
                     {
                         parent_id = parentDT.Rows[0][Module.Config.FieldCMSPage].ToString() ?? "0";
@@ -781,7 +781,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             // module with CanAdd enabled; all 34 others are edit-only (CanAdd = false).
             if (Module.Name == "FooterPoll" && Module.Config.Table == "web_core_single" && !fields.ContainsKey("id"))
             {
-                var dtNextId = _db.ExecuteQuery("select coalesce(max(id), 0) + 1 as next_id from web_core_single");
+                var dtNextId = _db.ExecuteQuery("select coalesce(max(id), 0) + 1 as next_id from [2026_web_core_single]");
                 int next_id = (dtNextId.Rows.Count > 0) ? Convert.ToInt32(dtNextId.Rows[0]["next_id"]) : 1;
                 fields.Add("id", next_id);
             }
@@ -953,7 +953,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         if (!string.IsNullOrEmpty(Module.Config.TableCate) && !string.IsNullOrEmpty(Module.Config.TableCateField))
                         {
                             string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.TableCateField) ?? "";
-                            var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as text) = cast(@cate_val as text) and module_id = '" + Module.Config.TableModuleID + "' and web_id = @web_id ", Module.Config.Table, Module.Config.TableCateField), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
+                            var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and module_id = '" + Module.Config.TableModuleID + "' and web_id = @web_id ", Module.Config.Table, Module.Config.TableCateField), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
                          
                             if (dtSort.Rows.Count > 0)
                             { 
@@ -973,7 +973,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     else if (!string.IsNullOrEmpty(Module.Config.TableCate) && !string.IsNullOrEmpty(Module.Config.TableCateField))
                     {
                         string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.TableCateField) ?? "";
-                        var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as text) = cast(@cate_val as text) and web_id = @web_id ", Module.Config.Table, Module.Config.TableCateField), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
+                        var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id ", Db.T(Module.Config.Table), Module.Config.TableCateField), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
                         if (dtSort.Rows.Count > 0)
                         {
                             default_sort = Convert.ToInt32(dtSort.Rows[0]["max_sort"]);
@@ -982,7 +982,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     else if (Module.Config.IsCMSPage == true && Module.Config.FieldCMSPage != "")
                     {
                         string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.FieldCMSPage) ?? "";
-                        var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as text) = cast(@cate_val as text)  and web_id = @web_id", Module.Config.Table, Module.Config.FieldCMSPage), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
+                        var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max))  and web_id = @web_id", Db.T(Module.Config.Table), Module.Config.FieldCMSPage), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
                         if (dtSort.Rows.Count > 0)
                         {
                             default_sort = Convert.ToInt32(dtSort.Rows[0]["max_sort"]);
@@ -990,7 +990,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     }
                     else
                     {
-                        var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where web_id = @web_id ", Module.Config.Table), new Dictionary<string, object>() { { "web_id", _currentWebID} });
+                        var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where web_id = @web_id ", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "web_id", _currentWebID} });
                         if (dtSort.Rows.Count > 0)
                         {
                             default_sort = Convert.ToInt32(dtSort.Rows[0]["max_sort"]);
@@ -1016,7 +1016,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 if (!string.IsNullOrEmpty(Module.Config.TableCate) && !string.IsNullOrEmpty(Module.Config.TableCateField))
                 {
                     string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.TableCateField) ?? "";
-                    var allRows = _db.ExecuteQuery(string.Format("select id from {0} where module_id = '" + Module.Config.TableModuleID + "' and cast({1} as text) = cast(@cate_val as text) and web_id = @web_id order by sort asc", Module.Config.Table, Module.Config.TableCateField), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } }); 
+                    var allRows = _db.ExecuteQuery(string.Format("select id from {0} where module_id = '" + Module.Config.TableModuleID + "' and cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id order by sort asc", Module.Config.Table, Module.Config.TableCateField), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } }); 
                     if (allRows.Rows.Count > 0)
                     {
                         int sort = 10;
@@ -1044,7 +1044,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             else if (!string.IsNullOrEmpty(Module.Config.TableCate) && !string.IsNullOrEmpty(Module.Config.TableCateField))
             {
                 string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.TableCateField) ?? "";
-                var allRows = _db.ExecuteQuery(string.Format("select id from {0} where cast({1} as text) = cast(@cate_val as text) and web_id = @web_id order by sort asc", Module.Config.Table, Module.Config.TableCateField), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
+                var allRows = _db.ExecuteQuery(string.Format("select id from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id order by sort asc", Db.T(Module.Config.Table), Module.Config.TableCateField), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
                 if (allRows.Rows.Count > 0)
                 {
                     int sort = 10;
@@ -1058,7 +1058,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             else if (Module.Config.IsCMSPage == true && Module.Config.FieldCMSPage != "")
             {
                 string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.FieldCMSPage) ?? "";
-                var allRows = _db.ExecuteQuery(string.Format("select id from {0} where cast({1} as text) = cast(@cate_val as text) and web_id = @web_id order by sort asc", Module.Config.Table, Module.Config.FieldCMSPage), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
+                var allRows = _db.ExecuteQuery(string.Format("select id from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id order by sort asc", Db.T(Module.Config.Table), Module.Config.FieldCMSPage), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
                 if (allRows.Rows.Count > 0)
                 {
                     int sort = 10;
@@ -1071,7 +1071,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             }
             else
             {
-                var allRows = _db.ExecuteQuery(string.Format("select id from {0} where web_id = @web_id order by sort asc", Module.Config.Table), new() { { "web_id", _currentWebID } });
+                var allRows = _db.ExecuteQuery(string.Format("select id from {0} where web_id = @web_id order by sort asc", Db.T(Module.Config.Table)), new() { { "web_id", _currentWebID } });
                 if (allRows.Rows.Count > 0)
                 {
                     int sort = 10;
@@ -1086,7 +1086,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
         public int getChildCount(Module Module, int id = 0)
         {
-            var dt = _db.ExecuteQuery(string.Format("SELECT COUNT(id) as count_item from {0} WHERE cast({1} as text) = cast(@id as text) and web_id = @web_id ", Module.Config.Table, Module.Config.FieldCMSPage), new() { { "id", id }, { "web_id", _currentWebID } });
+            var dt = _db.ExecuteQuery(string.Format("SELECT COUNT(id) as count_item from {0} WHERE cast({1} as nvarchar(max)) = cast(@id as nvarchar(max)) and web_id = @web_id ", Db.T(Module.Config.Table), Module.Config.FieldCMSPage), new() { { "id", id }, { "web_id", _currentWebID } });
             if (dt.Rows.Count > 0)
             {
                 return Convert.ToInt32(dt.Rows[0]["count_item"]);
@@ -1099,7 +1099,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
         public int getParentID(Module Module, int id = 0)
         {
-            var dt = _db.ExecuteQuery(string.Format("SELECT {1} as parnt_id from {0} WHERE cast(id as text) = cast(@id as text) and web_id = @web_id limit 1 ", Module.Config.Table, Module.Config.FieldCMSPage), new() { { "id", id }, { "web_id", _currentWebID } });
+            var dt = _db.ExecuteQuery(string.Format("SELECT top 1 {1} as parnt_id from {0} WHERE cast(id as nvarchar(max)) = cast(@id as nvarchar(max)) and web_id = @web_id", Db.T(Module.Config.Table), Module.Config.FieldCMSPage), new() { { "id", id }, { "web_id", _currentWebID } });
             if (dt.Rows.Count > 0)
             {
                 return Convert.ToInt32(dt.Rows[0]["parnt_id"]);
@@ -1112,7 +1112,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
         public List<Dictionary<string, object>> getUser()
         {
-            var data = _db.ExecuteQuery("select id, access_id, name, surname from web_admin where web_id = @web_id", new() { { "web_id", _currentWebID } });
+            var data = _db.ExecuteQuery("select id, access_id, name, surname from [2026_web_admin] where web_id = @web_id", new() { { "web_id", _currentWebID } });
             var dict = data.AsEnumerable().Select(
                 row => data.Columns.Cast<DataColumn>().ToDictionary(
                     column => column.ColumnName,    // Key
@@ -1136,9 +1136,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             var sql_param = new Dictionary<string, object>() { { "id", webID } };
 
             string sqlShowFrontAndStatus = checkShowFrontAndStatus ? "and status = 1 and show_front = 1" : "";
-            string sqlCheckDate = checkDate ? "and now() >= pb_issue_date and now() <= pb_expiry_date" : "";
+            string sqlCheckDate = checkDate ? "and SYSDATETIMEOFFSET() >= pb_issue_date and SYSDATETIMEOFFSET() <= pb_expiry_date" : "";
 
-            string sql = $"select * from web_microsite where id = @id {sqlShowFrontAndStatus} {sqlCheckDate} limit 1";
+            string sql = $"select top 1 * from [2026_web_microsite] where id = @id {sqlShowFrontAndStatus} {sqlCheckDate}";
             var webInfo = _db.ExecuteQuery(sql, sql_param);
             if (webInfo.Rows.Count > 0)
             {
@@ -1803,7 +1803,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             {
                 foreach (System.Data.DataRow item in optionDT.Rows)
                 {
-                    var optionDT2 = _db.ExecuteQuery(string.Format("select title from {0} where id = @id", table_name), new() { { "id", item["cat_id"] } });
+                    var optionDT2 = _db.ExecuteQuery(string.Format("select title from {0} where id = @id", Db.T(table_name)), new() { { "id", item["cat_id"] } });
                     string txt1 = "";
                     if (optionDT2.Rows.Count > 0)
                     {
@@ -1941,7 +1941,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         public string GetCatIdByTitle(string cat_table, int module_id, string title)
         {
             var dt = _db.ExecuteQuery(
-                string.Format("select id from {0} where web_id = @web_id and module_id = @module_id and title = @title order by id limit 1", cat_table),
+                string.Format("select top 1 id from {0} where web_id = @web_id and module_id = @module_id and title = @title order by id", Db.T(cat_table)),
                 new() { { "web_id", _currentWebID }, { "module_id", module_id }, { "title", title } });
 
             return (dt.Rows.Count > 0) ? dt.Rows[0]["id"] + "" : "";

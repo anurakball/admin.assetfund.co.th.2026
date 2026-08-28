@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using thaicredit_hr_admin.Areas.Admin.Helpers;
@@ -27,7 +27,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 SELECT l.id, l.created_at, l.keyword, l.search_mode, l.lang,
                        l.filters, l.sort, l.page, l.result_count,
                        l.query_string, l.client_ip, l.user_agent, l.referer
-                FROM api_npa_search_log l
+                FROM [2026_api_npa_search_log] l
                 {where}
                 ORDER BY l.created_at DESC", prms);
 
@@ -90,15 +90,15 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
             #region ----- Sheet 2 : สรุปคำค้นหายอดนิยม -----
             var dtTop = _db.ExecuteQuery($@"
-                SELECT btrim(l.keyword) AS kw,
+                SELECT LTRIM(RTRIM(l.keyword)) AS kw,
                        COUNT(*) AS cnt,
-                       COALESCE(AVG(l.result_count), 0)::BIGINT AS avg_result,
-                       COUNT(*) FILTER (WHERE COALESCE(l.result_count, 0) = 0) AS cnt_zero,
+                       CAST(COALESCE(AVG(l.result_count), 0) AS bigint) AS avg_result,
+                       SUM(CASE WHEN COALESCE(l.result_count, 0) = 0 THEN 1 ELSE 0 END) AS cnt_zero,
                        MAX(l.created_at) AS last_at
-                FROM api_npa_search_log l
+                FROM [2026_api_npa_search_log] l
                 {where}
-                  AND l.keyword IS NOT NULL AND btrim(l.keyword) <> ''
-                GROUP BY btrim(l.keyword)
+                  AND l.keyword IS NOT NULL AND LTRIM(RTRIM(l.keyword)) <> ''
+                GROUP BY LTRIM(RTRIM(l.keyword))
                 ORDER BY cnt DESC, last_at DESC", prms);
 
             var ws2 = excel.Workbook.Worksheets.Add("คำค้นหายอดนิยม");

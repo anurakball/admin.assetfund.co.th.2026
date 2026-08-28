@@ -1,4 +1,4 @@
-@using System.Data
+﻿@using System.Data
 @using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -42,12 +42,12 @@
     var where = new System.Text.StringBuilder("WHERE 1=1");
     var prms  = new Dictionary<string, object>();
 
-    if (!string.IsNullOrEmpty(qEndpoint))  { where.Append(" AND endpoint ILIKE @p_ep");      prms["p_ep"]   = "%" + qEndpoint + "%"; }
-    if (qSuccess == "true")                { where.Append(" AND success = TRUE"); }
-    else if (qSuccess == "false")          { where.Append(" AND success = FALSE"); }
+    if (!string.IsNullOrEmpty(qEndpoint))  { where.Append(" AND endpoint LIKE @p_ep");      prms["p_ep"]   = "%" + qEndpoint + "%"; }
+    if (qSuccess == "true")                { where.Append(" AND success = 1"); }
+    else if (qSuccess == "false")          { where.Append(" AND success = 0"); }
     if (!string.IsNullOrEmpty(qUid))       { where.Append(" AND CAST(uid AS VARCHAR) = @p_uid"); prms["p_uid"] = qUid; }
-    if (!string.IsNullOrEmpty(qIp))        { where.Append(" AND ip_address ILIKE @p_ip");    prms["p_ip"]   = "%" + qIp + "%"; }
-    if (!string.IsNullOrEmpty(qErrorCode)) { where.Append(" AND error_code ILIKE @p_ec");    prms["p_ec"]   = "%" + qErrorCode + "%"; }
+    if (!string.IsNullOrEmpty(qIp))        { where.Append(" AND ip_address LIKE @p_ip");    prms["p_ip"]   = "%" + qIp + "%"; }
+    if (!string.IsNullOrEmpty(qErrorCode)) { where.Append(" AND error_code LIKE @p_ec");    prms["p_ec"]   = "%" + qErrorCode + "%"; }
 
     if (!string.IsNullOrEmpty(qDateStart)) {
         try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND log_date >= @p_ds"); prms["p_ds"] = d; } catch {}
@@ -58,30 +58,30 @@
 
     var w = where.ToString();
 
-    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM api_audit_log {w}", prms);
+    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM [2026_api_audit_log] {w}", prms);
     long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
     int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
 
     var dtLogs = _db.ExecuteQuery($@"
         SELECT id, log_date, endpoint, success, uid, detail, ip_address, error_code
-        FROM api_audit_log
+        FROM [2026_api_audit_log]
         {w}
         ORDER BY log_date DESC
-        LIMIT {perPage} OFFSET {offset}", prms);
+        OFFSET {offset} ROWS FETCH NEXT {perPage} ROWS ONLY", prms);
 
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            COUNT(*) FILTER (WHERE success = TRUE)  AS cnt_success,
-            COUNT(*) FILTER (WHERE success = FALSE) AS cnt_failed,
-            COUNT(*) FILTER (WHERE log_date >= NOW() - INTERVAL '24 hours') AS cnt_today
-        FROM api_audit_log {w}", prms);
+            SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END)  AS cnt_success,
+            SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) AS cnt_failed,
+            SUM(CASE WHEN log_date >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END) AS cnt_today
+        FROM [2026_api_audit_log] {w}", prms);
 
     long cntSuccess = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_success"]) : 0;
     long cntFailed  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_failed"])  : 0;
     long cntToday   = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_today"])   : 0;
 
     var dtEndpoints = _db.ExecuteQuery(
-        "SELECT DISTINCT endpoint FROM api_audit_log ORDER BY endpoint");
+        "SELECT DISTINCT endpoint FROM [2026_api_audit_log] ORDER BY endpoint");
 
     var qsParts = new List<string>();
     if (!string.IsNullOrEmpty(qEndpoint))  qsParts.Add("q_endpoint="  + Uri.EscapeDataString(qEndpoint));

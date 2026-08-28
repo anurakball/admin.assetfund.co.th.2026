@@ -57,7 +57,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 var sqlParam = new Dictionary<string, object>() { { "id", 0 }, { "web_id", _currentWebID } };
 
                 string sqlSelect = string.Format(" select * ");
-                string sqlFrom = string.Format(" from {0} ", Module.Config.Table);
+                string sqlFrom = string.Format(" from {0} ", Db.T(Module.Config.Table));
                 string sqlWhere = string.Format(" where id > @id and web_id = @web_id ");
                 string sqlDateSearch = "";
                 string sqlFieldSearch = ""; 
@@ -82,12 +82,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 {
                     if (!string.IsNullOrEmpty(_session.GetString("admin_" + Module.Name + "_after")))
                     {
-                        sqlDateSearch += " and created_at >= (@after::timestamp) ";
+                        sqlDateSearch += " and created_at >= (CAST(@after AS datetime2)) ";
                         sqlParam.Add("after", _session.GetString("admin_" + Module.Name + "_after") + " 00:00:00");
                     }
                     if (!string.IsNullOrEmpty(_session.GetString("admin_" + Module.Name + "_before")))
                     {
-                        sqlDateSearch += " and created_at <= (@before::timestamp) ";
+                        sqlDateSearch += " and created_at <= (CAST(@before AS datetime2)) ";
                         sqlParam.Add("before", _session.GetString("admin_" + Module.Name + "_before") + " 23:59:59");
                     }
                 }
@@ -105,11 +105,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                             {
                                 if (Module.Config.FieldSearchIsEqual != null && Module.Config.FieldSearchIsEqual.Where(c => c == FieldSearch.Key).Count() == 1)
                                 {
-                                    arCondition.Add(string.Format(" LOWER(cast({0} as text)) = LOWER(cast({1} as text)) ", Fields, "@search_" + FieldSearch.Key));
+                                    arCondition.Add(string.Format(" LOWER(cast({0} as nvarchar(max))) = LOWER(cast({1} as nvarchar(max))) ", Fields, "@search_" + FieldSearch.Key));
                                 }
                                 else
                                 {
-                                    arCondition.Add(string.Format(" LOWER(cast({0} as text)) like LOWER({1}) ", Fields, "@search_" + FieldSearch.Key));
+                                    arCondition.Add(string.Format(" LOWER(cast({0} as nvarchar(max))) like LOWER({1}) ", Fields, "@search_" + FieldSearch.Key));
                                 }
                             }
 
@@ -157,7 +157,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
                 #endregion
 
-                sql += " limit @perpage offset @start ";
+                // T-SQL แบ่งหน้าด้วย OFFSET/FETCH ซึ่งบังคับว่าคำสั่งต้องมี ORDER BY
+                // โมดูลที่ไม่ได้ตั้งค่าการเรียงจะได้ sqlOrder ว่าง จึงต้องเติม ORDER BY กลาง ๆ ให้
+                if (string.IsNullOrWhiteSpace(sqlOrder)) { sql += " order by (select null) "; }
+                sql += " offset @start rows fetch next @perpage rows only ";
                 sqlParam.Add("start", ((Module.Config.Page - 1) * Module.Config.PerPage) < 0 ? 0 : (Module.Config.Page - 1) * Module.Config.PerPage);
                 sqlParam.Add("perpage", Module.Config.PerPage);
 
@@ -254,7 +257,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 Module.Config.TextBreadcrumb = Module.Config.TextBreadcrumb + "/รายละเอียด";
 
                 #region ----- Select Item -----
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการดู";
@@ -360,7 +363,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 if (Module.Name == "EForm")
                 {
-                    var EForm_Group_Rows = _db.ExecuteQuery(string.Format("select * from {0} where status = 1 AND ( ( pb_issue_date_config = '1' ) OR ( pb_issue_date_config = '2' AND ( pb_issue_date < NOW() AND pb_expiry_date > NOW() ) ) ) and web_id = @web_id order by sort asc limit 999", "web_eform_group"), new Dictionary<string, object>() { { "status", 1 }, { "web_id", _currentWebID } });
+                    var EForm_Group_Rows = _db.ExecuteQuery(string.Format("select top 999 * from {0} where status = 1 AND ( ( pb_issue_date_config = '1' ) OR ( pb_issue_date_config = '2' AND ( pb_issue_date < SYSDATETIMEOFFSET() AND pb_expiry_date > SYSDATETIMEOFFSET() ) ) ) and web_id = @web_id order by sort asc", Db.T("web_eform_group")), new Dictionary<string, object>() { { "status", 1 }, { "web_id", _currentWebID } });
                     ViewBag.EForm_Group_Rows = EForm_Group_Rows;
                 }
 
@@ -397,7 +400,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 if (affected != 0)
                 {
                     int last_create_id = 0;
-                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc LIMIT 1", Module.Config.Table), new() { { "web_id", _currentWebID } });
+                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT top 1 MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc", Db.T(Module.Config.Table)), new() { { "web_id", _currentWebID } });
 
                     if (lastInsert.Rows.Count > 0 && !string.IsNullOrEmpty(lastInsert.Rows[0]["last_id"].ToString()) && _utility.isInt(lastInsert.Rows[0]["last_id"] + ""))
                     {
@@ -448,7 +451,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 Module.Config.TextBreadcrumb = Module.Config.TextBreadcrumb + "/แก้ไข";
 
                 #region Select Item Edit #########
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการแก้ไข";
@@ -504,7 +507,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }*/
                 if (Module.Name == "EForm")
                 {
-                    var EForm_Group_Rows = _db.ExecuteQuery(string.Format("select * from {0} where status = 1 AND ( ( pb_issue_date_config = '1' ) OR ( pb_issue_date_config = '2' AND ( pb_issue_date < NOW() AND pb_expiry_date > NOW() ) ) ) and web_id = @web_id order by sort asc limit 999", "web_eform_group"), new Dictionary<string, object>() { { "status", 1 }, { "web_id", _currentWebID } });
+                    var EForm_Group_Rows = _db.ExecuteQuery(string.Format("select top 999 * from {0} where status = 1 AND ( ( pb_issue_date_config = '1' ) OR ( pb_issue_date_config = '2' AND ( pb_issue_date < SYSDATETIMEOFFSET() AND pb_expiry_date > SYSDATETIMEOFFSET() ) ) ) and web_id = @web_id order by sort asc", Db.T("web_eform_group")), new Dictionary<string, object>() { { "status", 1 }, { "web_id", _currentWebID } });
                     ViewBag.EForm_Group_Rows = EForm_Group_Rows;
                 }
 
@@ -528,7 +531,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 #region Select Item Edit #########
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการแก้ไข";
@@ -600,7 +603,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     // microsite ที่ไม่มี widget (box_layout ว่าง) จะไม่เขียนทับ เพื่อไม่ให้ล้าง layout เดิมโดยไม่ตั้งใจ
                     if (!string.IsNullOrEmpty(box_layout))
                     {
-                        _db.ExecuteNonQuery("UPDATE web_cms_page SET box_layout = @box_layout, pb_box_layout = @box_layout WHERE is_home = '1' AND web_id = @web_id ", new() { { "box_layout", box_layout }, { "web_id", _currentWebID } });
+                        _db.ExecuteNonQuery("UPDATE [2026_web_cms_page] SET box_layout = @box_layout, pb_box_layout = @box_layout WHERE is_home = '1' AND web_id = @web_id ", new() { { "box_layout", box_layout }, { "web_id", _currentWebID } });
                     }
                 }
 
@@ -686,7 +689,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             };
 
             // map title -> id ของ web_widget2 (พาเลตต์ค่าคงที่ ไม่ใช้ web_id เป็นเงื่อนไข)
-            var rows = _db.ExecuteQuery("SELECT id, title FROM web_widget2");
+            var rows = _db.ExecuteQuery("SELECT id, title FROM [2026_web_widget2]");
             var titleToId = new Dictionary<string, string>();
             foreach (System.Data.DataRow r in rows.Rows)
             {
@@ -732,7 +735,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         foreach (string id in allIDar)
                         {
                             #region ----- select item delete -----
-                            var itemDelete = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
+                            var itemDelete = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
                             #endregion
 
                             if (_utility.isInt(id) && itemDelete.Rows.Count > 0)
@@ -749,24 +752,29 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                                     {
                                         "web_widget", "web_widget_group", "web_widget2", "web_widget_group2"
                                     };
+                                    //----- ค้นเฉพาะตารางของระบบนี้ (ขึ้นต้นด้วย prefix 2026_) จะได้ไม่ไปแตะตารางเดิมของ asset_plus_uat
                                     var tablesWithWebId = _db.ExecuteQuery(
                                         "select table_name from information_schema.columns " +
-                                        "where column_name = 'web_id' and table_schema = 'public' and table_name <> 'web_microsite'");
+                                        "where column_name = 'web_id' and table_schema = 'dbo' " +
+                                        "  and table_name like '" + Db.Prefix + "%' and table_name <> '" + Db.Prefix + "web_microsite'");
 
                                     foreach (System.Data.DataRow tRow in tablesWithWebId.Rows)
                                     {
-                                        string cleanTable = tRow["table_name"] + "";
+                                        string physicalTable = tRow["table_name"] + "";
+                                        //----- เทียบกับรายชื่อตารางคงที่ด้วย "ชื่อตรรกะ" (ตัด prefix ออกก่อน)
+                                        string cleanTable = physicalTable.StartsWith(Db.Prefix, StringComparison.OrdinalIgnoreCase)
+                                            ? physicalTable.Substring(Db.Prefix.Length) : physicalTable;
                                         if (constWidgetTables.Contains(cleanTable)) continue;   //----- ข้ามตารางคงที่
                                         //----- ชื่อ table มาจาก information_schema (ไม่ใช่ user input) จึงต่อ string ได้อย่างปลอดภัย
-                                        _db.ExecuteNonQuery("delete from " + cleanTable + " where web_id = @id", new() { { "id", Convert.ToInt32(id) } });
+                                        _db.ExecuteNonQuery("delete from " + Db.T(cleanTable) + " where web_id = @id", new() { { "id", Convert.ToInt32(id) } });
                                     }
                                 }
                                 else if (Module.Config.Table == "web_admin_access")
                                 {
-                                    _db.ExecuteNonQuery("delete from web_admin_module where access_id = @id", new() { { "id", Convert.ToInt32(id) } });
+                                    _db.ExecuteNonQuery("delete from [2026_web_admin_module] where access_id = @id", new() { { "id", Convert.ToInt32(id) } });
                                 }
 
-                                var affected = _db.ExecuteNonQuery(string.Format("delete from {0} where id = @id and web_id = @web_id", Module.Config.Table), new() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
+                                var affected = _db.ExecuteNonQuery(string.Format("delete from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
                                 rowDel += affected;
 
                                 if (affected > 0)
@@ -859,7 +867,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                                 #region ----- check wating approve and public -----
                                 if (Convert.ToInt32(status_row) == 0)
                                 {
-                                    var item = _db.ExecuteQuery($"select * from {Module.Config.Table} where id = @id and web_id = @web_id limit 1", new Dictionary<string, object>() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
+                                    var item = _db.ExecuteQuery($"select top 1 * from {Db.T(Module.Config.Table)} where id = @id and web_id = @web_id", new Dictionary<string, object>() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
                                     if (item.Rows.Count > 0 && item.Rows[0]["pb_status"] + "" == "0" && item.Rows[0]["show_front"] + "" == "0")
                                     {
                                         TempData["alert_message"] = string.Format("ไม่สามารถ ปิด การแสดงผลได้ เนื่องจากเป็นรายการ รอการเผยแพร่");
@@ -918,7 +926,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 #region Select Item #########
-                var item = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var item = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (item.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการอนุมัติ";
@@ -951,7 +959,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
                 string sqlApprove = "";
 
-                sqlApprove = string.Format(" UPDATE {0} set ", Module.Config.Table);
+                sqlApprove = string.Format(" UPDATE {0} set ", Db.T(Module.Config.Table));
                 var fieldApprove = new List<string>();
                 fieldApprove.Add(" approve_by = @approve_by ");
                 foreach (string field in Module.Config.FieldApprove)
@@ -1094,7 +1102,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         {
                             if (_utility.isInt(id))
                             {
-                                var affected = _db.ExecuteNonQuery(string.Format("update {0} set sort = (sort{1}15){1}{2} where id = @id and web_id = @web_id ", Module.Config.Table, (move_row == "up") ? "-" : "+", move_step), new() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
+                                var affected = _db.ExecuteNonQuery(string.Format("update {0} set sort = (sort{1}15){1}{2} where id = @id and web_id = @web_id ", Db.T(Module.Config.Table), (move_row == "up") ? "-" : "+", move_step), new() { { "id", Convert.ToInt32(id) }, { "web_id", _currentWebID } });
                                 rowAffected += affected;
 
                                 _admin.reSort(Module);
@@ -1219,7 +1227,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
                         if (Module.Config.Table == "web_admin_log")
                         {
-                            command_sql = command_sql + " LIMIT 1000";
+                            // T-SQL วางจำนวนแถวไว้หน้ารายการคอลัมน์ (TOP) ไม่ใช่ท้ายคำสั่งแบบ LIMIT ของ PostgreSQL
+                            command_sql = System.Text.RegularExpressions.Regex.Replace(
+                                command_sql, @"^\s*select\s+", "select top 1000 ",
+                                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                         }
 
                         var dt = _db.ExecuteQuery(command_sql, sql_parameter);

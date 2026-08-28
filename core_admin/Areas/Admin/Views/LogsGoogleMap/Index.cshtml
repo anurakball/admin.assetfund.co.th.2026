@@ -1,4 +1,4 @@
-@using System.Data
+﻿@using System.Data
 @using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -41,11 +41,11 @@
     var where = new System.Text.StringBuilder("WHERE 1=1");
     var prms  = new Dictionary<string, object>();
 
-    if (!string.IsNullOrEmpty(qApi))    { where.Append(" AND l.api_name ILIKE @p_api");    prms["p_api"]    = "%" + qApi + "%"; }
+    if (!string.IsNullOrEmpty(qApi))    { where.Append(" AND l.api_name LIKE @p_api");    prms["p_api"]    = "%" + qApi + "%"; }
     if (!string.IsNullOrEmpty(qMethod)) { where.Append(" AND l.http_method = @p_method");  prms["p_method"] = qMethod; }
-    if (!string.IsNullOrEmpty(qIp))     { where.Append(" AND l.client_ip ILIKE @p_ip");    prms["p_ip"]     = "%" + qIp + "%"; }
-    if (qSuccess == "true")             { where.Append(" AND l.success = TRUE"); }
-    else if (qSuccess == "false")       { where.Append(" AND l.success = FALSE"); }
+    if (!string.IsNullOrEmpty(qIp))     { where.Append(" AND l.client_ip LIKE @p_ip");    prms["p_ip"]     = "%" + qIp + "%"; }
+    if (qSuccess == "true")             { where.Append(" AND l.success = 1"); }
+    else if (qSuccess == "false")       { where.Append(" AND l.success = 0"); }
 
     if (!string.IsNullOrEmpty(qDateStart)) {
         try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND l.created_at >= @p_ds"); prms["p_ds"] = d; } catch {}
@@ -56,7 +56,7 @@
 
     var w = where.ToString();
 
-    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM api_google_map_logs l {w}", prms);
+    var dtCount = _db.ExecuteQuery($"SELECT COUNT(*) AS cnt FROM [2026_api_google_map_logs] l {w}", prms);
     long totalRows  = dtCount.Rows.Count > 0 ? Convert.ToInt64(dtCount.Rows[0]["cnt"]) : 0;
     int  totalPages = (int)Math.Ceiling((double)totalRows / perPage);
 
@@ -67,21 +67,21 @@
                l.response_status, l.response_data,
                l.success, l.response_time_ms,
                l.error_message, l.client_ip, l.user_agent
-        FROM api_google_map_logs l
+        FROM [2026_api_google_map_logs] l
         {w}
         ORDER BY l.created_at DESC
-        LIMIT {perPage} OFFSET {offset}", prms);
+        OFFSET {offset} ROWS FETCH NEXT {perPage} ROWS ONLY", prms);
 
     var dtApiNames = _db.ExecuteQuery(
-        "SELECT DISTINCT api_name FROM api_google_map_logs WHERE api_name IS NOT NULL ORDER BY api_name");
+        "SELECT DISTINCT api_name FROM [2026_api_google_map_logs] WHERE api_name IS NOT NULL ORDER BY api_name");
 
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            COUNT(*) FILTER (WHERE l.success = TRUE)  AS cnt_success,
-            COUNT(*) FILTER (WHERE l.success = FALSE) AS cnt_error,
-            COALESCE(AVG(l.response_time_ms), 0)::INTEGER AS avg_duration,
-            COUNT(*) FILTER (WHERE l.created_at >= NOW() - INTERVAL '24 hours') AS cnt_today
-        FROM api_google_map_logs l {w}", prms);
+            SUM(CASE WHEN l.success = 1 THEN 1 ELSE 0 END)  AS cnt_success,
+            SUM(CASE WHEN l.success = 0 THEN 1 ELSE 0 END) AS cnt_error,
+            CAST(COALESCE(AVG(l.response_time_ms), 0) AS int) AS avg_duration,
+            SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END) AS cnt_today
+        FROM [2026_api_google_map_logs] l {w}", prms);
 
     long cntSuccess  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_success"])  : 0;
     long cntError    = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_error"])    : 0;

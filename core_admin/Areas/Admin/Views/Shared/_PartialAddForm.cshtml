@@ -59,7 +59,7 @@ function show_select(var1)
     @{
         _admin.SetSessionWebID();
 
-        var All_Page = ViewBag._db.ExecuteQuery(string.Format("select * from web_core_group where web_id = @web_id AND module_id = '17' AND status = '1' AND show_front = '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+        var All_Page = ViewBag._db.ExecuteQuery(string.Format("select * from [2026_web_core_group] where web_id = @web_id AND module_id = '17' AND status = '1' AND show_front = '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
         ViewBag.All_Page = All_Page;
         
         for (int i = 0; i < ViewBag.All_Page.Rows.Count; i++)
@@ -130,7 +130,7 @@ function show_select(var1)
                                         <option value="">-- เลือก --</option>
 
                                         @{
-                                            var All_Page_Sub = ViewBag._db.ExecuteQuery(string.Format("select * from web_eform where web_id = @web_id AND cat_id = '" + ViewBag.All_Page.Rows[i]["id"] + "' AND status = '1' AND show_front = '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
+                                            var All_Page_Sub = ViewBag._db.ExecuteQuery(string.Format("select * from [2026_web_eform] where web_id = @web_id AND cat_id = '" + ViewBag.All_Page.Rows[i]["id"] + "' AND status = '1' AND show_front = '1' order by sort asc"), new Dictionary<string, object>() { { "web_id", _admin._currentWebID } });
                                             ViewBag.All_Page_Sub = All_Page_Sub;
                                             for (int ii = 0; ii < ViewBag.All_Page_Sub.Rows.Count; ii++)
                                             {

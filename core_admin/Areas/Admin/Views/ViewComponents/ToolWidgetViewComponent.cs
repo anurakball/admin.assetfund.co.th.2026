@@ -27,7 +27,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Views.ViewComponents
             //      web_id != 0 (microsite) -> widget_group2/widget2  (ตัดสินโดย _admin.WidgetGroupTable()/WidgetTable())
             //      ไม่กรอง web_id หรือเงื่อนไขอื่น เพราะพาเลตต์เป็นค่าคงที่ชุดเดียว (การกรอง web_id ทำให้ microsite เห็นว่าง)
             var All_Widget = _db.ExecuteQuery(
-                string.Format("select * from {0} order by sort asc", _admin.WidgetGroupTable()));
+                string.Format("select * from {0} order by sort asc", Db.T(_admin.WidgetGroupTable())));
             ViewBag.All_Widget = All_Widget;
             ViewBag.WidgetTable = _admin.WidgetTable();
             ViewBag.WidgetWebID = _admin._currentWebID;

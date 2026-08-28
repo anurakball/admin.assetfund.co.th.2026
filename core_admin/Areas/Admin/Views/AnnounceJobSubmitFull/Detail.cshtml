@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Http
+﻿@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @using System.Text.Json
 @using System.Text.RegularExpressions
@@ -51,7 +51,7 @@
     {
         try
         {
-            var a = ViewBag._db.ExecuteQuery("select title from web_core_news where id = @id", new Dictionary<string, object>() { { "id", C("cat_id") } });
+            var a = ViewBag._db.ExecuteQuery("select title from [2026_web_core_news] where id = @id", new Dictionary<string, object>() { { "id", C("cat_id") } });
             if (a.Rows.Count > 0) catTitle = a.Rows[0]["title"].ToString();
         }
         catch { }

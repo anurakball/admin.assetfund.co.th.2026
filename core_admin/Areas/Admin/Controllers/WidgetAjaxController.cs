@@ -68,7 +68,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var mod = _admin.GetModule(modName);
             if (mod == null || string.IsNullOrEmpty(mod.Config.Table)) { return null; }
 
-            string sql = string.Format("select * from {0} where web_id = @web_id ", mod.Config.Table);
+            string sql = string.Format("select * from {0} where web_id = @web_id ", Db.T(mod.Config.Table));
             var para = new Dictionary<string, object>() { { "web_id", _admin._currentWebID } };
             int moduleId = mod.Config.TableModuleID ?? 0;
             if (moduleId > 0) { sql += " and module_id = @module_id "; para.Add("module_id", moduleId); }
@@ -147,7 +147,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             //----- web_id = 0 อ่านจาก web_widget, web_id != 0 (microsite) อ่านจาก web_widget2 (เลือกชุดโดย WidgetTable())
             //      พาเลตต์เป็นค่าคงที่ชุดเดียว ไม่กรอง web_id (ตารางเหล่านี้ไม่ใช้ web_id เป็นเงื่อนไข)
             var This_Widget = _db.ExecuteQuery(
-                string.Format("select * from {0} where id = @id", _admin.WidgetTable()),
+                string.Format("select * from {0} where id = @id", Db.T(_admin.WidgetTable())),
                 new Dictionary<string, object>() { { "id", id } });
             if (This_Widget.Rows.Count == 0)
             {
@@ -155,7 +155,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             }
             var this_resp = This_Widget.Rows[0]["pb_info"]+"";
 
-            string q = "SELECT * FROM web_core_single WHERE module_id = '1' AND web_id = '"+ _admin._currentWebID + "'";
+            string q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '1' AND web_id = '"+ _admin._currentWebID + "'";
 
             //----- ตาราง map id -> module_id ด้านล่างเป็นของชุด widget เดิมเท่านั้น
             //      widget2 ใช้เลข id คนละชุด (ชนกัน) จึงข้าม ใช้ module_id = 1 เป็นค่าตั้งต้น
@@ -165,27 +165,27 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             }
             else if(id == 3 || id == 7 || id == 19)
             {
-                q = "SELECT * FROM web_core_single WHERE module_id = '2' AND web_id = '"+ _admin._currentWebID + "'";
+                q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '2' AND web_id = '"+ _admin._currentWebID + "'";
             }
             else if(id == 4 || id == 9 || id == 20)
             {
-                q = "SELECT * FROM web_core_single WHERE module_id = '3' AND web_id = '"+ _admin._currentWebID + "'";
+                q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '3' AND web_id = '"+ _admin._currentWebID + "'";
             }
             else if(id == 10 || id == 11 || id == 21)
             {
-                q = "SELECT * FROM web_core_single WHERE module_id = '4' AND web_id = '"+ _admin._currentWebID + "'";
+                q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '4' AND web_id = '"+ _admin._currentWebID + "'";
             }
             else if(id == 12 || id == 8 || id == 22)
             {
-                q = "SELECT * FROM web_core_single WHERE module_id = '5' AND web_id = '"+ _admin._currentWebID + "'";
+                q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '5' AND web_id = '"+ _admin._currentWebID + "'";
             }
             else if(id == 13 || id == 15 || id == 23)
             {
-                q = "SELECT * FROM web_core_single WHERE module_id = '6' AND web_id = '"+ _admin._currentWebID + "'";
+                q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '6' AND web_id = '"+ _admin._currentWebID + "'";
             }
             else if(id == 14 || id == 16 || id == 24)
             {
-                q = "SELECT * FROM web_core_single WHERE module_id = '7' AND web_id = '"+ _admin._currentWebID + "'";
+                q = "SELECT * FROM [2026_web_core_single] WHERE module_id = '7' AND web_id = '"+ _admin._currentWebID + "'";
             }
 
             //----- widget2 ผูกกับโมดูล CMS ผ่านคอลัมน์ mod_name (ชื่อโมดูลใน AdminMenu.AllModule())

@@ -105,7 +105,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 if (affected != 0)
                 {
                     int last_create_id = 0;
-                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc LIMIT 1", Module.Config.Table), new() { { "web_id", _currentWebID } });
+                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT top 1 MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc", Db.T(Module.Config.Table)), new() { { "web_id", _currentWebID } });
 
                     if (lastInsert.Rows.Count > 0 && !string.IsNullOrEmpty(lastInsert.Rows[0]["last_id"].ToString()) && _utility.isInt(lastInsert.Rows[0]["last_id"] + ""))
                     {
@@ -185,7 +185,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 #region Select Item Edit #########
-                var itemEdit = _db.ExecuteQuery(string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
+                var itemEdit = _db.ExecuteQuery(string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } });
                 if (itemEdit.Rows.Count == 0)
                 {
                     TempData["alert_message"] = "ไม่พบข้อมูลที่ต้องการแก้ไข";
@@ -320,7 +320,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 conditionID = $" and id <> @id ";
                 param.Add("id", id);
             }
-            var checkURL = _db.ExecuteQuery($"select title, url from {Module.Config.Table} where LOWER(url) = LOWER(@url) {conditionID} limit 1 ", param);
+            var checkURL = _db.ExecuteQuery($"select top 1 title, url from {Db.T(Module.Config.Table)} where LOWER(url) = LOWER(@url) {conditionID}", param);
             if (checkURL.Rows.Count > 0)
             {
                 _errorMessage = $"URL ถูกใช้งานแล้ว ({checkURL.Rows[0]["title"]}, {checkURL.Rows[0]["url"]})";
@@ -394,7 +394,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     );
                     #endregion
 
-                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc LIMIT 1", "web_admin_access"), new() { { "web_id", webID } });
+                    var lastInsert = _db.ExecuteQuery(string.Format("SELECT top 1 MAX(id) as last_id from {0} WHERE web_id = @web_id GROUP BY id ORDER BY id desc", Db.T("web_admin_access")), new() { { "web_id", webID } });
                     if (lastInsert.Rows.Count > 0 && !string.IsNullOrEmpty(lastInsert.Rows[0]["last_id"].ToString()) && _utility.isInt(lastInsert.Rows[0]["last_id"] + ""))
                     {
                         return Convert.ToInt32(lastInsert.Rows[0]["last_id"].ToString());
@@ -782,7 +782,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
                     //----- idempotent : กันสร้างซ้ำถ้ามีอยู่แล้ว (web_id + module_id)
                     var exists = _db.ExecuteQuery(
-                        "select id from web_core_single where web_id = @web_id and module_id = @module_id limit 1",
+                        "select top 1 id from [2026_web_core_single] where web_id = @web_id and module_id = @module_id",
                         new() { { "web_id", webID }, { "module_id", m.Config.TableModuleID } });
                     if (exists.Rows.Count > 0) continue;
 
@@ -816,7 +816,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     }
 
                     //----- web_core_single.id ไม่ใช่ auto-identity (ดู AdminHelpers.setFieldsCreate) จึงต้องกำหนด id เอง
-                    var dtNextId = _db.ExecuteQuery("select coalesce(max(id), 0) + 1 as next_id from web_core_single");
+                    var dtNextId = _db.ExecuteQuery("select coalesce(max(id), 0) + 1 as next_id from [2026_web_core_single]");
                     row["id"] = (dtNextId.Rows.Count > 0) ? Convert.ToInt32(dtNextId.Rows[0]["next_id"]) : 1;
 
                     var insertResult = _db.Insert("web_core_single", row);
@@ -883,7 +883,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
              
             #region ----- Check root user in microsite -----
             var selectUser = _db.ExecuteQuery(
-                "select username, web_id, status, created_at from web_admin where web_id = @web_id and status = 1 order by created_at asc limit 1",
+                "select top 1 username, web_id, status, created_at from [2026_web_admin] where web_id = @web_id and status = 1 order by created_at asc",
                 new Dictionary<string, object>() { { "web_id", webID } }
                 );
              

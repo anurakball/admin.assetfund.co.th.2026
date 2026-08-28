@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Http
+﻿@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @using System.Data
 @{
@@ -20,18 +20,18 @@
     string contactTambol = (row["cus_contact_tambol"].ToString() ?? "").Trim();
 
     DBHelper _dbHelper = (DBHelper)ViewBag._db;
-    DataTable provinces = _dbHelper.ExecuteQuery("select code, name_in_thai from web_data_provinces order by name_in_thai");
+    DataTable provinces = _dbHelper.ExecuteQuery("select code, name_in_thai from [2026_web_data_provinces] order by name_in_thai");
 
     // ⚠️ ค่าใน DB เป็น varchar — ถ้าเป็นข้อมูลเก่าที่เก็บ "ชื่อ" ไว้ การ cast @code::int จะทำให้ทั้งหน้าพัง
     //    จึงกรองด้วย GeoHelper.IsCode() ก่อน แล้วส่งเป็น int ให้ query (ไม่ใช่ code = ไม่มีตัวเลือกให้เลือก แต่หน้ายังเปิดได้)
     Func<string, DataTable> loadDistricts = (provCode) =>
         !GeoHelper.IsCode(provCode) ? new DataTable() :
-        _dbHelper.ExecuteQuery("select d.code, d.name_in_thai from web_data_districts d join web_data_provinces p on p.id = d.province_id where p.code = @code order by d.name_in_thai",
+        _dbHelper.ExecuteQuery("select d.code, d.name_in_thai from [2026_web_data_districts] d join [2026_web_data_provinces] p on p.id = d.province_id where p.code = @code order by d.name_in_thai",
             new Dictionary<string, object>() { { "code", int.Parse(provCode.Trim()) } });
 
     Func<string, DataTable> loadSubdistricts = (distCode) =>
         !GeoHelper.IsCode(distCode) ? new DataTable() :
-        _dbHelper.ExecuteQuery("select s.code, s.name_in_thai from web_data_subdistricts s join web_data_districts d on d.id = s.district_id where d.code = @code order by s.name_in_thai",
+        _dbHelper.ExecuteQuery("select s.code, s.name_in_thai from [2026_web_data_subdistricts] s join [2026_web_data_districts] d on d.id = s.district_id where d.code = @code order by s.name_in_thai",
             new Dictionary<string, object>() { { "code", int.Parse(distCode.Trim()) } });
 
     DataTable baseDistricts = loadDistricts(baseProvince);

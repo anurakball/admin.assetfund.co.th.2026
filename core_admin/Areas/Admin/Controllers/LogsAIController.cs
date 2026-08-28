@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -29,15 +29,15 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var prms  = new Dictionary<string, object>();
 
             if (!string.IsNullOrEmpty(qMember)) {
-                where.Append(" AND (CAST(l.member_id AS VARCHAR) = @p_mid OR l.username ILIKE @p_mlike)");
+                where.Append(" AND (CAST(l.member_id AS VARCHAR) = @p_mid OR l.username LIKE @p_mlike)");
                 prms["p_mid"] = qMember; prms["p_mlike"] = "%" + qMember + "%";
             }
             if (!string.IsNullOrEmpty(qService)) { where.Append(" AND l.service_name = @p_svc");    prms["p_svc"]   = qService; }
-            if (!string.IsNullOrEmpty(qApi))     { where.Append(" AND l.api_name ILIKE @p_api");    prms["p_api"]   = "%" + qApi + "%"; }
-            if (!string.IsNullOrEmpty(qModel))   { where.Append(" AND l.model_name ILIKE @p_model");prms["p_model"] = "%" + qModel + "%"; }
-            if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND l.request_ip ILIKE @p_ip");   prms["p_ip"]    = "%" + qIp + "%"; }
-            if (qSuccess == "true")              { where.Append(" AND l.is_success = TRUE"); }
-            else if (qSuccess == "false")        { where.Append(" AND l.is_success = FALSE"); }
+            if (!string.IsNullOrEmpty(qApi))     { where.Append(" AND l.api_name LIKE @p_api");    prms["p_api"]   = "%" + qApi + "%"; }
+            if (!string.IsNullOrEmpty(qModel))   { where.Append(" AND l.model_name LIKE @p_model");prms["p_model"] = "%" + qModel + "%"; }
+            if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND l.request_ip LIKE @p_ip");   prms["p_ip"]    = "%" + qIp + "%"; }
+            if (qSuccess == "true")              { where.Append(" AND l.is_success = 1"); }
+            else if (qSuccess == "false")        { where.Append(" AND l.is_success = 0"); }
 
             if (!string.IsNullOrEmpty(qDateStart)) {
                 try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND l.created_at >= @p_ds"); prms["p_ds"] = d; } catch { }
@@ -56,7 +56,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                        l.duration_ms,
                        l.model_name, l.prompt_tokens, l.completion_tokens, l.total_tokens,
                        l.reference_code, l.remark
-                FROM api_service_logs l
+                FROM [2026_api_service_logs] l
                 {where}
                 ORDER BY l.created_at DESC", prms);
 

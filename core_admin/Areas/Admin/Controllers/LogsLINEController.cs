@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -27,12 +27,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var where = new System.Text.StringBuilder("WHERE 1=1");
             var prms  = new Dictionary<string, object>();
 
-            if (!string.IsNullOrEmpty(qEndpoint))  { where.Append(" AND endpoint ILIKE @p_ep");          prms["p_ep"]  = "%" + qEndpoint + "%"; }
-            if (qSuccess == "true")                { where.Append(" AND success = TRUE"); }
-            else if (qSuccess == "false")          { where.Append(" AND success = FALSE"); }
+            if (!string.IsNullOrEmpty(qEndpoint))  { where.Append(" AND endpoint LIKE @p_ep");          prms["p_ep"]  = "%" + qEndpoint + "%"; }
+            if (qSuccess == "true")                { where.Append(" AND success = 1"); }
+            else if (qSuccess == "false")          { where.Append(" AND success = 0"); }
             if (!string.IsNullOrEmpty(qUid))       { where.Append(" AND CAST(uid AS VARCHAR) = @p_uid"); prms["p_uid"] = qUid; }
-            if (!string.IsNullOrEmpty(qIp))        { where.Append(" AND ip_address ILIKE @p_ip");        prms["p_ip"]  = "%" + qIp + "%"; }
-            if (!string.IsNullOrEmpty(qErrorCode)) { where.Append(" AND error_code ILIKE @p_ec");        prms["p_ec"]  = "%" + qErrorCode + "%"; }
+            if (!string.IsNullOrEmpty(qIp))        { where.Append(" AND ip_address LIKE @p_ip");        prms["p_ip"]  = "%" + qIp + "%"; }
+            if (!string.IsNullOrEmpty(qErrorCode)) { where.Append(" AND error_code LIKE @p_ec");        prms["p_ec"]  = "%" + qErrorCode + "%"; }
 
             if (!string.IsNullOrEmpty(qDateStart)) {
                 try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND log_date >= @p_ds"); prms["p_ds"] = d; } catch { }
@@ -43,7 +43,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
             var dt = _db.ExecuteQuery($@"
                 SELECT id, log_date, endpoint, success, uid, detail, ip_address, error_code
-                FROM api_audit_log
+                FROM [2026_api_audit_log]
                 {where}
                 ORDER BY log_date DESC", prms);
 

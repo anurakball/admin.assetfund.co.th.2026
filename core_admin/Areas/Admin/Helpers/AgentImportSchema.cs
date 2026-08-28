@@ -1,4 +1,4 @@
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
@@ -33,10 +33,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
         // ช่องของสมาชิก: ดึงจาก web_member ที่ id ตรงกับ web_agent.uid
         // (ต้องเขียน web_agent.uid แบบเต็ม — ถ้าใช้ uid เฉย ๆ จะไปชนคอลัมน์ชื่อเดียวกันใน web_member ได้)
-        private static string M(string col)  => $"(SELECT m.{col} FROM web_member m WHERE m.id = web_agent.uid)";
+        private static string M(string col)  => $"(SELECT m.{col} FROM [2026_web_member] m WHERE m.id = web_agent.uid)";
         // ช่องตัวเลข → cast เป็น text ตั้งแต่ใน SQL เพื่อให้ Excel เขียนเป็น "ข้อความ" ทุกช่อง
-        private static string Mi(string col) => $"(SELECT m.{col}::text FROM web_member m WHERE m.id = web_agent.uid)";
-        private static string Ai(string col) => $"{col}::text";
+        private static string Mi(string col) => $"(SELECT CAST(m.{col} AS nvarchar(max)) FROM [2026_web_member] m WHERE m.id = web_agent.uid)";
+        private static string Ai(string col) => $"CAST({col} AS nvarchar(max))";
 
         private static readonly System.Drawing.Color MemberColor = System.Drawing.Color.FromArgb(31, 78, 121);
         private static readonly System.Drawing.Color AgentColor   = System.Drawing.Color.FromArgb(56, 106, 40);

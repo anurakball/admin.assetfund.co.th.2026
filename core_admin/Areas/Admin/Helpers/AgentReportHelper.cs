@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.Text;
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
@@ -80,12 +80,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
             //================= 1) จำนวนตัวแทนแยกตามปีที่สมัคร =================
             var dtYear = db.ExecuteQuery($@"
-                SELECT EXTRACT(YEAR FROM a.adddate AT TIME ZONE 'Asia/Bangkok')::int AS yr,
+                SELECT YEAR(a.adddate AT TIME ZONE 'SE Asia Standard Time') AS yr,
                        COUNT(*) AS cnt
-                FROM web_agent a
+                FROM [2026_web_agent] a
                 {where}
-                GROUP BY 1
-                ORDER BY 1", prms);
+                GROUP BY YEAR(a.adddate AT TIME ZONE 'SE Asia Standard Time')
+                ORDER BY YEAR(a.adddate AT TIME ZONE 'SE Asia Standard Time')", prms);
 
             foreach (DataRow r in dtYear.Rows)
             {
@@ -108,10 +108,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                          ELSE '{LabelUnknown}'
                        END AS label,
                        COUNT(*) AS cnt
-                FROM web_agent a
-                LEFT JOIN web_member m ON m.id = a.uid
+                FROM [2026_web_agent] a
+                LEFT JOIN [2026_web_member] m ON m.id = a.uid
                 {where}
-                GROUP BY 1", prms);
+                GROUP BY CASE WHEN a.title = 1                  THEN '{LabelMale}'
+                              WHEN a.title IN (2, 3)            THEN '{LabelFemale}'
+                              WHEN COALESCE(m.type, 0) = 1      THEN '{LabelJuristic}'
+                              ELSE '{LabelUnknown}'
+                         END", prms);
 
             var personMap = new Dictionary<string, long>();
             foreach (DataRow r in dtPerson.Rows)
@@ -129,19 +133,19 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             // จึงแปลงรหัส -> ชื่อก่อน ถ้าไม่ใช่ตัวเลขให้ใช้ข้อความเดิม
             const string ProvinceExpr = @"
                 COALESCE(
-                    (SELECT p.name_in_thai FROM web_data_provinces p
-                      WHERE p.code = NULLIF(regexp_replace(COALESCE(a.cus_base_province, ''), '[^0-9]', '', 'g'), '')::int),
-                    NULLIF(btrim(COALESCE(a.cus_base_province, '')), ''),
-                    (SELECT p.name_in_thai FROM web_data_provinces p
-                      WHERE p.code = NULLIF(regexp_replace(COALESCE(a.cus_contact_province, ''), '[^0-9]', '', 'g'), '')::int),
-                    NULLIF(btrim(COALESCE(a.cus_contact_province, '')), ''),
+                    (SELECT p.name_in_thai FROM [2026_web_data_provinces] p
+                      WHERE p.code = TRY_CAST(NULLIF(LTRIM(RTRIM(COALESCE(a.cus_base_province, ''))), '') AS int)),
+                    NULLIF(LTRIM(RTRIM(COALESCE(a.cus_base_province, ''))), ''),
+                    (SELECT p.name_in_thai FROM [2026_web_data_provinces] p
+                      WHERE p.code = TRY_CAST(NULLIF(LTRIM(RTRIM(COALESCE(a.cus_contact_province, ''))), '') AS int)),
+                    NULLIF(LTRIM(RTRIM(COALESCE(a.cus_contact_province, ''))), ''),
                     'ไม่ระบุ')";
 
             var dtAgentProvince = db.ExecuteQuery($@"
                 SELECT {ProvinceExpr} AS province, COUNT(*) AS cnt
-                FROM web_agent a
+                FROM [2026_web_agent] a
                 {where}
-                GROUP BY 1
+                GROUP BY {ProvinceExpr}
                 ORDER BY cnt DESC, province", prms);
 
             foreach (DataRow r in dtAgentProvince.Rows)
@@ -156,11 +160,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             string values = string.Join(",", Enumerable.Range(1, AdminMenu.NpaSlotCount).Select(i => $"(a.npaid{i})"));
 
             var dtPair = db.ExecuteQuery($@"
-                SELECT DISTINCT a.id AS agent_id, btrim(v.code) AS code
-                FROM web_agent a
-                CROSS JOIN LATERAL (VALUES {values}) AS v(code)
+                SELECT DISTINCT a.id AS agent_id, LTRIM(RTRIM(v.code)) AS code
+                FROM [2026_web_agent] a
+                CROSS APPLY (VALUES {values}) AS v(code)
                 {where}
-                  AND v.code IS NOT NULL AND btrim(v.code) <> ''", prms);
+                  AND v.code IS NOT NULL AND LTRIM(RTRIM(v.code)) <> ''", prms);
 
             // ค่าที่แจ้ง -> รายชื่อตัวแทนที่แจ้งค่านั้น (ตัดซ้ำด้วย DISTINCT ตั้งแต่ใน SQL แล้ว)
             var agentsByValue = new Dictionary<string, HashSet<long>>(StringComparer.OrdinalIgnoreCase);

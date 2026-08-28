@@ -25,7 +25,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             try
             {
                 var dt = _db.ExecuteQuery(
-                    "SELECT id, firstname, surname FROM web_member WHERE firstname ILIKE @q OR surname ILIKE @q LIMIT 50",
+                    "SELECT top 50 id, firstname, surname FROM [2026_web_member] WHERE firstname LIKE @q OR surname LIKE @q",
                     new Dictionary<string, object>() { { "q", "%" + q + "%" } }
                 );
 

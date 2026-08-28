@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 
@@ -29,15 +29,15 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var where = new System.Text.StringBuilder("WHERE 1=1");
             var prms  = new Dictionary<string, object>();
 
-            if (!string.IsNullOrEmpty(qService)) { where.Append(" AND l.service_name ILIKE @p_svc");    prms["p_svc"]    = "%" + qService + "%"; }
-            if (!string.IsNullOrEmpty(qModule))  { where.Append(" AND l.module_name ILIKE @p_mod");     prms["p_mod"]    = "%" + qModule + "%"; }
+            if (!string.IsNullOrEmpty(qService)) { where.Append(" AND l.service_name LIKE @p_svc");    prms["p_svc"]    = "%" + qService + "%"; }
+            if (!string.IsNullOrEmpty(qModule))  { where.Append(" AND l.module_name LIKE @p_mod");     prms["p_mod"]    = "%" + qModule + "%"; }
             if (!string.IsNullOrEmpty(qMethod))  { where.Append(" AND l.http_method = @p_method");      prms["p_method"] = qMethod; }
             if (!string.IsNullOrEmpty(qEnv))     { where.Append(" AND l.environment_name = @p_env");    prms["p_env"]    = qEnv; }
-            if (!string.IsNullOrEmpty(qTrace))   { where.Append(" AND l.trace_id ILIKE @p_trace");      prms["p_trace"]  = "%" + qTrace + "%"; }
-            if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND l.client_ip ILIKE @p_ip");        prms["p_ip"]     = "%" + qIp + "%"; }
+            if (!string.IsNullOrEmpty(qTrace))   { where.Append(" AND l.trace_id LIKE @p_trace");      prms["p_trace"]  = "%" + qTrace + "%"; }
+            if (!string.IsNullOrEmpty(qIp))      { where.Append(" AND l.client_ip LIKE @p_ip");        prms["p_ip"]     = "%" + qIp + "%"; }
 
-            if (qSuccess == "1")      { where.Append(" AND l.is_success = TRUE"); }
-            else if (qSuccess == "0") { where.Append(" AND l.is_success = FALSE"); }
+            if (qSuccess == "1")      { where.Append(" AND l.is_success = 1"); }
+            else if (qSuccess == "0") { where.Append(" AND l.is_success = 0"); }
 
             if (!string.IsNullOrEmpty(qDateStart)) {
                 try { var p = qDateStart.Split('/'); var d = new DateTime(int.Parse(p[2]), int.Parse(p[1]), int.Parse(p[0])); where.Append(" AND l.created_at >= @p_ds"); prms["p_ds"] = d; } catch { }
@@ -56,7 +56,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                        l.member_id, l.created_by,
                        l.trace_id, l.correlation_id,
                        l.environment_name, l.remark
-                FROM public.api_crm_logs l
+                FROM [2026_api_crm_logs] l
                 {where}
                 ORDER BY l.created_at DESC", prms);
 

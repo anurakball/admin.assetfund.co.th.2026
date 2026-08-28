@@ -3,6 +3,7 @@ using MySqlConnector;
 using thaicredit_hr_admin.Areas.Admin.Filters;
 using thaicredit_hr_admin.Areas.Admin.Models;
 
+using thaicredit_hr_admin.Areas.Admin.Helpers;
 namespace thaicredit_hr_admin.Areas.Admin.Controllers
 {
     public class HomeSamText5Controller : AdminCoreController
@@ -21,7 +22,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 Module.Config.TextBreadcrumb = Module.Config.TextBreadcrumb + "/แก้ไข";
 
                 var itemEdit = _db.ExecuteQuery(
-                    string.Format("select * from {0} where id = @id and web_id = @web_id limit 1", Module.Config.Table),
+                    string.Format("select top 1 * from {0} where id = @id and web_id = @web_id", Db.T(Module.Config.Table)),
                     new Dictionary<string, object>() { { "id", id }, { "web_id", _currentWebID } }
                 );
                 if (itemEdit.Rows.Count == 0)

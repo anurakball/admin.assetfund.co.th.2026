@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.Text.RegularExpressions;
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
@@ -48,15 +48,15 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         /// ใช้แทนการเขียน @code::int ตรง ๆ
         /// </summary>
         public static string CodeExpr(string column) =>
-            $"NULLIF(regexp_replace(COALESCE({column}, ''), '[^0-9]', '', 'g'), '')::int";
+            $"TRY_CAST(NULLIF(LTRIM(RTRIM(COALESCE({column}, ''))), '') AS int)";
 
         /// <summary>
         /// SQL: คืน "ชื่อไทย (code)" ของคอลัมน์ที่เก็บ code — ใช้ใน SELECT ของ Export Excel
         /// ค่าที่หา code ไม่เจอ (เช่นข้อมูลเก่าที่เป็นชื่อ) คืนค่าเดิมกลับไปเพื่อไม่ให้ข้อมูลหาย
         /// </summary>
         public static string NameExpr(string table, string column) =>
-            $@"COALESCE((SELECT g.name_in_thai FROM {table} g WHERE g.code = {CodeExpr(column)}),
-                        NULLIF(btrim(COALESCE({column}, '')), ''))";
+            $@"COALESCE((SELECT g.name_in_thai FROM {Db.T(table)} g WHERE g.code = {CodeExpr(column)}),
+                        NULLIF(LTRIM(RTRIM(COALESCE({column}, ''))), ''))";
 
         // ── code → ชื่อ (ตอน render หน้า View/Detail) ────────────────────────────
         private static string NameByCode(DBHelper db, string table, string? value)
@@ -66,7 +66,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             try
             {
                 var dt = db.ExecuteQuery(
-                    $"select name_in_thai from {table} where code = @code limit 1",
+                    $"select top 1 name_in_thai from {Db.T(table)} where code = @code",
                     new Dictionary<string, object> { { "code", int.Parse(code) } });
                 return dt.Rows.Count > 0 ? (dt.Rows[0]["name_in_thai"]?.ToString() ?? "") : "";
             }
@@ -111,7 +111,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 return Exists(db, DistrictTable, raw) ? raw : "";
 
             return LookupByName(db, DistrictTable, Normalize(raw),
-                $"d.province_id = (SELECT id FROM {ProvinceTable} WHERE code = @parent)", provinceCode);
+                $"d.province_id = (SELECT id FROM {Db.T(ProvinceTable)} WHERE code = @parent)", provinceCode);
         }
 
         /// <summary>ตำบล/แขวง: จำกัดขอบเขตด้วยรหัสอำเภอที่ resolve ได้แล้ว</summary>
@@ -123,7 +123,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 return Exists(db, SubdistrictTable, raw) ? raw : "";
 
             return LookupByName(db, SubdistrictTable, Normalize(raw),
-                $"d.district_id = (SELECT id FROM {DistrictTable} WHERE code = @parent)", districtCode);
+                $"d.district_id = (SELECT id FROM {Db.T(DistrictTable)} WHERE code = @parent)", districtCode);
         }
 
         /// <summary>รหัสไปรษณีย์ตามตำบล — ใช้เติมให้อัตโนมัติเมื่อไฟล์ Import ไม่ได้กรอกมา</summary>
@@ -134,7 +134,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             try
             {
                 var dt = db.ExecuteQuery(
-                    $"select zip_code from {SubdistrictTable} where code = @code limit 1",
+                    $"select top 1 zip_code from {Db.T(SubdistrictTable)} where code = @code",
                     new Dictionary<string, object> { { "code", int.Parse(code) } });
                 return dt.Rows.Count > 0 ? (dt.Rows[0]["zip_code"]?.ToString() ?? "") : "";
             }
@@ -164,7 +164,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             public CodeResolver(DBHelper db)
             {
                 foreach (DataRow r in db.ExecuteQuery(
-                    $"select code, name_in_thai from {ProvinceTable}").Rows)
+                    $"select code, name_in_thai from {Db.T(ProvinceTable)}").Rows)
                 {
                     string code = r["code"]?.ToString() ?? "";
                     if (code.Length == 0) continue;
@@ -174,7 +174,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
                 foreach (DataRow r in db.ExecuteQuery(
                     $@"select d.code, d.name_in_thai, p.code as parent
-                       from {DistrictTable} d join {ProvinceTable} p on p.id = d.province_id").Rows)
+                       from {Db.T(DistrictTable)} d join {Db.T(ProvinceTable)} p on p.id = d.province_id").Rows)
                 {
                     string code = r["code"]?.ToString() ?? "";
                     if (code.Length == 0) continue;
@@ -184,7 +184,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
                 foreach (DataRow r in db.ExecuteQuery(
                     $@"select s.code, s.name_in_thai, d.code as parent
-                       from {SubdistrictTable} s join {DistrictTable} d on d.id = s.district_id").Rows)
+                       from {Db.T(SubdistrictTable)} s join {Db.T(DistrictTable)} d on d.id = s.district_id").Rows)
                 {
                     string code = r["code"]?.ToString() ?? "";
                     if (code.Length == 0) continue;
@@ -227,34 +227,44 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             try
             {
                 var dt = db.ExecuteQuery(
-                    $"select 1 from {table} where code = @code limit 1",
+                    $"select top 1 1 from {Db.T(table)} where code = @code",
                     new Dictionary<string, object> { { "code", int.Parse(code) } });
                 return dt.Rows.Count > 0;
             }
             catch { return false; }
         }
 
-        // เทียบชื่อแบบตัดคำนำหน้า/ช่องว่างทั้งสองฝั่ง (ฝั่งตารางใช้ regexp_replace ให้ตรงกับ Normalize())
+        // เทียบชื่อแบบตัดคำนำหน้า/ช่องว่างทั้งสองฝั่ง
+        //
+        // เดิมตัดคำนำหน้าฝั่ง DB ด้วย regexp_replace ของ PostgreSQL ซึ่ง SQL Server ไม่มี
+        // จึงดึงเฉพาะแถวในขอบเขต (ทั้งจังหวัด = 77 แถว / อำเภอ-ตำบลจำกัดด้วยรหัสแม่ = หลักสิบ)
+        // มาเทียบด้วย Normalize() ตัวเดียวกับฝั่งค่าที่ผู้ใช้กรอก — ผลลัพธ์ตรงกันเป๊ะกว่าเดิม
+        // เพราะใช้กฎ normalize ชุดเดียวกันทั้งสองฝั่ง (รวมกรณี "กรุงเทพ" = "กรุงเทพมหานคร")
         private static string LookupByName(DBHelper db, string table, string normalized, string? parentWhere, string? parentCode)
         {
             if (normalized.Length == 0) return "";
             try
             {
-                var pars = new Dictionary<string, object> { { "name", normalized } };
+                var pars = new Dictionary<string, object>();
                 string where = "";
                 if (!string.IsNullOrEmpty(parentWhere))
                 {
                     if (!IsCode(parentCode)) return "";   // ไม่รู้จังหวัด/อำเภอแม่ = ไม่ต้องเดา
-                    where = " and " + parentWhere;
+                    where = " where " + parentWhere;
                     pars["parent"] = int.Parse(parentCode!.Trim());
                 }
 
                 var dt = db.ExecuteQuery(
-                    $@"select d.code from {table} d
-                       where replace(regexp_replace(d.name_in_thai, '^(จังหวัด|จ\.|อำเภอ|อ\.|เขต|ตำบล|ต\.|แขวง)\s*', ''), ' ', '') = @name
+                    $@"select d.code, d.name_in_thai from {Db.T(table)} d
                        {where}
-                       order by d.code limit 1", pars);
-                return dt.Rows.Count > 0 ? (dt.Rows[0]["code"]?.ToString() ?? "") : "";
+                       order by d.code", pars);
+
+                foreach (DataRow r in dt.Rows)
+                {
+                    if (Normalize(r["name_in_thai"]?.ToString()) == normalized)
+                        return r["code"]?.ToString() ?? "";
+                }
+                return "";
             }
             catch { return ""; }
         }

@@ -23,7 +23,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
                 var sqlParam = new Dictionary<string, object>() { { "id", 0 }, { "web_id", _currentWebID } };
                 string sqlSelect = string.Format(" select * ");
-                string sqlFrom = string.Format(" from {0} ", Module.Config.Table);
+                string sqlFrom = string.Format(" from {0} ", Db.T(Module.Config.Table));
                 string sqlWhere = string.Format(" where id > @id and web_id = @web_id ");
                 string sqlDateSearch = "";
                 string sqlFieldSearch = "";
@@ -34,12 +34,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 {
                     if (!string.IsNullOrEmpty(_session.GetString("admin_" + Module.Name + "_after")))
                     {
-                        sqlDateSearch += " and created_at >= (@after::timestamp) ";
+                        sqlDateSearch += " and created_at >= (CAST(@after AS datetime2)) ";
                         sqlParam.Add("after", _session.GetString("admin_" + Module.Name + "_after") + " 00:00:00");
                     }
                     if (!string.IsNullOrEmpty(_session.GetString("admin_" + Module.Name + "_before")))
                     {
-                        sqlDateSearch += " and created_at <= (@before::timestamp) ";
+                        sqlDateSearch += " and created_at <= (CAST(@before AS datetime2)) ";
                         sqlParam.Add("before", _session.GetString("admin_" + Module.Name + "_before") + " 23:59:59");
                     }
                 }
@@ -57,11 +57,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                             {
                                 if (Module.Config.FieldSearchIsEqual != null && Module.Config.FieldSearchIsEqual.Where(c => c == FieldSearch.Key).Count() == 1)
                                 {
-                                    arCondition.Add(string.Format(" LOWER(cast({0} as text)) = LOWER(cast({1} as text)) ", Fields, "@search_" + FieldSearch.Key));
+                                    arCondition.Add(string.Format(" LOWER(cast({0} as nvarchar(max))) = LOWER(cast({1} as nvarchar(max))) ", Fields, "@search_" + FieldSearch.Key));
                                 }
                                 else
                                 {
-                                    arCondition.Add(string.Format(" LOWER(cast({0} as text)) like LOWER({1}) ", Fields, "@search_" + FieldSearch.Key));
+                                    arCondition.Add(string.Format(" LOWER(cast({0} as nvarchar(max))) like LOWER({1}) ", Fields, "@search_" + FieldSearch.Key));
                                 }
                             }
 
@@ -83,7 +83,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 var searchInputVal = _admin.getSearchInputValue(Module);
                 #endregion
 
-                string sql2 = $"select admin_user_id from web_admin_log where action in ('login', 'login_2fa') {sqlDateSearch} group by admin_user_id ";
+                string sql2 = $"select admin_user_id from [2026_web_admin_log] where action in ('login', 'login_2fa') {sqlDateSearch} group by admin_user_id ";
                 string sql = string.Format("{0} {1} {2} {3} {4}", sqlSelect, sqlFrom, sqlWhere, $" and id not in ({sql2}) ", sqlOrder);
                 
                 #region ----- Encrypt SQL Query (for export) -----
@@ -105,7 +105,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
                 #endregion
 
-                sql += " limit @perpage offset @start ";
+                // T-SQL แบ่งหน้าด้วย OFFSET/FETCH ซึ่งบังคับว่าคำสั่งต้องมี ORDER BY
+                // โมดูลที่ไม่ได้ตั้งค่าการเรียงจะได้ sqlOrder ว่าง จึงต้องเติม ORDER BY กลาง ๆ ให้
+                if (string.IsNullOrWhiteSpace(sqlOrder)) { sql += " order by (select null) "; }
+                sql += " offset @start rows fetch next @perpage rows only ";
                 sqlParam.Add("start", ((Module.Config.Page - 1) * Module.Config.PerPage) < 0 ? 0 : (Module.Config.Page - 1) * Module.Config.PerPage);
                 sqlParam.Add("perpage", Module.Config.PerPage);
 
