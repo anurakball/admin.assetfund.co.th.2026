@@ -88,8 +88,8 @@
 
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            SUM(CASE WHEN l.is_success = 1 THEN 1 ELSE 0 END)  AS cnt_success,
-            SUM(CASE WHEN l.is_success = 0 THEN 1 ELSE 0 END) AS cnt_error,
+            COALESCE(SUM(CASE WHEN l.is_success = 1 THEN 1 ELSE 0 END), 0)  AS cnt_success,
+            COALESCE(SUM(CASE WHEN l.is_success = 0 THEN 1 ELSE 0 END), 0) AS cnt_error,
             COALESCE(SUM(l.total_tokens), 0)             AS sum_tokens,
             CAST(COALESCE(AVG(l.duration_ms), 0) AS int)     AS avg_duration
         FROM [2026_api_service_logs] l {w}", prms);

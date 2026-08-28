@@ -53,9 +53,9 @@
     var dtStats = _db.ExecuteQuery($@"
         SELECT
             COUNT(DISTINCT CASE WHEN l.keyword IS NOT NULL AND LTRIM(RTRIM(l.keyword)) <> '' THEN LTRIM(RTRIM(l.keyword)) END) AS cnt_distinct_kw,
-            SUM(CASE WHEN COALESCE(l.result_count, 0) = 0 THEN 1 ELSE 0 END)                                          AS cnt_zero,
-            SUM(CASE WHEN l.keyword IS NULL OR LTRIM(RTRIM(l.keyword)) = '' THEN 1 ELSE 0 END)                                AS cnt_nokw,
-            SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END)                               AS cnt_today
+            COALESCE(SUM(CASE WHEN COALESCE(l.result_count, 0) = 0 THEN 1 ELSE 0 END), 0)                                          AS cnt_zero,
+            COALESCE(SUM(CASE WHEN l.keyword IS NULL OR LTRIM(RTRIM(l.keyword)) = '' THEN 1 ELSE 0 END), 0)                                AS cnt_nokw,
+            COALESCE(SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END), 0)                               AS cnt_today
         FROM [2026_api_npa_search_log] l {w}", prms);
 
     long cntDistinctKw = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_distinct_kw"]) : 0;

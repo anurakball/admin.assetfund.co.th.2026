@@ -93,7 +93,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 SELECT LTRIM(RTRIM(l.keyword)) AS kw,
                        COUNT(*) AS cnt,
                        CAST(COALESCE(AVG(l.result_count), 0) AS bigint) AS avg_result,
-                       SUM(CASE WHEN COALESCE(l.result_count, 0) = 0 THEN 1 ELSE 0 END) AS cnt_zero,
+                       COALESCE(SUM(CASE WHEN COALESCE(l.result_count, 0) = 0 THEN 1 ELSE 0 END), 0) AS cnt_zero,
                        MAX(l.created_at) AS last_at
                 FROM [2026_api_npa_search_log] l
                 {where}

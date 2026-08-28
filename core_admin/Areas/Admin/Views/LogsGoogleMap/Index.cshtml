@@ -77,10 +77,10 @@
 
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            SUM(CASE WHEN l.success = 1 THEN 1 ELSE 0 END)  AS cnt_success,
-            SUM(CASE WHEN l.success = 0 THEN 1 ELSE 0 END) AS cnt_error,
+            COALESCE(SUM(CASE WHEN l.success = 1 THEN 1 ELSE 0 END), 0)  AS cnt_success,
+            COALESCE(SUM(CASE WHEN l.success = 0 THEN 1 ELSE 0 END), 0) AS cnt_error,
             CAST(COALESCE(AVG(l.response_time_ms), 0) AS int) AS avg_duration,
-            SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END) AS cnt_today
+            COALESCE(SUM(CASE WHEN l.created_at >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END), 0) AS cnt_today
         FROM [2026_api_google_map_logs] l {w}", prms);
 
     long cntSuccess  = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_success"])  : 0;

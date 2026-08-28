@@ -71,9 +71,9 @@
 
     var dtStats = _db.ExecuteQuery($@"
         SELECT
-            SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END)  AS cnt_success,
-            SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) AS cnt_failed,
-            SUM(CASE WHEN log_date >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END) AS cnt_today
+            COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0)  AS cnt_success,
+            COALESCE(SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END), 0) AS cnt_failed,
+            COALESCE(SUM(CASE WHEN log_date >= DATEADD(hour, -24, SYSDATETIMEOFFSET()) THEN 1 ELSE 0 END), 0) AS cnt_today
         FROM [2026_api_audit_log] {w}", prms);
 
     long cntSuccess = dtStats.Rows.Count > 0 ? Convert.ToInt64(dtStats.Rows[0]["cnt_success"]) : 0;

@@ -1762,7 +1762,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             {
                 q_module_id = " and module_id = '" + ModuleID + "' ";
             }
-            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1} from {2} where web_id = @web_id " + q_module_id + " order by {3} {4}", value_field, text_field, table_name, order_by, sort), new() { { "web_id", _currentWebID } });
+            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1} from {2} where web_id = @web_id " + q_module_id + " order by {3} {4}", value_field, text_field, Db.T(table_name), order_by, sort), new() { { "web_id", _currentWebID } });
             if (optionDT.Rows.Count > 0)
             {
                 foreach (System.Data.DataRow item in optionDT.Rows)
@@ -1798,7 +1798,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             {
                 q_module_id = " and module_id = '" + ModuleID + "' ";
             }
-            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1}, cat_id from {2} where web_id = @web_id " + q_module_id + " order by cat_id asc,sort asc", value_field, text_field, table_name, order_by, sort), new() { { "web_id", _currentWebID } });
+            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1}, cat_id from {2} where web_id = @web_id " + q_module_id + " order by cat_id asc,sort asc", value_field, text_field, Db.T(table_name), order_by, sort), new() { { "web_id", _currentWebID } });
             if (optionDT.Rows.Count > 0)
             {
                 foreach (System.Data.DataRow item in optionDT.Rows)
@@ -1840,7 +1840,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             {
                 sql_for_module_id = " and module_id = '" + module_id + "' ";
             }
-            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1} from {2} where web_id = @web_id order by {3} {4}", value_field, text_field, table_name, order_by, sort), new() { { "web_id", _currentWebID } });
+            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1} from {2} where web_id = @web_id order by {3} {4}", value_field, text_field, Db.T(table_name), order_by, sort), new() { { "web_id", _currentWebID } });
             if (optionDT.Rows.Count > 0)
             {
                 foreach (System.Data.DataRow item in optionDT.Rows)
@@ -1877,7 +1877,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             {
                 selectOption = "<option value=\"\">" + txtAllOption + "</option>";
             }
-            var optionDT = _db.ExecuteQuery(string.Format("select * from {2} where web_id = @web_id order by cat_id ASC,sort ASC", value_field, text_field, table_name, order_by, sort), new() { { "web_id", _currentWebID } });
+            var optionDT = _db.ExecuteQuery(string.Format("select * from {2} where web_id = @web_id order by cat_id ASC,sort ASC", value_field, text_field, Db.T(table_name), order_by, sort), new() { { "web_id", _currentWebID } });
             if (optionDT.Rows.Count > 0)
             {
                 foreach (System.Data.DataRow item in optionDT.Rows)
@@ -1926,7 +1926,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         {
             string cat_title = "";
              
-            var dt = _db.ExecuteQuery("select title from " + cat_table + " where id = '" + id + "'"); 
+            var dt = _db.ExecuteQuery("select title from " + Db.T(cat_table) + " where id = '" + id + "'"); 
             if (dt.Rows.Count > 0)
             {
                 cat_title = dt.Rows[0]["title"]+""; 
