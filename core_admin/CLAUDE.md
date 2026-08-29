@@ -32,7 +32,7 @@ ASP.NET Core 10 MVC application serving an admin panel for the SAM website (`adm
 > `GROUP BY` ห้ามมี subquery และอ้างลำดับคอลัมน์ไม่ได้, `SUM(CASE…)` คืน `NULL` เมื่อไม่มีแถว (ครอบ `COALESCE`),
 > `COUNT(*)` คืน `int` (ไม่ใช่ `bigint`), และ database นี้อยู่ที่ compatibility level 100 จึงใช้ `OPENJSON`/`STRING_SPLIT` ไม่ได้
 
-All queries are raw parameterized SQL — no ORM. `DBHelper.cs` wraps Npgsql and MySqlConnector and logs queries to console in Development (except module/access-check queries).
+All queries are raw parameterized SQL — no ORM. `DBHelper.cs` wraps `Microsoft.Data.SqlClient` and `MySqlConnector`, and logs queries to console in Development (except module/access-check queries).
 
 ### System audit reference (อ่านก่อนงานที่ต้องเข้าใจภาพรวมทั้งระบบ)
 
@@ -45,7 +45,11 @@ All queries are raw parameterized SQL — no ORM. `DBHelper.cs` wraps Npgsql and
 - **Approval workflow** ใช้คอลัมน์คู่ `pb_*` (pending) — front-end อ่าน `pb_*` (ค่าที่อนุมัติแล้ว); กด Approve จึง copy `pb_*`→ฟิลด์จริง
 - เมนูหลังบ้านเกือบทั้งหมดเป็น thin wrapper ของ `AdminCoreController` + config กลางใน `Helpers/AdminMenu.cs` (`AllModule()`); "เครื่องยนต์เนื้อหา" ใช้ซ้ำ 4 แบบ: `web_core_single` (1 เมนู=1 ระเบียน แก้ไข t1..t50 เป็น section 2 ภาษา), `web_core_item` (การ์ดซ้ำ), `web_core_group` (หมวด), `web_core_news` (บทความเต็ม)
 - Front-end (`D:\Project\sam.or.th`) มี 3 controllers; routing หลักอยู่ใน `HomeController.Index()` (~9,000 บรรทัด) resolve หน้า CMS จาก `web_cms_page.seo_url` แล้ว switch ตามโค้ด `pb_box_data` (เช่น `abo-vis`, `dep-ove`) เลือก table/view
-- **เมนูที่ใช้ไม่ได้/ยังไม่ทำ**: Banner + กลุ่ม Banner (ตาราง `web_banner*` ไม่มีใน DB → 500), นัดหมายชมทรัพย์ MeetNPA (`web_meet_npa` ไม่มี — front-end นัดชมทรัพย์เขียนลง MySQL `tb_appointment` แทน), Microsite/Lead Form (placeholder title/sort), Google Analytics Monitor (stub)
+- **เมนูที่ใช้ไม่ได้/ยังไม่ทำ** (ยืนยันด้วยการกวาดทุกเมนูเมื่อ 2026-08-29 — เป็นปัญหาเดิม ไม่เกี่ยวกับการย้ายมา SQL Server เพราะตารางเหล่านี้ไม่เคยมีใน PostgreSQL เดิมเช่นกัน):
+  - **ตารางไม่มีใน DB** → หน้า list ยังเปิดได้แต่ query ภายในพัง: `web_banner`, `web_banner_group` (Banner, กลุ่ม Banner), `web_file_manager` (FileManager — ตัว elFinder เองใช้ได้ปกติ), `web_google_analytics` (stub), `web_microsite_submit`, `web_meet_npa` (MeetNPA — front-end เขียนลง MySQL `tb_appointment` แทน)
+  - **ไม่มี controller**: `MeetNPA`, `EFormEmail` → 404
+  - **ไม่มีไฟล์ view**: `MicrositeForm/Create.cshtml`, `SubscriptionEmail/Create.cshtml` (กระทบหน้า Create ของ MemberNews / AgentNews / MicrositeForm)
+  - **โค้ดตายที่อ้างตารางไม่มีจริง**: `web_branch_translation` (สาขา BranchMain), `web_product_main` (`InputSelectDB_Product` ไม่มีใครเรียก)
 - npa-matching (จับคู่ทรัพย์) เขียน MySQL legacy (`tb_want*`) — ไม่มีเมนูหลังบ้านรองรับ; cookie consent เก็บใน cookie ไม่ลง DB; `web_pdpa_consent` เขียนจาก LINE API เท่านั้น
 
 ### Admin Area Pattern
@@ -60,16 +64,20 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 
 ### Module System (`Helpers/Module.cs` + `Helpers/AdminMenu.cs`)
 
-`Module.ModuleConfig` declares:
-- `TableName` — DB table to query
-- `Fields` / `FieldThai` — columns and Thai display labels
-- `SearchFields` — which fields appear in the search bar
-- `DateField` — enables date-range filter
-- `SortField` / `SortOrder` — default sort
-- `ExportData` — enables Excel export (EPPlus)
-- `CanAdd` / `CanEdit` / `CanDelete` — permission flags checked by `[ModuleCheck]`
+`Module.ModuleConfig` declares (ชื่อจริงในโค้ด — อย่าเดาจากชื่อทั่วไป):
+- `Table` — ชื่อตาราง **แบบตรรกะ** (ไม่มี prefix) เช่น `"web_core_news"`; จุดที่ประกอบ SQL ต้องผ่าน `Db.T()` เอง
+- `TableModuleID` — ค่า `module_id` ที่ใช้แยกเมนูที่ใช้ตารางร่วมกัน (`web_core_*` ใช้ตารางเดียวหลายเมนู)
+- `TableCate*` — ตารางหมวด + ฟิลด์/หัวข้อ/การเรียง สำหรับ dropdown กรองกลุ่ม
+- `ListData` — คอลัมน์ + ป้ายภาษาไทยที่แสดงในหน้า list
+- `FieldSearch` / `FieldSearchIsEqual` — ฟิลด์ในช่องค้นหา (และฟิลด์ที่ต้องเทียบแบบตรงตัว)
+- `EnableDateSearch` / `EnableIssueDate` — เปิดตัวกรองช่วงวันที่ / ระบบ "วันที่แสดงผล"
+- `OrderBy` / `Sort` / `Page` / `PerPage` — การเรียงและแบ่งหน้าเริ่มต้น
+- `FieldCreate` / `FieldUpdate` / `FieldApprove` — ฟิลด์ที่ยอมให้เขียนในแต่ละขั้น
+- `ExportData` — เปิด Excel export (EPPlus)
+- `CanAdd` / `CanEdit` / `CanDelete` / `CanMove` / `CanStatus` / `CanExport` / `CanApprove` — ธงสิทธิ์ที่ `[ModuleCheck]` ตรวจ
+- `UseView*From` — ยืม view ของโมดูลอื่นแทนการสร้างซ้ำ
 
-`AdminMenu.cs` maps module names to Thai menu labels and sidebar grouping (~60 modules).
+`AdminMenu.cs` นิยาม **161 โมดูล** และจัดเป็น sidebar **146 เมนู / 35 กลุ่ม**
 
 ### Authentication & Authorization
 
@@ -97,6 +105,11 @@ Session-based auth (no ASP.NET Identity). Session keys: `admin_login`, `admin_us
 - Register the module in `AdminMenu.cs`
 
 ### ระบบ Preview (ดูตัวอย่างหน้าเว็บของ "ฉบับร่าง") ⚠ ต้องเช็คทุกครั้งที่แก้ back-end
+
+> 🔌 **สถานะปัจจุบัน: พรีวิวใช้งานจริงไม่ได้ชั่วคราว** — iframe ชี้ไป front-end (7169) ซึ่งยังอ่าน PostgreSQL `sam`
+> ส่วน admin ย้ายมา SQL Server แล้ว จึงไม่เห็นข้อมูลที่แก้จาก admin
+> โค้ดฝั่ง admin (`PreviewMenu.cs`) แปลงเป็น T-SQL ไว้เรียบร้อยแล้ว รอแค่ย้าย front-end ตามมา
+> เนื้อหาด้านล่างยังใช้อ้างอิงได้ทั้งหมด
 
 > **กฎ: เมื่อแก้ไขระบบ back-end ของเมนูใด ให้ตรวจผลกระทบต่อ Preview ของเมนูนั้นด้วยเสมอ**
 > (แก้ฟิลด์/`ModuleConfig`/`ListData`/ตาราง/`module_id`/ชื่อโมดูล → พรีวิวอาจพังหรือแสดงค่าผิดโดยไม่มีใครรู้)
@@ -157,6 +170,30 @@ SQL Server: Server=.; Database=asset_plus_uat; User ID=sa; Password=<see appsett
 MySQL:      Server=localhost; Database=sam_npa;        UserID=root;     Password=<see appsettings.Development.json>
 ```
 
+**ที่มาของข้อมูล** — ตาราง `2026_*` ทั้ง 69 ตัวถูกย้ายมาจาก PostgreSQL `asset_fund_temp` (ซึ่งเป็นสำเนาของ `sam`) เมื่อ 2026-08-29
+ยืนยันแล้วว่าตรงกันครบ 31,036 แถว / 395,809 cell รวมถึง identity seed และลำดับ `sort`
+
+การแปลงชนิดข้อมูลที่ใช้ (จำไว้เวลาเทียบค่ากับ PostgreSQL เดิม):
+
+| PostgreSQL | SQL Server |
+|---|---|
+| `text` / `varchar(n)` | `nvarchar(max)` / `nvarchar(n)` — ใช้ `n*` เพราะข้อมูลเป็นภาษาไทย |
+| `timestamptz` | `datetimeoffset(7)` (เก็บ `+07:00`) |
+| `timestamp` | `datetime2(7)` |
+| `boolean` | `bit` |
+| `jsonb` | `nvarchar(max)` (อ่านด้วย `JSON_VALUE`) |
+| `identity`/`serial` | `IDENTITY(1,1)` |
+
+⚠️ **คอลัมน์เวลา**: `DBHelper` แปลงให้ 2 ทางเพื่อให้โค้ดเดิมทำงานเหมือนเดิม —
+ตอน **เขียน** ผูก offset ของเครื่องให้ `DateTime` ก่อน (ไม่งั้น SQL Server ถือเป็น `+00:00` แล้วเวลาเพี้ยน 7 ชม.)
+และตอน **อ่าน** แปลง `DateTimeOffset` กลับเป็น `DateTime` แบบ UTC (พฤติกรรมที่ Npgsql เคยให้ — ทุก view เรียก `.ToLocalTime()` เองอยู่แล้ว)
+อย่าถอดตัวแปลงนี้ออกโดยไม่ไล่แก้ทุกจุดที่ cast เป็น `DateTime`
+
+**ตรวจข้อมูลตรง ๆ** (มี `sqlcmd` ติดตั้งอยู่แล้ว):
+```bash
+"/c/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/sqlcmd"   -S . -U sa -P <password> -d asset_plus_uat -h -1 -W   -Q "set nocount on; select top 5 id, title from [2026_web_core_news] order by id desc;"
+```
+
 ## ทดสอบการทำงานเว็บไซต์
 - เมื่อต้องการทดสอบการทำงานของเว็บไซต์ ให้ใช้ **Playwright** เข้าไปที่ `https://localhost:7140/` (ปกติเซิร์ฟเวอร์รันอยู่แล้ว ไม่ต้อง `dotnet run` ใหม่)
 - ถ้า `https://localhost:7140/` เข้าไม่ได้ (เซิร์ฟเวอร์ไม่ได้รัน) ให้ `dotnet run` ก่อน แล้วค่อยทดสอบด้วย Playwright
@@ -176,7 +213,10 @@ Front-end คือ**คนละแอป**กับ admin นี้ อยู�
 | Admin (back-end) | `d:\Project\admin.sam.or.th\core_admin` (repo นี้) | https://localhost:7140 |
 | Public site (front-end) | `d:\Project\sam.or.th` | https://localhost:7169 |
 
-> **Workflow สำคัญ:** เมื่อแก้ไข/เพิ่มข้อมูลผ่าน **back-end (7140)** แล้ว สามารถเปิดหน้า **front-end (7169)** เพื่อทดสอบดูผลลัพธ์จริงได้ทันที เพราะทั้งสองแอปใช้ DB `sam` ตัวเดียวกัน (ข้อมูลที่บันทึก+approve ฝั่ง admin จะแสดงบน front-end เลย) — ใช้ยืนยันว่าการแก้ไขทำงานถูกต้องจากมุมผู้ใช้จริง
+> ⚠️ **สองแอปนี้แยก DB กันแล้ว** — admin เขียนลง SQL Server `asset_plus_uat` (ตาราง `2026_*`) ส่วน front-end ยังอ่าน PostgreSQL `sam` อยู่
+> ดังนั้น **ข้อมูลที่แก้ผ่าน admin จะยังไม่ปรากฏบน front-end (7169)** และระบบ Preview ก็ใช้ไม่ได้จนกว่าจะย้าย front-end ตามมา
+> (เดิมทั้งคู่ใช้ `sam` ร่วมกัน จึงเคยเปิด 7169 ยืนยันผลได้ทันที — workflow นั้นใช้ไม่ได้แล้ว)
+> ระหว่างนี้ให้ยืนยันผลการแก้ไขด้วยการ query SQL Server ตรง ๆ แทน
 
 - **ดูผลหน้าเว็บที่สร้าง/แก้ผ่าน admin** ได้ที่ front-end โดยตรง — หน้า CMSPage (Page Content) เปิดที่ `https://localhost:7169/th/<seo_url>` (ภาษาอังกฤษใช้ `/en/<en_seo_url>`) เช่น `/th/prawat-kan-khai-sinsap-tuayang`
 - **ทดสอบ front-end ด้วย Playwright** ได้เลย ไม่ต้อง login (เป็นหน้าสาธารณะ) ถ้าพอร์ต 7169 เข้าไม่ได้แปลว่าแอป front-end ไม่ได้รัน
