@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สถานะเมนูด้านซ้าย — ASSET PLUS Admin</title>
+<style>
+  :root { --navy:#00295A; --navy-lt:#004699; --cyan:#00B4E5; --line:#e3e8ef; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:32px 24px 64px; background:#f5f7fa; color:#22303f;
+         font-family:"Noto Sans Thai","Segoe UI",Tahoma,sans-serif; font-size:15px; line-height:1.6; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  h1 { color:var(--navy); font-size:1.6rem; margin:0 0 4px; }
+  .sub { color:#66788a; font-size:.9rem; margin:0 0 28px; }
+  h2 { color:var(--navy); font-size:1.15rem; margin:36px 0 4px; padding-left:12px;
+       border-left:5px solid var(--cyan); }
+  h2 .n { color:#66788a; font-weight:400; font-size:.85rem; }
+  .note { color:#66788a; font-size:.85rem; margin:0 0 12px; padding-left:17px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+          border-radius:8px; overflow:hidden; }
+  th { background:var(--navy); color:#fff; text-align:left; font-weight:600;
+       padding:10px 14px; font-size:.92rem; }
+  td { padding:8px 14px; border-top:1px solid var(--line); vertical-align:top; }
+  tr.newgrp td { border-top:1px solid #c8d3e0; }
+  td.grp { width:24%; color:var(--navy); font-weight:600; }
+  td.mod { width:24%; font-family:Consolas,"Courier New",monospace; font-size:.85rem; color:#5b6b7c; }
+  tbody tr:nth-child(even) { background:#fafbfc; }
+  .off table th { background:#66788a; }
+  footer { margin-top:40px; color:#8a99a8; font-size:.82rem; }
+  code { background:#eef2f7; padding:1px 5px; border-radius:4px; font-size:.85em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>สถานะเมนูด้านซ้าย — ASSET PLUS Admin</h1>
+  <p class="sub">รายงานแบบ static · อัปเดตล่าสุด 30/08/2026 00:02 · ข้อมูลจาก <code>Areas/Admin/Helpers/AdminMenu.cs</code> (เมธอด <code>Menu()</code>)</p>
+
+  <h2>1. เมนูที่เปิดใช้งานอยู่ <span class="n">(19 เมนู)</span></h2>
+  <p class="note">เมนูที่แสดงในแถบซ้ายของระบบตอนนี้</p>
+  <table>
+    <thead><tr><th>กลุ่มเมนู</th><th>ชื่อเมนู</th><th>Module / Link</th></tr></thead>
+    <tbody>
+      <tr class="newgrp"><td class="grp">— (คงที่ในเทมเพลต)</td><td>Dashboard</td><td class="mod">User/Dashboard</td></tr>
+      <tr class="newgrp"><td class="grp">PERSONAL INFORMATION</td><td>View profile</td><td class="mod">User/Edit</td></tr>
+      <tr><td class="grp">PERSONAL INFORMATION</td><td>Change Password</td><td class="mod">User/ChangePassword</td></tr>
+      <tr><td class="grp">PERSONAL INFORMATION</td><td>Last Activity</td><td class="mod">User/LastActivity</td></tr>
+      <tr class="newgrp"><td class="grp">หน้าหลัก</td><td>Get Other Indices</td><td class="mod">ApOtherIndices</td></tr>
+      <tr class="newgrp"><td class="grp">ข้อมูลกองทุน</td><td>ประเภทกองทุนรวม</td><td class="mod">ApFundCat</td></tr>
+      <tr><td class="grp">ข้อมูลกองทุน</td><td>Get Fund Fact Sheet</td><td class="mod">ApFundFactSheet</td></tr>
+      <tr><td class="grp">ข้อมูลกองทุน</td><td>Get NAV</td><td class="mod">ApFundNav</td></tr>
+      <tr><td class="grp">ข้อมูลกองทุน</td><td>Delete NAV</td><td class="mod">ApFundNavDelete</td></tr>
+      <tr><td class="grp">ข้อมูลกองทุน</td><td>Get Performance</td><td class="mod">ApFundPerformance</td></tr>
+      <tr class="newgrp"><td class="grp">ปฏิทินกองทุน</td><td>หมวดหมู่ปฏิทิน</td><td class="mod">ApCalendarCat</td></tr>
+      <tr><td class="grp">ปฏิทินกองทุน</td><td>ปฏิทินกองทุน</td><td class="mod">ApCalendar</td></tr>
+      <tr class="newgrp"><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>Factsheet (Group)</td><td class="mod">ApProvSheetCat</td></tr>
+      <tr><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>Factsheet</td><td class="mod">ApProvSheet</td></tr>
+      <tr><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>ข้อมูลอื่นๆ</td><td class="mod">ApProvOther</td></tr>
+      <tr class="newgrp"><td class="grp">ผู้ดูแลระบบ</td><td>สิทธิ์การใช้</td><td class="mod">AdminAccess</td></tr>
+      <tr><td class="grp">ผู้ดูแลระบบ</td><td>ผู้ดูแลระบบ</td><td class="mod">AdminUser</td></tr>
+      <tr><td class="grp">ผู้ดูแลระบบ</td><td>Admin Logs</td><td class="mod">AdminLog</td></tr>
+      <tr><td class="grp">ผู้ดูแลระบบ</td><td>ผู้ใช้ที่ไม่เข้าใช้งาน</td><td class="mod">AdminUserNotLogin</td></tr>
+    </tbody>
+  </table>
+
+  <div class="off">
+  <h2>2. เมนูที่ถูกปิดการแสดงผลไว้ <span class="n">(153 เมนู)</span></h2>
+  <p class="note">โค้ด / view / controller / ModuleConfig ยังอยู่ครบและใช้งานได้ทันที เพียงถูก <code>//</code> comment ไว้ในเมนูด้านซ้าย —
+     เปิดคืนได้ทีละเมนูโดยลบ <code>//</code> ออกจากบรรทัดของเมนูนั้นและบรรทัด <code>listMenu.Add(...)</code> ของกลุ่มนั้น</p>
+  <table>
+    <thead><tr><th>กลุ่มเมนู</th><th>ชื่อเมนู</th><th>Module / Link</th></tr></thead>
+    <tbody>
+      <tr class="newgrp"><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนูเว็บไซต์</td><td class="mod">CMSPage</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>หน้า Intro Page</td><td class="mod">HomeIntroPage</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>หน้า Pop-Up</td><td class="mod">HomePopUp</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>โลโก้ / Template</td><td class="mod">HomeHeader</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนู Footer 1</td><td class="mod">CMSPageFooter1</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนู Footer 2</td><td class="mod">CMSPageFooter2</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>ปรับแต่ง Footer</td><td class="mod">HomeFooter</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>SEO &amp; Code</td><td class="mod">HomeSEO</td></tr>
+      <tr class="newgrp"><td class="grp">ข้อมูลหน้าแรก</td><td>รูปสไลด์หน้าแรก</td><td class="mod">HomeImageSlide</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ตั้งค่ารูปสไลด์</td><td class="mod">HomeImageConf</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>แอสเซท พลัส ใส่ใจ</td><td class="mod">HomeSamText</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ภาพรวมการบริหารหนี้</td><td class="mod">HomeSamText2</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ปิดหนี้ไว ไปต่อได้</td><td class="mod">HomeSamText3</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ทรัพย์เด่นและน่าสนใจ</td><td class="mod">HomeSamText4</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>คุณกำลังมองหาอะไร</td><td class="mod">HomeSamText5</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>บ้านเด่นทำเลดี</td><td class="mod">HomeSamText6</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>วิสัยทัศน์</td><td class="mod">HomeSamText7</td></tr>
+      <tr class="newgrp"><td class="grp">เนื้อหาหน้าแรก</td><td>Hero Banner</td><td class="mod">HeroBanner</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>บทนำ</td><td class="mod">MicrositeIntro</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>บทบาทของเรา</td><td class="mod">MicrositeRole</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>แบนเนอร์ครึ่งจอ</td><td class="mod">MicrositeBannerHalf</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>เอกสารที่เกี่ยวข้อง</td><td class="mod">MicrositeDoc</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>สิทธิพิเศษ</td><td class="mod">MicrositeBenefit</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>ทรัพย์ที่ร่วมรายการ</td><td class="mod">MicrositeAssetHead</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>ทรัพย์ที่ร่วมรายการ</td><td class="mod">MicrositeAsset</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>เงื่อนไขโครงการ</td><td class="mod">MicrositeTerm</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>จุดเด่นโครงการ</td><td class="mod">MicrositeHighlight</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>สอบถามเพิ่มเติม (QR)</td><td class="mod">MicrositeContactQr</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>ตัวเลขความสำเร็จ</td><td class="mod">MicrositeCounter</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>แนวทางที่เราช่วยได้</td><td class="mod">MicrositeHelp</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>เอกสารที่ต้องเตรียม</td><td class="mod">MicrositePrepare</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>ข้อมูลติดต่อกลับ</td><td class="mod">MicrositeLead</td></tr>
+      <tr><td class="grp">เนื้อหาหน้าแรก</td><td>คำถามที่พบบ่อย</td><td class="mod">MicrositeFaq</td></tr>
+      <tr class="newgrp"><td class="grp">เกี่ยวกับเรา</td><td>วิสัยทัศน์/พันธกิจ</td><td class="mod">AboutVision</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>ประวัติความเป็นมา</td><td class="mod">AboutHistory</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>โครงสร้างองค์กร</td><td class="mod">AboutStructure</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>รายงานประจำปี</td><td class="mod">AboutAnnual</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>รายงานการเงิน</td><td class="mod">AboutFin</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะกรรมการบริษัท</td><td class="mod">AboutBoard1</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะกรรมการอื่นๆ (กลุ่ม)</td><td class="mod">AboutBoard2cat</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะกรรมการอื่นๆ</td><td class="mod">AboutBoard2</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะผู้บริหารระดับสูง (กลุ่ม)</td><td class="mod">AboutBoard3cat</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะผู้บริหารระดับสูง</td><td class="mod">AboutBoard3</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะผู้บริหารฝ่าย (สายงาน)</td><td class="mod">AboutBoard4cat</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะผู้บริหารฝ่าย (กลุ่ม)</td><td class="mod">AboutBoard4sub</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>คณะผู้บริหารฝ่าย</td><td class="mod">AboutBoard4</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>บริหารสินทรัพย์ด้อยคุณภาพ</td><td class="mod">AboutText1</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>บริหารทรัพย์สินรอการขาย</td><td class="mod">AboutText2</td></tr>
+      <tr><td class="grp">เกี่ยวกับเรา</td><td>สร้างโอกาสทางธุรกิจ</td><td class="mod">AboutText3</td></tr>
+      <tr class="newgrp"><td class="grp">ทรัพย์สินรอการขาย</td><td>ขั้นตอนการซื้อทรัพย์</td><td class="mod">NpaText1</td></tr>
+      <tr class="newgrp"><td class="grp">บริหารหนี้ด้อยคุณภาพ</td><td>ภาพรวมการบริหารหนี้</td><td class="mod">DebtText1</td></tr>
+      <tr><td class="grp">บริหารหนี้ด้อยคุณภาพ</td><td>ขั้นตอนการปรับโครงสร้างหนี้</td><td class="mod">DebtText2</td></tr>
+      <tr><td class="grp">บริหารหนี้ด้อยคุณภาพ</td><td>สิทธิประโยชน์ลูกหนี้</td><td class="mod">DebtText3</td></tr>
+      <tr><td class="grp">บริหารหนี้ด้อยคุณภาพ</td><td>ดาวน์โหลดแบบฟอร์ม</td><td class="mod">DebtText4</td></tr>
+      <tr><td class="grp">บริหารหนี้ด้อยคุณภาพ</td><td>ลงทะเบียนปรับโครงสร้างหนี้</td><td class="mod">DebtText5</td></tr>
+      <tr><td class="grp">บริหารหนี้ด้อยคุณภาพ</td><td>คลินิกแก้หนี้</td><td class="mod">DebtText6</td></tr>
+      <tr class="newgrp"><td class="grp">ข่าวประชาสัมพันธ์</td><td>ข่าวประชาสัมพันธ์ (กลุ่ม)</td><td class="mod">NewsGroup</td></tr>
+      <tr><td class="grp">ข่าวประชาสัมพันธ์</td><td>ข่าวประชาสัมพันธ์</td><td class="mod">News</td></tr>
+      <tr class="newgrp"><td class="grp">บทความและวารสาร</td><td>บทความและวารสาร (กลุ่ม)</td><td class="mod">ArticleGroup</td></tr>
+      <tr><td class="grp">บทความและวารสาร</td><td>บทความและวารสาร</td><td class="mod">Article</td></tr>
+      <tr class="newgrp"><td class="grp">วิดีโอ/สื่อประชาสัมพันธ์</td><td>รายการ (กลุ่ม)</td><td class="mod">VDOGroup</td></tr>
+      <tr><td class="grp">วิดีโอ/สื่อประชาสัมพันธ์</td><td>รายการ</td><td class="mod">VDOGroupsub</td></tr>
+      <tr><td class="grp">วิดีโอ/สื่อประชาสัมพันธ์</td><td>วิดีโอ/สื่อประชาสัมพันธ์</td><td class="mod">VDO</td></tr>
+      <tr class="newgrp"><td class="grp">ประกาศ</td><td>ประกาศอัตราดอกเบี้ย</td><td class="mod">AnnounceRate</td></tr>
+      <tr><td class="grp">ประกาศ</td><td>ประกาศจาก NPL/NPA</td><td class="mod">AnnounceNPA</td></tr>
+      <tr><td class="grp">ประกาศ</td><td>ประกาศทั่วไป (กลุ่ม)</td><td class="mod">AnnounceOtherGroup</td></tr>
+      <tr><td class="grp">ประกาศ</td><td>ประกาศทั่วไป</td><td class="mod">AnnounceOther</td></tr>
+      <tr class="newgrp"><td class="grp">ประกาศจัดซื้อจัดจ้าง</td><td>ประกาศจัดซื้อจัดจ้าง</td><td class="mod">AnnouncePro</td></tr>
+      <tr><td class="grp">ประกาศจัดซื้อจัดจ้าง</td><td>ประเภท</td><td class="mod">AnnounceProGroup</td></tr>
+      <tr><td class="grp">ประกาศจัดซื้อจัดจ้าง</td><td>วิธีการจัดซื้อ</td><td class="mod">AnnounceProType</td></tr>
+      <tr><td class="grp">ประกาศจัดซื้อจัดจ้าง</td><td>รายชื่อผู้ลงทะเบียน</td><td class="mod">AnnounceSubmit</td></tr>
+      <tr class="newgrp"><td class="grp">ร่วมงานกับเรา</td><td>ตำแหน่งงาน</td><td class="mod">AnnounceJob</td></tr>
+      <tr><td class="grp">ร่วมงานกับเรา</td><td>รายชื่อผู้สมัครงาน</td><td class="mod">AnnounceJobSubmit</td></tr>
+      <tr><td class="grp">ร่วมงานกับเรา</td><td>รายชื่อผู้สมัครงาน</td><td class="mod">AnnounceJobSubmitFull</td></tr>
+      <tr><td class="grp">ร่วมงานกับเรา</td><td>รูปประกอบ</td><td class="mod">JobCMS</td></tr>
+      <tr class="newgrp"><td class="grp">ติดต่อเรา</td><td>สำนักงานใหญ่/สาขา</td><td class="mod">ContactOffice</td></tr>
+      <tr><td class="grp">ติดต่อเรา</td><td>ช่องทางร้องเรียน/ข้อเสนอแนะ</td><td class="mod">ContactCMS</td></tr>
+      <tr><td class="grp">ติดต่อเรา</td><td>รายชื่อผู้ติดต่อ</td><td class="mod">ContactSubmit</td></tr>
+      <tr class="newgrp"><td class="grp">ดาวน์โหลด</td><td>ดาวน์โหลด (กลุ่ม)</td><td class="mod">DownloadGroup</td></tr>
+      <tr><td class="grp">ดาวน์โหลด</td><td>ดาวน์โหลด</td><td class="mod">Download</td></tr>
+      <tr><td class="grp">ดาวน์โหลด</td><td>รายชื่อผู้กรอกข้อมูล</td><td class="mod">DownloadSubmit</td></tr>
+      <tr class="newgrp"><td class="grp">คำถามที่พบบ่อย</td><td>คำถามที่พบบ่อย (กลุ่ม)</td><td class="mod">FAQGroup</td></tr>
+      <tr><td class="grp">คำถามที่พบบ่อย</td><td>คำถามที่พบบ่อย</td><td class="mod">FAQ</td></tr>
+      <tr class="newgrp"><td class="grp">ลิงค์หน่วยงาน</td><td>ลิงค์หน่วยงาน (กลุ่ม)</td><td class="mod">LinkGroup</td></tr>
+      <tr><td class="grp">ลิงค์หน่วยงาน</td><td>ลิงค์หน่วยงาน</td><td class="mod">Link</td></tr>
+      <tr><td class="grp">ลิงค์หน่วยงาน</td><td>แลกเปลี่ยนลิงค์</td><td class="mod">LinkCMS</td></tr>
+      <tr><td class="grp">ลิงค์หน่วยงาน</td><td>รายชื่อผู้แลกเปลี่ยน</td><td class="mod">LinkSubmit</td></tr>
+      <tr class="newgrp"><td class="grp">โปรโมชั่น</td><td>โปรโมชั่น (กลุ่ม)</td><td class="mod">PromotionGroup</td></tr>
+      <tr><td class="grp">โปรโมชั่น</td><td>โปรโมชั่น</td><td class="mod">Promotion</td></tr>
+      <tr class="newgrp"><td class="grp">Banner</td><td>กลุ่ม Banner</td><td class="mod">BannerGroup</td></tr>
+      <tr><td class="grp">Banner</td><td>Banner ทั้งหมด</td><td class="mod">Banner</td></tr>
+      <tr class="newgrp"><td class="grp">E-Form</td><td>E-Form (กลุ่ม)</td><td class="mod">EFormGroup</td></tr>
+      <tr><td class="grp">E-Form</td><td>E-Form</td><td class="mod">EForm</td></tr>
+      <tr><td class="grp">E-Form</td><td>รายชื่อผู้กรอกข้อมูล</td><td class="mod">EFormSubmit</td></tr>
+      <tr><td class="grp">E-Form</td><td>อีเมลแจ้งเตือน</td><td class="mod">EFormEmail</td></tr>
+      <tr class="newgrp"><td class="grp">เมนู Footer</td><td>แบบสำรวจ</td><td class="mod">FooterPoll</td></tr>
+      <tr><td class="grp">เมนู Footer</td><td>ประกาศความเป็นส่วนตัว</td><td class="mod">FooterPrivacy1</td></tr>
+      <tr><td class="grp">เมนู Footer</td><td>รายชื่อผู้ยินยอม</td><td class="mod">FooterPrivacy1Submit</td></tr>
+      <tr><td class="grp">เมนู Footer</td><td>ข้อตกลงและเงื่อนไข</td><td class="mod">FooterPrivacy2</td></tr>
+      <tr><td class="grp">เมนู Footer</td><td>รายชื่อผู้ยินยอม</td><td class="mod">FooterPrivacy2Submit</td></tr>
+      <tr><td class="grp">เมนู Footer</td><td>เปิดเผยข้อมูลความโปร่งใส</td><td class="mod">FooterLink</td></tr>
+      <tr class="newgrp"><td class="grp">สมาชิก</td><td>จัดการสมาชิก</td><td class="mod">MemberList</td></tr>
+      <tr><td class="grp">สมาชิก</td><td>รายงานสมาชิก</td><td class="mod">MemberReport</td></tr>
+      <tr><td class="grp">สมาชิก</td><td>อีเมลเจ้าหน้าที่แจ้งเตือน</td><td class="mod">MemberEmail</td></tr>
+      <tr><td class="grp">สมาชิก</td><td>ส่งข่าวสารสมาชิก</td><td class="mod">MemberNews</td></tr>
+      <tr class="newgrp"><td class="grp">ตัวแทนขายทรัพย์ (Agent)</td><td>รายชื่อผู้สมัครตัวแทน</td><td class="mod">AgentList</td></tr>
+      <tr><td class="grp">ตัวแทนขายทรัพย์ (Agent)</td><td>นำเข้าข้อมูลผู้สมัคร</td><td class="mod">AgentImport</td></tr>
+      <tr><td class="grp">ตัวแทนขายทรัพย์ (Agent)</td><td>รายงานตัวแทน</td><td class="mod">AgentReport</td></tr>
+      <tr><td class="grp">ตัวแทนขายทรัพย์ (Agent)</td><td>อีเมลเจ้าหน้าที่แจ้งเตือน</td><td class="mod">AgentEmail</td></tr>
+      <tr><td class="grp">ตัวแทนขายทรัพย์ (Agent)</td><td>ส่งข่าวสารเอเจนต์</td><td class="mod">AgentNews</td></tr>
+      <tr class="newgrp"><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>กำหนดสถานะทรัพย์สิน</td><td class="mod">NpaStatus</td></tr>
+      <tr><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>รายชื่อทรัพย์ Wishlist</td><td class="mod">NpaFav</td></tr>
+      <tr><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>รายการ ย่าน/ทำเล</td><td class="mod">NpaLocate</td></tr>
+      <tr><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>รายการ Facility</td><td class="mod">NpaFacility</td></tr>
+      <tr><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>ยื่นข้อเสนอซื้อ</td><td class="mod">NpaOffer</td></tr>
+      <tr><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>อีเมลเจ้าหน้าที่แจ้งเตือน</td><td class="mod">NpaOfferEmail</td></tr>
+      <tr><td class="grp">ข้อมูลทรัพย์สิน (NPA)</td><td>รายงานการค้นหาข้อมูลทรัพย์สิน</td><td class="mod">NpaReport</td></tr>
+      <tr class="newgrp"><td class="grp">ลูกค้าปรับโครงสร้างหนี้</td><td>แก้ไขรายละเอียดโครงการ</td><td class="mod">NplWeb</td></tr>
+      <tr><td class="grp">ลูกค้าปรับโครงสร้างหนี้</td><td>รายชื่อผู้ลงทะเบียน (NPL)</td><td class="mod">NplRegister</td></tr>
+      <tr><td class="grp">ลูกค้าปรับโครงสร้างหนี้</td><td>อีเมลเจ้าหน้าที่แจ้งเตือน</td><td class="mod">NplEmail</td></tr>
+      <tr><td class="grp">ลูกค้าปรับโครงสร้างหนี้</td><td>ข้อมูลลูกหนี้</td><td class="mod">NplCustomer</td></tr>
+      <tr class="newgrp"><td class="grp">โครงการคลินิกแก้หนี้</td><td>แก้ไขรายละเอียดโครงการ</td><td class="mod">CliWeb</td></tr>
+      <tr class="newgrp"><td class="grp">แจ้งความประสงค์ซื้อทรัพย์</td><td>รายการผู้สนใจซื้อทรัพย์</td><td class="mod">BuyNPA</td></tr>
+      <tr><td class="grp">แจ้งความประสงค์ซื้อทรัพย์</td><td>รายงานผู้สนใจซื้อทรัพย์</td><td class="mod">BuyNPAReport</td></tr>
+      <tr><td class="grp">แจ้งความประสงค์ซื้อทรัพย์</td><td>อีเมลเจ้าหน้าที่แจ้งเตือน</td><td class="mod">BuyNPAEmail</td></tr>
+      <tr class="newgrp"><td class="grp">นัดหมายชมทรัพย์</td><td>รายการนัดหมายชมทรัพย์</td><td class="mod">MeetNPA</td></tr>
+      <tr><td class="grp">นัดหมายชมทรัพย์</td><td>อีเมลเจ้าหน้าที่แจ้งเตือน</td><td class="mod">MeetNPAEmail</td></tr>
+      <tr class="newgrp"><td class="grp">Subscription</td><td>รายชื่อผู้ลงทะเบียน</td><td class="mod">Subscription</td></tr>
+      <tr><td class="grp">Subscription</td><td>ส่งข่าวสารทางอีเมล</td><td class="mod">SubscriptionEmail</td></tr>
+      <tr><td class="grp">Subscription</td><td>ข่าวสารทางอีเมลย้อนหลัง</td><td class="mod">SubscriptionNews</td></tr>
+      <tr class="newgrp"><td class="grp">Monitor</td><td>Server Health</td><td class="mod">ServerStatus</td></tr>
+      <tr><td class="grp">Monitor</td><td>Error Logs</td><td class="mod">ErrorLogs</td></tr>
+      <tr><td class="grp">Monitor</td><td>Google Analytics</td><td class="mod">GoogleAnalytics</td></tr>
+      <tr class="newgrp"><td class="grp">Setting</td><td>File Manager</td><td class="mod">FileManager</td></tr>
+      <tr><td class="grp">Setting</td><td>Google Map Key</td><td class="mod">GoogleKey</td></tr>
+      <tr><td class="grp">Setting</td><td>AI Settings</td><td class="mod">AISetting</td></tr>
+      <tr><td class="grp">Setting</td><td>LDAP Azure AD</td><td class="mod">LDAPSetting</td></tr>
+      <tr class="newgrp"><td class="grp">Landing / Microsite</td><td>Microsite</td><td class="mod">Microsite</td></tr>
+      <tr><td class="grp">Landing / Microsite</td><td>Lead Form</td><td class="mod">MicrositeForm</td></tr>
+      <tr><td class="grp">Landing / Microsite</td><td>รายชื่อผู้กรอกข้อมูล</td><td class="mod">MicrositeSubmit</td></tr>
+      <tr class="newgrp"><td class="grp">Logs</td><td>Activities สมาชิก</td><td class="mod">LogsMember</td></tr>
+      <tr><td class="grp">Logs</td><td>ให้ความยินยอม PDPA</td><td class="mod">LogsPDPA</td></tr>
+      <tr><td class="grp">Logs</td><td>AI Services API</td><td class="mod">LogsAI</td></tr>
+      <tr><td class="grp">Logs</td><td>CRM Data API</td><td class="mod">LogsCRM</td></tr>
+      <tr><td class="grp">Logs</td><td>LINE LIFF Data API</td><td class="mod">LogsLINE</td></tr>
+      <tr><td class="grp">Logs</td><td>AD/LDAP Login API</td><td class="mod">LogsLDAP</td></tr>
+      <tr><td class="grp">Logs</td><td>จับคู่ทรัพย์สินอัตโนมัติ API</td><td class="mod">LogsMatchAPI</td></tr>
+      <tr><td class="grp">Logs</td><td>Google Map API</td><td class="mod">LogsGoogleMap</td></tr>
+      <tr><td class="grp">Logs</td><td>ค้นหาทรัพย์ NPA</td><td class="mod">LogsNpaSearch</td></tr>
+      <tr class="newgrp"><td class="grp">Widget</td><td>กลุ่ม Widget</td><td class="mod">WidgetGroup</td></tr>
+      <tr><td class="grp">Widget</td><td>Widget ทั้งหมด</td><td class="mod">Widget</td></tr>
+      <tr class="newgrp"><td class="grp">Widget2</td><td>กลุ่ม Widget2</td><td class="mod">WidgetGroup2</td></tr>
+      <tr><td class="grp">Widget2</td><td>Widget2 ทั้งหมด</td><td class="mod">Widget2</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <footer>
+    ไฟล์นี้เป็นรายงานล้วน ๆ ไม่ได้เชื่อมกับระบบ — เมื่อมีการเพิ่ม / แก้ไข / ซ่อน / เปิด เมนูด้านซ้าย ต้องกลับมาอัปเดตไฟล์นี้ด้วย
+  </footer>
+
+</div>
+</body>
+</html>
