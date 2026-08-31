@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > 📁 **ทุก path ในเอกสารนี้สัมพัทธ์กับโฟลเดอร์ที่ไฟล์นี้อยู่ (`core_admin/`)** — ที่เดียวกับ `.csproj` และโค้ดทั้งหมด
-> repo root คือโฟลเดอร์แม่ (`admin.assetfund.co.th.2026/`) ซึ่งมีแค่ `core_admin.sln`
+> repo root คือโฟลเดอร์แม่ (`admin.assetfund.co.th.2026/`) มีแค่ `core_admin.sln` + ไฟล์ตั้งค่า git/IDE
 
 ## Commands
 
@@ -41,8 +41,7 @@ ASP.NET Core 10 MVC application serving the admin panel of **ASSET PLUS - Fund M
 | Primary sub | `#00326E` | พื้นหลัง submenu ใน sidebar |
 | Accent (cyan) | `#00B4E5` | เส้นใต้หัวข้อ, hover ในเมนู, `.btn--secondary`, marker ของ list |
 
-สีเดิมที่ถูกแทนที่ (อย่าเอากลับมา): `#193b27` `#2b6643` `#1f4830` (เขียว SAM), `#0047B6` `#3E75CE` `#013CA6`
-`#0146b2` `#013BA7` (น้ำเงินเก่าที่ตกค้างจาก template), `#F79727` `#FF7300` (ส้ม), `#286140` `#429f69` (เขียว CKEditor)
+เขียว/ส้มของ SAM เดิม และน้ำเงินที่ตกค้างจาก template ถูกแทนที่หมดแล้ว — อย่าเอากลับมา
 
 **ไฟล์ที่ถือพาเลต** — แก้ที่นี่เวลาปรับสี:
 - `wwwroot/scss/variables/_color.scss` → source ของ `wwwroot/css/main.css` / `main.min.css` (ธีมหลักหลังบ้าน)
@@ -62,8 +61,6 @@ ASP.NET Core 10 MVC application serving the admin panel of **ASSET PLUS - Fund M
 | `wwwroot/assets/images/icon/assetplus-logo-white.png` | sidebar, header มือถือ, Dashboard | โลโก้กลับสี บนแผ่นพื้น `#00295A` — ต้องวางบนพื้นสี primary เท่านั้น |
 | `wwwroot/images/logo/logo-32.png` (+ `-64`, `-128`, `logo.png`) | ฟอร์ม Login, modal re-login | โลโก้สีจริง พื้นโปร่ง ใช้บนพื้นขาว |
 | `wwwroot/favicon.ico` | ทุกหน้า | สัญลักษณ์ infinity บนพื้น navy (64/48/32/16) |
-
-> ไฟล์ `SAM_logo-white-pink.png` เดิมยังอยู่ในโปรเจกต์แต่**ไม่มีที่ไหนอ้างถึงแล้ว**
 
 **Cache busting**: view ใน `Areas/Admin/` ไม่มี `_ViewImports.cshtml` จึงใช้ tag helper `asp-append-version` ไม่ได้
 (`~/` ยังทำงานเพราะ Razor แปลงให้เอง) — CSS/รูปที่เปลี่ยนตอน rebrand จึงต่อท้ายด้วย `?v=ap2026` เอง
@@ -97,7 +94,6 @@ All queries are raw parameterized SQL — no ORM. `DBHelper.cs` wraps `Microsoft
 - **ทรัพย์สิน NPA ทุกใบอยู่ MySQL `sam_npa.tb_product2`** (ค้นหา/detail/แผนที่/นับ/LED source=2/AI). SQL Server `asset_plus_uat` เป็น overlay เท่านั้น: `web_npa_status` (สถานะ/highlight/ผูกย่าน+facility), `web_core_group` (ย่าน=NpaLocate, facility=NpaFacility), + เก็บ submission
 - **Approval workflow** ใช้คอลัมน์คู่ `pb_*` (pending) — front-end อ่าน `pb_*` (ค่าที่อนุมัติแล้ว); กด Approve จึง copy `pb_*`→ฟิลด์จริง
 - เมนูหลังบ้านเกือบทั้งหมดเป็น thin wrapper ของ `AdminCoreController` + config กลางใน `Areas/Admin/Helpers/AdminMenu.cs` (`AllModule()`); "เครื่องยนต์เนื้อหา" ใช้ซ้ำ 4 แบบ: `web_core_single` (1 เมนู=1 ระเบียน แก้ไข t1..t50 เป็น section 2 ภาษา), `web_core_item` (การ์ดซ้ำ), `web_core_group` (หมวด), `web_core_news` (บทความเต็ม)
-- **รูปแบบการอ่านเนื้อหาของ front-end เดิม (SAM, `d:\Project\sam.or.th`)** — ใช้เป็นตัวอย่างอ้างอิงเท่านั้น ไม่ใช่ front-end ที่กำลังทำ: routing หลักอยู่ใน `HomeController.Index()` (~9,000 บรรทัด) resolve หน้า CMS จาก `web_cms_page.seo_url` แล้ว switch ตามโค้ด `pb_box_data` (เช่น `abo-vis`, `dep-ove`) เลือก table/view
 - **เมนูที่ใช้ไม่ได้/ยังไม่ทำ** (ยืนยันด้วยการกวาดทุกเมนูเมื่อ 2026-08-29 — เป็นปัญหาเดิม ไม่เกี่ยวกับการย้ายมา SQL Server เพราะตารางเหล่านี้ไม่เคยมีใน PostgreSQL เดิมเช่นกัน):
   - **ตารางไม่มีใน DB** → หน้า list ยังเปิดได้แต่ query ภายในพัง: `web_banner`, `web_banner_group` (Banner, กลุ่ม Banner), `web_file_manager` (FileManager — ตัว elFinder เองใช้ได้ปกติ), `web_google_analytics` (stub), `web_microsite_submit`, `web_meet_npa` (MeetNPA — front-end เขียนลง MySQL `tb_appointment` แทน)
   - **ไม่มี controller**: `MeetNPA`, `EFormEmail` → 404
@@ -120,18 +116,16 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 
 ### Module System (`Areas/Admin/Helpers/Module.cs` + `Areas/Admin/Helpers/AdminMenu.cs`)
 
-`Module.ModuleConfig` declares (ชื่อจริงในโค้ด — อย่าเดาจากชื่อทั่วไป):
+`Module.ModuleConfig` — ฟิลด์ที่ความหมายไม่ตรงกับชื่อ (ที่เหลืออ่าน `Module.cs` เอา):
 - `Table` — ชื่อตาราง **แบบตรรกะ** (ไม่มี prefix) เช่น `"web_core_news"`; จุดที่ประกอบ SQL ต้องผ่าน `Db.T()` เอง
-- `TableModuleID` — ค่า `module_id` ที่ใช้แยกเมนูที่ใช้ตารางร่วมกัน (`web_core_*` ใช้ตารางเดียวหลายเมนู)
-- `TableCate*` — ตารางหมวด + ฟิลด์/หัวข้อ/การเรียง สำหรับ dropdown กรองกลุ่ม
-- `ListData` — คอลัมน์ + ป้ายภาษาไทยที่แสดงในหน้า list
-- `FieldSearch` / `FieldSearchIsEqual` — ฟิลด์ในช่องค้นหา (และฟิลด์ที่ต้องเทียบแบบตรงตัว)
-- `EnableDateSearch` / `EnableIssueDate` — เปิดตัวกรองช่วงวันที่ / ระบบ "วันที่แสดงผล"
-- `OrderBy` / `Sort` / `Page` / `PerPage` — การเรียงและแบ่งหน้าเริ่มต้น
-- `FieldCreate` / `FieldUpdate` / `FieldApprove` — ฟิลด์ที่ยอมให้เขียนในแต่ละขั้น
-- `ExportData` — เปิด Excel export (EPPlus)
-- `CanAdd` / `CanEdit` / `CanDelete` / `CanMove` / `CanStatus` / `CanExport` / `CanApprove` — ธงสิทธิ์ที่ `[ModuleCheck]` ตรวจ
-- `UseView*From` — ยืม view ของโมดูลอื่นแทนการสร้างซ้ำ
+- `TableModuleID` — `module_id` ที่ใช้แยกเมนูที่ใช้ตารางร่วมกัน (`web_core_*` ใช้ตารางเดียวหลายเมนู)
+- `UseView{List,Create,Edit,Detail}From` — ยืม view ของโมดูลอื่นแทนการสร้างซ้ำ
+- `ListData` — คอลัมน์ที่แสดงในหน้า list · ปุ่ม Preview ผูกกับ **คอลัมน์แรก** ของรายการนี้
+
+ชื่อฟิลด์ที่เหลือ (ใช้ตามนี้ อย่าประดิษฐ์เอง): `TableCate*` · `FieldSearch` / `FieldSearchIsEqual` ·
+`EnableDateSearch` / `EnableIssueDate` / `EnableViewDetail` · `OrderBy` / `Sort` / `Page` / `PerPage` ·
+`FieldCreate` / `FieldUpdate` / `FieldApprove` · `ExportData` (Excel ผ่าน EPPlus) ·
+`Can{Add,Edit,Delete,Move,Status,Export,Approve}` — ธงสิทธิ์ที่ `[ModuleCheck]` ตรวจ
 
 `AdminMenu.cs` นิยามโมดูลทั้งหมดใน `AllModule()` และจัดเป็นกลุ่ม sidebar ใน `Menu()`
 (จำนวนเมนู/กลุ่มเปลี่ยนบ่อยเพราะยังเปิด-ปิดอยู่ — ดูของจริงที่ `docs/backend-menu-status.html` อย่านับจากที่นี่)
@@ -194,16 +188,13 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 
 ### ไฟล์ที่เกี่ยวข้อง
 
-| ไฟล์ | หน้าที่ |
-|---|---|
-| `Areas/Admin/Controllers/AdminLegacyController.cs` | เครื่องยนต์กลาง (Index/Create/Edit/Delete/Status/Approve/Move) ของตาราง `tb_*` |
-| `Areas/Admin/Controllers/AssetPlusLegacyControllers.cs` | เมนู CRUD 6 ตัว (ผูก Module + hook เฉพาะเมนู) |
-| `Areas/Admin/Controllers/AssetPlusImportControllers.cs` | เมนู "Get ..." 4 ตัว + Delete NAV |
-| `Areas/Admin/Helpers/AdminMenuAssetPlus.cs` | นิยาม `ModuleConfig` ของทั้ง 11 เมนู (`AssetPlusLegacyModules()`) |
-| `Areas/Admin/Helpers/AssetPlusWsClient.cs` | ตัวเรียก SOAP `ASPWS.asmx` ของระบบเดิม |
-| `Areas/Admin/Views/Ap*/` | ฟอร์ม Create/Edit ของแต่ละเมนู |
+ทั้งหมดอยู่ใต้ `Areas/Admin/` — `Controllers/AdminLegacyController.cs` คือเครื่องยนต์กลาง
+(Index/Create/Edit/Delete/Status/Approve/Move) ของตาราง `tb_*` · `AssetPlusLegacyControllers.cs` = เมนู CRUD 6 ตัว
+· `AssetPlusImportControllers.cs` = เมนู "Get ..." 4 ตัว + Delete NAV · `Helpers/AssetPlusWsClient.cs` = ตัวเรียก SOAP
+`ASPWS.asmx` · `Views/Ap*/` = ฟอร์มของแต่ละเมนู
 
-`AdminMenu.AllModule()` ต่อท้ายด้วย `.Concat(AssetPlusLegacyModules())` — เพิ่มเมนูใหม่ให้แก้ที่ `AdminMenuAssetPlus.cs`
+**`ModuleConfig` ของทั้ง 11 เมนูอยู่ที่ `Areas/Admin/Helpers/AdminMenuAssetPlus.cs`** (`AssetPlusLegacyModules()`)
+ซึ่ง `AdminMenu.AllModule()` ต่อท้ายด้วย `.Concat(...)` — เพิ่มเมนูใหม่ให้แก้ที่ไฟล์นั้น
 
 ### พฤติกรรมที่คัดลอกมาจากระบบเดิม
 
@@ -257,7 +248,7 @@ Session-based auth (no ASP.NET Identity). Session keys: `admin_login`, `admin_us
 
 ### ระบบ Preview (ดูตัวอย่างหน้าเว็บของ "ฉบับร่าง")
 
-พรีวิวค่า "ฉบับร่าง" (คอลัมน์ที่ไม่ใช่ `pb_*`) ผ่านปุ่ม **[Preview]** ในหน้า list — รองรับ 64 เมนู
+พรีวิวค่า "ฉบับร่าง" (คอลัมน์ที่ไม่ใช่ `pb_*`) ผ่านปุ่ม **[Preview]** ในหน้า list (เมนูที่รองรับ ดูทะเบียนใน `PreviewMenu.cs`)
 **ฝั่ง admin ทำเสร็จแล้ว** (`Areas/Admin/Helpers/PreviewMenu.cs` + `_PartialFrontPreviewModal.cshtml`
 + `openFrontPreview()` ใน `wwwroot/js/Admin/admin_site.js` + ปุ่มใน `AdminCore/Index.cshtml`)
 แต่ **ยังใช้งานจริงไม่ได้** เพราะฝั่ง front-end ยังไม่มี `Helpers/PreviewMap.cs` และ route `/_preview/...`
