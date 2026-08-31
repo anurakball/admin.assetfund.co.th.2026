@@ -85,6 +85,3 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 .DS_Store
-
-# CLAUDE.md ฉบับที่มีรหัสผ่าน / ค่า dev เฉพาะเครื่อง
-/CLAUDE.local.md

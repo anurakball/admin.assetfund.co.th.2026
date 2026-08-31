@@ -277,8 +277,8 @@ UI ที่ใช้ซ้ำ (breadcrumb, pagination, ปุ่ม action) เ
 ## Database Connections (Development)
 
 ```
-SQL Server: Server=.; Database=asset_plus_uat; User ID=sa; Password=<see appsettings.Development.json>
-MySQL:      Server=localhost; Database=sam_npa;        UserID=root;     Password=<see appsettings.Development.json>
+SQL Server: Server=.; Database=asset_plus_uat; User ID=sa;   Password=sasa
+MySQL:      Server=localhost; Database=sam_npa;        UserID=root; Password=(ว่าง)
 ```
 
 **ที่มาของข้อมูล** — ตาราง `2026_*` ทั้ง 69 ตัวถูกย้ายมาจาก PostgreSQL `asset_fund_temp` (ซึ่งเป็นสำเนาของ `sam`) เมื่อ 2026-08-29
@@ -294,14 +294,14 @@ MySQL:      Server=localhost; Database=sam_npa;        UserID=root;     Password
 
 **ตรวจข้อมูลตรง ๆ** (มี `sqlcmd` ติดตั้งอยู่แล้ว):
 ```bash
-"/c/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/sqlcmd"   -S . -U sa -P <password> -d asset_plus_uat -h -1 -W   -Q "set nocount on; select top 5 id, title from [2026_web_core_news] order by id desc;"
+"/c/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/sqlcmd"   -S . -U sa -P sasa -d asset_plus_uat -h -1 -W   -Q "set nocount on; select top 5 id, title from [2026_web_core_news] order by id desc;"
 ```
 
 ## รันและทดสอบเว็บไซต์
 
 - ปกติเซิร์ฟเวอร์รันค้างอยู่แล้วที่ `https://localhost:7140/` — **ไม่ต้อง `dotnet run` ใหม่ถ้าเข้าได้**
 - ถ้าเข้าไม่ได้ → `dotnet run --launch-profile https` แล้ว **รอจนพอร์ต 7140 listen** (ใช้เวลาสักครู่) ค่อยทดสอบ
-- ทดสอบด้วย **Playwright** และ **ต้อง login ก่อนเสมอ** (username/password ดูที่ `CLAUDE.local.md`)
+- ทดสอบด้วย **Playwright** และ **ต้อง login ก่อนเสมอ** ด้วย `user` / `Asset@2026`
 - ลำดับการเข้าหลังบ้าน: `https://localhost:7140/` → redirect ไป `/Admin/User/Login?webID=&targetUrl=/Admin`
   → กรอก user/pass โดยปล่อย dropdown ไว้ที่ **เว็บไซต์หลัก** (webID = 0) → `/Admin/User/Dashboard`
   → กดปุ่ม **Admin Panel** → `/Admin/User/LastActivity` คือหน้าหลังบ้าน
@@ -326,8 +326,17 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{Comman
 - `last_change_password_at` + `ConfigPassword:ExpiresInDay` (600 วัน) < วันนี้ → บังคับเปลี่ยนรหัสผ่านก่อนใช้งาน
 - ตัวนับ login ผิดเก็บใน **session** ไม่ใช่ DB — ปิด/เปิดเบราว์เซอร์ใหม่ก็รีเซ็ตตัวนับแล้ว แต่ `status=0` ต้องแก้ที่ DB เท่านั้น
 
-> 🔑 **รหัสผ่าน admin / รหัส `sa` ของ SQL Server / คำสั่ง SQL สำหรับรีเซ็ตรหัสผ่าน**
-> ย้ายไปอยู่ที่ `CLAUDE.local.md` (gitignored) แล้ว — Claude Code โหลดไฟล์นั้นให้อัตโนมัติเหมือนกัน
+### รีเซ็ต / เปลี่ยนรหัสผ่าน admin ด้วย SQL (เมื่อ login ไม่ผ่านหรือโดนล็อก)
+
+```bash
+# 1) ทำ hash ของรหัสใหม่ (SHA512 hex ตัวเล็ก)
+printf '%s' 'Asset@2026' | sha512sum
+# 2) เขียนลง DB + ปลดล็อก + ปิด force change password
+sqlcmd -S . -U sa -P sasa -d asset_plus_uat -Q "update [2026_web_admin] set password='<hash>', status=1, force_change_password=0, use_otp=0, last_change_password_at=getdate() where id=1;"
+```
+
+hash ของ `Asset@2026` =
+`88873ff5f6790837a23b486bebfb61b117c9387e202447f284a2a2ce26e06022ad0a6a6a9969f46980451708b94c48c37021791111c9562746b6500104ae5945`
 
 ## เว็บไซต์ front-end (เว็บสาธารณะ / public site)
 
