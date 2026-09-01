@@ -65,7 +65,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     ? "แจ้งผลการตรวจสอบเอกสารประกอบการสมัครเป็นตัวแทนขายทรัพย์ (Agent)"
                     : string.Format("แจ้งผลการตรวจสอบเอกสารประกอบการสมัครเป็นตัวแทนขายทรัพย์ (Agent) - {0}", fullName);
                 // ลิงก์ให้ผู้สมัคร login แล้วเด้งไปหน้าจัดการเอกสาร (apply-agent step3) ทันที
-                // โดเมนมาจาก config "FrontURL" (dev = https://localhost:7169, production = https://www.sam.or.th)
+                // โดเมนมาจาก config "FrontURL" (dev = https://localhost:7169, production = https://www.assetfund.co.th)
                 string manageDocUrl = _utility.frontURL("/th/login?returnUrl=%2Fth%2Fapply-agent%2Fstep3");
 
                 ViewBag.PrefillBody = BuildDocumentStatusBody(fullName, files, manageDocUrl);
@@ -94,7 +94,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
             var sb = new StringBuilder();
             sb.Append("<p>เรียน คุณ ").Append(safeName).Append("</p>");
-            sb.Append("<p>ตามที่ท่านได้สมัครเป็นตัวแทนขายทรัพย์ (Agent) กับ บริษัท บริหารสินทรัพย์สุขุมวิท จำกัด (SAM) ")
+            sb.Append("<p>ตามที่ท่านได้สมัครเป็นตัวแทนขายทรัพย์ (Agent) กับ บริษัทหลักทรัพย์จัดการกองทุน แอสเซท พลัส จำกัด (Asset Plus) ")
               .Append("และได้จัดส่งเอกสารประกอบการสมัครมายังบริษัทฯ นั้น บริษัทฯ ขอแจ้งผลการตรวจสอบเอกสารของท่าน ดังนี้</p>");
 
             sb.Append("<table>");
@@ -127,7 +127,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
               .Append("กรุณาดำเนินการแก้ไข/จัดส่งเอกสารตามรายละเอียดข้างต้นอีกครั้ง</a>")
               .Append(" เพื่อให้บริษัทฯ ตรวจสอบและดำเนินการต่อไป</p>");
             sb.Append("<p>จึงเรียนมาเพื่อโปรดทราบ</p>");
-            sb.Append("<p>ขอแสดงความนับถือ<br>บริษัท บริหารสินทรัพย์สุขุมวิท จำกัด (SAM)</p>");
+            sb.Append("<p>ขอแสดงความนับถือ<br>บริษัทหลักทรัพย์จัดการกองทุน แอสเซท พลัส จำกัด (Asset Plus)</p>");
 
             return sb.ToString();
         }

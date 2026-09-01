@@ -193,7 +193,7 @@
   background-color: var(--color-gray-50);
 }
 .list-group .sticky--wrapper .sticky--nav .accordion .accordion-item .accordion-collapse .accordion-body__scroll::-webkit-scrollbar-thumb {
-  background-color: #FF7300;
+  background-color: #00B4E5;
 }
 .list-group .sticky--wrapper .sticky--nav .accordion .accordion-item .accordion-collapse.collapsing {
   background-color: var(--color-primary-500);

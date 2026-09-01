@@ -4,7 +4,7 @@
     Layout = "~/Views/Shared/_LayoutIntro.cshtml";
 }
 @section pageIntro{
-    <link rel="stylesheet" href="~/css/pages/intro.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/intro.min.css?v=ap2026" />
     <link href="~/assets/fonts/fontawesome7/css/all.min.css" rel="stylesheet" />
 }
   
@@ -15,16 +15,16 @@
             <div class="row mb-5">
                 <div class="col-12">
                     <div class="img-logo" style="margin-bottom:5px !important;">
-                        <img src="/assets/images/icon/SAM_logo-white-pink.png" style="height:53px;"/>
+                        <img src="/assets/images/icon/assetplus-logo-white.png" style="height:53px;"/>
                     </div>
                     <div align="center">
-                        <button type="button" class="btn" onclick="window.location.href='/Admin/User/LastActivity'" style="background-color:#fff;font-size:22px;box-shadow: 5px 5px #f79727;">
+                        <button type="button" class="btn" onclick="window.location.href='/Admin/User/LastActivity'" style="background-color:#fff;font-size:22px;box-shadow: 5px 5px #00B4E5;">
                             <span class="btn-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
                             <span class="btn-text">Admin Panel</span>
                         </button>
                     </div>
                     <div class="head-page mb-3">
-                        <h2>SAM Admin Management</h2>
+                        <h2>Asset Plus Admin Management</h2>
                         <p class="text-white">Here is what’s happening with your Report today:</p>
                     </div>
                      
@@ -75,7 +75,8 @@
                     foreach (System.Data.DataRow item in (System.Data.DataRowCollection)ViewBag.LastUse)
                     {
                         var moduleName = item["mod_name"].ToString();
-                        var icon = new AdminMenu().Menu().SelectMany(x => x.SubMenu).FirstOrDefault(x => x.ModuleName == moduleName)?.Icon;
+                        var icon = new AdminMenu().Menu().SelectMany(x => x.SubMenu).FirstOrDefault(x => x.ModuleName == moduleName)?.Icon
+                            ?? "fa-solid fa-window-maximize";   // เมนูที่ถูก comment ซ่อนไว้จะหาไอคอนไม่เจอ จึงใส่ไอคอนกลางไว้กัน <i> ว่าง
                          
                         <div class="col-lg-3 col-md-6 col-12">
                             <a class="shotcut-menu" href="/Admin/@Html.Raw(item["mod_name"])">

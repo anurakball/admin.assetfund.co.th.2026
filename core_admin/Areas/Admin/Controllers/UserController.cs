@@ -1213,7 +1213,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
             var sb = new StringBuilder();
             sb.Append("<div style='font-family:Tahoma,Arial,sans-serif;font-size:14px;color:#222;max-width:820px;margin:auto;'>");
-            sb.Append("<h2 style='color:#0047B6;margin:0 0 4px;'>แจ้งเตือนทรัพย์ใหม่ / ปรับราคา</h2>");
+            sb.Append("<h2 style='color:#00295A;margin:0 0 4px;'>แจ้งเตือนทรัพย์ใหม่ / ปรับราคา</h2>");
             sb.Append("<p style='color:#666;margin:0 0 16px;'>ประจำวันที่ " +
                 DateTime.Now.ToString("dd/MM/yyyy HH:mm") + " น. (ระบบซิงก์ราคาทรัพย์ NPA อัตโนมัติ)</p>");
 
@@ -1282,7 +1282,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             }
 
             sb.Append("<hr style='border:none;border-top:1px solid #eee;margin:16px 0;'/>");
-            sb.Append("<p style='color:#999;font-size:12px;'>อีเมลฉบับนี้ส่งอัตโนมัติจากระบบ SAM Admin กรุณาอย่าตอบกลับ</p>");
+            sb.Append("<p style='color:#999;font-size:12px;'>อีเมลฉบับนี้ส่งอัตโนมัติจากระบบ Asset Plus Admin กรุณาอย่าตอบกลับ</p>");
             sb.Append("</div>");
             return sb.ToString();
         }

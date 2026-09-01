@@ -61,7 +61,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
             // ── page: widget หน้าแรก (พรีวิวจะเปิด "หน้าแรก" ของเว็บ) ──
             { "HomeImageSlide", "page" },   // รูปสไลด์หน้าแรก
-            { "HomeSamText",    "page" },   // SAM ใส่ใจ
+            { "HomeSamText",    "page" },   // แอสเซท พลัส ใส่ใจ
             { "HomeSamText2",   "page" },   // ภาพรวมการบริหารหนี้
             { "HomeSamText3",   "page" },   // ปิดหนี้ไว ไปต่อได้
             { "HomeSamText4",   "page" },   // ทรัพย์เด่นและน่าสนใจ

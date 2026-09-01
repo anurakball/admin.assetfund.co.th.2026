@@ -2,288 +2,305 @@
 
 namespace thaicredit_hr_admin.Areas.Admin.Helpers
 {
-    public class AdminMenu
+    public partial class AdminMenu
     {
         public List<AdminMenuModel>? Menu()
         {
             var listMenu = new List<AdminMenuModel>();
 
             #region หน้าเว็บไซต์
-            listMenu.Add(new()
-            {
-                Title = "หน้าเว็บไซต์",
-                Icon = "fa-solid fa-house",
-                SubMenu = new()
-                {
-                    new(){Title = "จัดการเมนูเว็บไซต์",ModuleName = "CMSPage",Link = "CMSPage",Icon = "fa-solid fa-sitemap"},
-                    new(){Title = "หน้า Intro Page",ModuleName = "HomeIntroPage",Link = "HomeIntroPage",Icon = "fa-regular fa-window-restore"},
-                    new(){Title = "หน้า Pop-Up",ModuleName = "HomePopUp",Link = "HomePopUp",Icon = "fa-solid fa-clone"},
-                    new(){Title = "โลโก้ / Template",ModuleName = "HomeHeader",Link = "HomeHeader",Icon = "fa-solid fa-book-atlas"},
-                    new(){Title = "จัดการเมนู Footer 1",ModuleName = "CMSPageFooter1",Link = "CMSPageFooter1",Icon = "fa-solid fa-sitemap"},
-                    new(){Title = "จัดการเมนู Footer 2",ModuleName = "CMSPageFooter2",Link = "CMSPageFooter2",Icon = "fa-solid fa-sitemap"},
-                    new(){Title = "ปรับแต่ง Footer",ModuleName = "HomeFooter",Link = "HomeFooter",Icon = "fa-regular fa-copyright"},
-                    new(){Title = "SEO & Code",ModuleName = "HomeSEO",Link = "HomeSEO",Icon = "fa-solid fa-sliders"}
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "หน้าเว็บไซต์",
+                //Icon = "fa-solid fa-house",
+                //SubMenu = new()
+                //{
+                    //new(){Title = "จัดการเมนูเว็บไซต์",ModuleName = "CMSPage",Link = "CMSPage",Icon = "fa-solid fa-sitemap"},
+                    //new(){Title = "หน้า Intro Page",ModuleName = "HomeIntroPage",Link = "HomeIntroPage",Icon = "fa-regular fa-window-restore"},
+                    //new(){Title = "หน้า Pop-Up",ModuleName = "HomePopUp",Link = "HomePopUp",Icon = "fa-solid fa-clone"},
+                    //new(){Title = "โลโก้ / Template",ModuleName = "HomeHeader",Link = "HomeHeader",Icon = "fa-solid fa-book-atlas"},
+                    //new(){Title = "จัดการเมนู Footer 1",ModuleName = "CMSPageFooter1",Link = "CMSPageFooter1",Icon = "fa-solid fa-sitemap"},
+                    //new(){Title = "จัดการเมนู Footer 2",ModuleName = "CMSPageFooter2",Link = "CMSPageFooter2",Icon = "fa-solid fa-sitemap"},
+                    //new(){Title = "ปรับแต่ง Footer",ModuleName = "HomeFooter",Link = "HomeFooter",Icon = "fa-regular fa-copyright"},
+                    //new(){Title = "SEO & Code",ModuleName = "HomeSEO",Link = "HomeSEO",Icon = "fa-solid fa-sliders"},
+                //}
+            //});
             #endregion
 
             #region ข้อมูลหน้าแรก
-            listMenu.Add(new()
-            {
-                Title = "ข้อมูลหน้าแรก",
-                Icon = "fa-solid fa-book-open",
-                SubMenu = new()
-                {
-                    new(){Title = "รูปสไลด์หน้าแรก",ModuleName = "HomeImageSlide",Link = "HomeImageSlide",Icon = "fa-regular fa-images"},
-                    new(){Title = "ตั้งค่ารูปสไลด์",ModuleName = "HomeImageConf",Link = "HomeImageConf",Icon = "fa-solid fa-sliders"},
-                    new(){Title = "SAM ใส่ใจ",ModuleName = "HomeSamText",Link = "HomeSamText",Icon = "fa-solid fa-list-ol"},
-                    new(){Title = "ภาพรวมการบริหารหนี้",ModuleName = "HomeSamText2",Link = "HomeSamText2",Icon = "fa-regular fa-note-sticky"},
-                    new(){Title = "ปิดหนี้ไว ไปต่อได้",ModuleName = "HomeSamText3",Link = "HomeSamText3",Icon = "fa-solid fa-percent"},
-                    new(){Title = "ทรัพย์เด่นและน่าสนใจ",ModuleName = "HomeSamText4",Link = "HomeSamText4",Icon = "fa-solid fa-building-circle-check"},
-                    new(){Title = "คุณกำลังมองหาอะไร",ModuleName = "HomeSamText5",Link = "HomeSamText5",Icon = "fa-solid fa-magnifying-glass-location"},
-                    new(){Title = "บ้านเด่นทำเลดี",ModuleName = "HomeSamText6",Link = "HomeSamText6",Icon = "fa-solid fa-map-location-dot"},
-                    new(){Title = "วิสัยทัศน์",ModuleName = "HomeSamText7",Link = "HomeSamText7",Icon = "fa-solid fa-align-center"}
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ข้อมูลหน้าแรก",
+                //Icon = "fa-solid fa-book-open",
+                //SubMenu = new()
+                //{
+                    //new(){Title = "รูปสไลด์หน้าแรก",ModuleName = "HomeImageSlide",Link = "HomeImageSlide",Icon = "fa-regular fa-images"},
+                    //new(){Title = "ตั้งค่ารูปสไลด์",ModuleName = "HomeImageConf",Link = "HomeImageConf",Icon = "fa-solid fa-sliders"},
+                    //new(){Title = "แอสเซท พลัส ใส่ใจ",ModuleName = "HomeSamText",Link = "HomeSamText",Icon = "fa-solid fa-list-ol"},
+                    //new(){Title = "ภาพรวมการบริหารหนี้",ModuleName = "HomeSamText2",Link = "HomeSamText2",Icon = "fa-regular fa-note-sticky"},
+                    //new(){Title = "ปิดหนี้ไว ไปต่อได้",ModuleName = "HomeSamText3",Link = "HomeSamText3",Icon = "fa-solid fa-percent"},
+                    //new(){Title = "ทรัพย์เด่นและน่าสนใจ",ModuleName = "HomeSamText4",Link = "HomeSamText4",Icon = "fa-solid fa-building-circle-check"},
+                    //new(){Title = "คุณกำลังมองหาอะไร",ModuleName = "HomeSamText5",Link = "HomeSamText5",Icon = "fa-solid fa-magnifying-glass-location"},
+                    //new(){Title = "บ้านเด่นทำเลดี",ModuleName = "HomeSamText6",Link = "HomeSamText6",Icon = "fa-solid fa-map-location-dot"},
+                    //new(){Title = "วิสัยทัศน์",ModuleName = "HomeSamText7",Link = "HomeSamText7",Icon = "fa-solid fa-align-center"},
+                //}
+            //});
             #endregion
 
             #region เนื้อหาหน้าแรก
-            listMenu.Add(new()
-            {
-                Title = "เนื้อหาหน้าแรก",
-                Icon = "fa-solid fa-bookmark",
-                SubMenu = new()
-                {
-                    new(){Title = "Hero Banner",ModuleName = "HeroBanner",Link = "HeroBanner",Icon = "fa-regular fa-image"},
-                    new(){Title = "บทนำ",ModuleName = "MicrositeIntro",Link = "MicrositeIntro",Icon = "fa-solid fa-align-left"},
-                    new(){Title = "บทบาทของเรา",ModuleName = "MicrositeRole",Link = "MicrositeRole",Icon = "fa-solid fa-icons"},
-                    new(){Title = "แบนเนอร์ครึ่งจอ",ModuleName = "MicrositeBannerHalf",Link = "MicrositeBannerHalf",Icon = "fa-solid fa-panorama"},
-                    new(){Title = "เอกสารที่เกี่ยวข้อง",ModuleName = "MicrositeDoc",Link = "MicrositeDoc",Icon = "fa-solid fa-file-pdf"},
-                    new(){Title = "สิทธิพิเศษ",ModuleName = "MicrositeBenefit",Link = "MicrositeBenefit",Icon = "fa-solid fa-circle-check"},
-                    new(){Title = "ทรัพย์ที่ร่วมรายการ",ModuleName = "MicrositeAssetHead",Link = "MicrositeAssetHead",Icon = "fa-solid fa-heading"},
-                    new(){Title = "ทรัพย์ที่ร่วมรายการ",ModuleName = "MicrositeAsset",Link = "MicrositeAsset",Icon = "fa-solid fa-building"},
-                    new(){Title = "เงื่อนไขโครงการ",ModuleName = "MicrositeTerm",Link = "MicrositeTerm",Icon = "fa-solid fa-table"},
-                    new(){Title = "จุดเด่นโครงการ",ModuleName = "MicrositeHighlight",Link = "MicrositeHighlight",Icon = "fa-solid fa-star"},
-                    new(){Title = "สอบถามเพิ่มเติม (QR)",ModuleName = "MicrositeContactQr",Link = "MicrositeContactQr",Icon = "fa-solid fa-qrcode"},
-                    new(){Title = "ตัวเลขความสำเร็จ",ModuleName = "MicrositeCounter",Link = "MicrositeCounter",Icon = "fa-solid fa-chart-simple"},
-                    new(){Title = "แนวทางที่เราช่วยได้",ModuleName = "MicrositeHelp",Link = "MicrositeHelp",Icon = "fa-solid fa-hands-holding-circle"},
-                    new(){Title = "เอกสารที่ต้องเตรียม",ModuleName = "MicrositePrepare",Link = "MicrositePrepare",Icon = "fa-solid fa-clipboard-list"},
-                    new(){Title = "ข้อมูลติดต่อกลับ",ModuleName = "MicrositeLead",Link = "MicrositeLead",Icon = "fa-solid fa-address-card"},
-                    new(){Title = "คำถามที่พบบ่อย",ModuleName = "MicrositeFaq",Link = "MicrositeFaq",Icon = "fa-solid fa-circle-question"}
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "เนื้อหาหน้าแรก",
+                //Icon = "fa-solid fa-bookmark",
+                //SubMenu = new()
+                //{
+                    //new(){Title = "Hero Banner",ModuleName = "HeroBanner",Link = "HeroBanner",Icon = "fa-regular fa-image"},
+                    //new(){Title = "บทนำ",ModuleName = "MicrositeIntro",Link = "MicrositeIntro",Icon = "fa-solid fa-align-left"},
+                    //new(){Title = "บทบาทของเรา",ModuleName = "MicrositeRole",Link = "MicrositeRole",Icon = "fa-solid fa-icons"},
+                    //new(){Title = "แบนเนอร์ครึ่งจอ",ModuleName = "MicrositeBannerHalf",Link = "MicrositeBannerHalf",Icon = "fa-solid fa-panorama"},
+                    //new(){Title = "เอกสารที่เกี่ยวข้อง",ModuleName = "MicrositeDoc",Link = "MicrositeDoc",Icon = "fa-solid fa-file-pdf"},
+                    //new(){Title = "สิทธิพิเศษ",ModuleName = "MicrositeBenefit",Link = "MicrositeBenefit",Icon = "fa-solid fa-circle-check"},
+                    //new(){Title = "ทรัพย์ที่ร่วมรายการ",ModuleName = "MicrositeAssetHead",Link = "MicrositeAssetHead",Icon = "fa-solid fa-heading"},
+                    //new(){Title = "ทรัพย์ที่ร่วมรายการ",ModuleName = "MicrositeAsset",Link = "MicrositeAsset",Icon = "fa-solid fa-building"},
+                    //new(){Title = "เงื่อนไขโครงการ",ModuleName = "MicrositeTerm",Link = "MicrositeTerm",Icon = "fa-solid fa-table"},
+                    //new(){Title = "จุดเด่นโครงการ",ModuleName = "MicrositeHighlight",Link = "MicrositeHighlight",Icon = "fa-solid fa-star"},
+                    //new(){Title = "สอบถามเพิ่มเติม (QR)",ModuleName = "MicrositeContactQr",Link = "MicrositeContactQr",Icon = "fa-solid fa-qrcode"},
+                    //new(){Title = "ตัวเลขความสำเร็จ",ModuleName = "MicrositeCounter",Link = "MicrositeCounter",Icon = "fa-solid fa-chart-simple"},
+                    //new(){Title = "แนวทางที่เราช่วยได้",ModuleName = "MicrositeHelp",Link = "MicrositeHelp",Icon = "fa-solid fa-hands-holding-circle"},
+                    //new(){Title = "เอกสารที่ต้องเตรียม",ModuleName = "MicrositePrepare",Link = "MicrositePrepare",Icon = "fa-solid fa-clipboard-list"},
+                    //new(){Title = "ข้อมูลติดต่อกลับ",ModuleName = "MicrositeLead",Link = "MicrositeLead",Icon = "fa-solid fa-address-card"},
+                    //new(){Title = "คำถามที่พบบ่อย",ModuleName = "MicrositeFaq",Link = "MicrositeFaq",Icon = "fa-solid fa-circle-question"},
+                //}
+            //});
             #endregion
 
             #region เกี่ยวกับเรา
-            listMenu.Add(new()
-            {
-                Title = "เกี่ยวกับเรา",
-                Icon = "fa-solid fa-store",
-                SubMenu = new()
-                {
-                    new(){Title = "วิสัยทัศน์/พันธกิจ",ModuleName = "AboutVision",Link = "AboutVision",Icon = "fa-solid fa-braille"},
-                    new(){Title = "ประวัติความเป็นมา",ModuleName = "AboutHistory",Link = "AboutHistory",Icon = "fa-solid fa-landmark"},
-                    new(){Title = "โครงสร้างองค์กร",ModuleName = "AboutStructure",Link = "AboutStructure",Icon = "fa-solid fa-timeline"},
-                    new(){Title = "รายงานประจำปี",ModuleName = "AboutAnnual",Link = "AboutAnnual",Icon = "fa-solid fa-scroll"},
-                    new(){Title = "รายงานการเงิน",ModuleName = "AboutFin",Link = "AboutFin",Icon = "fa-solid fa-hand-holding-dollar"},
-                    new(){Title = "คณะกรรมการบริษัท",ModuleName = "AboutBoard1",Link = "AboutBoard1",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะกรรมการอื่นๆ (กลุ่ม)",ModuleName = "AboutBoard2cat",Link = "AboutBoard2cat",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะกรรมการอื่นๆ",ModuleName = "AboutBoard2",Link = "AboutBoard2",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะผู้บริหารระดับสูง (กลุ่ม)",ModuleName = "AboutBoard3cat",Link = "AboutBoard3cat",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะผู้บริหารระดับสูง",ModuleName = "AboutBoard3",Link = "AboutBoard3",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะผู้บริหารฝ่าย (สายงาน)",ModuleName = "AboutBoard4cat",Link = "AboutBoard4cat",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะผู้บริหารฝ่าย (กลุ่ม)",ModuleName = "AboutBoard4sub",Link = "AboutBoard4sub",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "คณะผู้บริหารฝ่าย",ModuleName = "AboutBoard4",Link = "AboutBoard4",Icon = "fa-solid fa-people-line"},
-                    new(){Title = "บริหารสินทรัพย์ด้อยคุณภาพ",ModuleName = "AboutText1",Link = "AboutText1",Icon = "fa-solid fa-tree-city"},
-                    new(){Title = "บริหารทรัพย์สินรอการขาย",ModuleName = "AboutText2",Link = "AboutText2",Icon = "fa-solid fa-building-user"},
-                    new(){Title = "สร้างโอกาสทางธุรกิจ บสส.",ModuleName = "AboutText3",Link = "AboutText3",Icon = "fa-solid fa-user-tie"}
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "เกี่ยวกับเรา",
+                //Icon = "fa-solid fa-store",
+                //SubMenu = new()
+                //{
+                    //new(){Title = "วิสัยทัศน์/พันธกิจ",ModuleName = "AboutVision",Link = "AboutVision",Icon = "fa-solid fa-braille"},
+                    //new(){Title = "ประวัติความเป็นมา",ModuleName = "AboutHistory",Link = "AboutHistory",Icon = "fa-solid fa-landmark"},
+                    //new(){Title = "โครงสร้างองค์กร",ModuleName = "AboutStructure",Link = "AboutStructure",Icon = "fa-solid fa-timeline"},
+                    //new(){Title = "รายงานประจำปี",ModuleName = "AboutAnnual",Link = "AboutAnnual",Icon = "fa-solid fa-scroll"},
+                    //new(){Title = "รายงานการเงิน",ModuleName = "AboutFin",Link = "AboutFin",Icon = "fa-solid fa-hand-holding-dollar"},
+                    //new(){Title = "คณะกรรมการบริษัท",ModuleName = "AboutBoard1",Link = "AboutBoard1",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะกรรมการอื่นๆ (กลุ่ม)",ModuleName = "AboutBoard2cat",Link = "AboutBoard2cat",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะกรรมการอื่นๆ",ModuleName = "AboutBoard2",Link = "AboutBoard2",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะผู้บริหารระดับสูง (กลุ่ม)",ModuleName = "AboutBoard3cat",Link = "AboutBoard3cat",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะผู้บริหารระดับสูง",ModuleName = "AboutBoard3",Link = "AboutBoard3",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะผู้บริหารฝ่าย (สายงาน)",ModuleName = "AboutBoard4cat",Link = "AboutBoard4cat",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะผู้บริหารฝ่าย (กลุ่ม)",ModuleName = "AboutBoard4sub",Link = "AboutBoard4sub",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "คณะผู้บริหารฝ่าย",ModuleName = "AboutBoard4",Link = "AboutBoard4",Icon = "fa-solid fa-people-line"},
+                    //new(){Title = "บริหารสินทรัพย์ด้อยคุณภาพ",ModuleName = "AboutText1",Link = "AboutText1",Icon = "fa-solid fa-tree-city"},
+                    //new(){Title = "บริหารทรัพย์สินรอการขาย",ModuleName = "AboutText2",Link = "AboutText2",Icon = "fa-solid fa-building-user"},
+                    //new(){Title = "สร้างโอกาสทางธุรกิจ",ModuleName = "AboutText3",Link = "AboutText3",Icon = "fa-solid fa-user-tie"},
+                //}
+            //});
             #endregion
 
             #region ทรัพย์สินรอการขาย
-            listMenu.Add(new()
-            {
-                Title = "ทรัพย์สินรอการขาย",
-                Icon = "fa-solid fa-building-user",
-                SubMenu = new()
-                {
-                    new(){Title = "ขั้นตอนการซื้อทรัพย์",ModuleName = "NpaText1",Link = "NpaText1",Icon = "fa-solid fa-building-user"}
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ทรัพย์สินรอการขาย",
+                //Icon = "fa-solid fa-building-user",
+                //SubMenu = new()
+                //{
+                    //new(){Title = "ขั้นตอนการซื้อทรัพย์",ModuleName = "NpaText1",Link = "NpaText1",Icon = "fa-solid fa-building-user"},
+                //}
+            //});
             #endregion
 
             #region บริหารหนี้ด้อยคุณภาพ
-            listMenu.Add(new()
-            {
-                Title = "บริหารหนี้ด้อยคุณภาพ",
-                Icon = "fa-solid fa-list-check",
-                SubMenu = new()
-                {
-                    new() { Title = "ภาพรวมการบริหารหนี้", ModuleName = "DebtText1", Link = "DebtText1", Icon = "fa-solid fa-tachograph-digital" },
-                    new() { Title = "ขั้นตอนการปรับโครงสร้างหนี้", ModuleName = "DebtText2", Link = "DebtText2", Icon = "fa-solid fa-stairs" },
-                    new() { Title = "สิทธิประโยชน์ลูกหนี้", ModuleName = "DebtText3", Link = "DebtText3", Icon = "fa-regular fa-id-card" },
-                    /*new() { Title = "ดาวน์โหลดแบบฟอร์ม", ModuleName = "DebtText4", Link = "DebtText4", Icon = "fa-solid fa-file-arrow-down" },*/
-                    new() { Title = "ลงทะเบียนปรับโครงสร้างหนี้", ModuleName = "DebtText5", Link = "DebtText5", Icon = "fa-solid fa-pen-to-square" },
-                    new() { Title = "คลินิกแก้หนี้", ModuleName = "DebtText6", Link = "DebtText6", Icon = "fa-solid fa-house-medical" } 
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "บริหารหนี้ด้อยคุณภาพ",
+                //Icon = "fa-solid fa-list-check",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ภาพรวมการบริหารหนี้", ModuleName = "DebtText1", Link = "DebtText1", Icon = "fa-solid fa-tachograph-digital" },
+                    //new() { Title = "ขั้นตอนการปรับโครงสร้างหนี้", ModuleName = "DebtText2", Link = "DebtText2", Icon = "fa-solid fa-stairs" },
+                    //new() { Title = "สิทธิประโยชน์ลูกหนี้", ModuleName = "DebtText3", Link = "DebtText3", Icon = "fa-regular fa-id-card" },
+                    ///*new() { Title = "ดาวน์โหลดแบบฟอร์ม", ModuleName = "DebtText4", Link = "DebtText4", Icon = "fa-solid fa-file-arrow-down" },*/
+                    //new() { Title = "ลงทะเบียนปรับโครงสร้างหนี้", ModuleName = "DebtText5", Link = "DebtText5", Icon = "fa-solid fa-pen-to-square" },
+                    //new() { Title = "คลินิกแก้หนี้", ModuleName = "DebtText6", Link = "DebtText6", Icon = "fa-solid fa-house-medical" },
+                //}
+            //});
             #endregion
 
             #region ข่าวประชาสัมพันธ์
-            listMenu.Add(new()
-            {
-                Title = "ข่าวประชาสัมพันธ์",
-                Icon = "fa-regular fa-newspaper",
-                SubMenu = new()
-                {
-                    new() { Title = "ข่าวประชาสัมพันธ์ (กลุ่ม)", ModuleName = "NewsGroup", Link = "NewsGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "ข่าวประชาสัมพันธ์", ModuleName = "News", Link = "News", Icon = "fa-regular fa-newspaper" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ข่าวประชาสัมพันธ์",
+                //Icon = "fa-regular fa-newspaper",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ข่าวประชาสัมพันธ์ (กลุ่ม)", ModuleName = "NewsGroup", Link = "NewsGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "ข่าวประชาสัมพันธ์", ModuleName = "News", Link = "News", Icon = "fa-regular fa-newspaper" },
+                //}
+            //});
             #endregion
 
             #region บทความและวารสาร
-            listMenu.Add(new()
-            {
-                Title = "บทความและวารสาร",
-                Icon = "fa-solid fa-newspaper",
-                SubMenu = new()
-                {
-                    new() { Title = "บทความและวารสาร (กลุ่ม)", ModuleName = "ArticleGroup", Link = "ArticleGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "บทความและวารสาร", ModuleName = "Article", Link = "Article", Icon = "fa-solid fa-newspaper" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "บทความและวารสาร",
+                //Icon = "fa-solid fa-newspaper",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "บทความและวารสาร (กลุ่ม)", ModuleName = "ArticleGroup", Link = "ArticleGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "บทความและวารสาร", ModuleName = "Article", Link = "Article", Icon = "fa-solid fa-newspaper" },
+                //}
+            //});
             #endregion
 
             #region วิดีโอ/สื่อประชาสัมพันธ์
-            listMenu.Add(new()
-            {
-                Title = "วิดีโอ/สื่อประชาสัมพันธ์",
-                Icon = "fa-solid fa-video",
-                SubMenu = new()
-                {
-                    new() { Title = "รายการ (กลุ่ม)", ModuleName = "VDOGroup", Link = "VDOGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "รายการ", ModuleName = "VDOGroupsub", Link = "VDOGroupsub", Icon = "fa-solid fa-file-video" },
-                    new() { Title = "วิดีโอ/สื่อประชาสัมพันธ์", ModuleName = "VDO", Link = "VDO", Icon = "fa-solid fa-video" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "วิดีโอ/สื่อประชาสัมพันธ์",
+                //Icon = "fa-solid fa-video",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "รายการ (กลุ่ม)", ModuleName = "VDOGroup", Link = "VDOGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "รายการ", ModuleName = "VDOGroupsub", Link = "VDOGroupsub", Icon = "fa-solid fa-file-video" },
+                    //new() { Title = "วิดีโอ/สื่อประชาสัมพันธ์", ModuleName = "VDO", Link = "VDO", Icon = "fa-solid fa-video" },
+                //}
+            //});
             #endregion
 
             #region ประกาศ
-            listMenu.Add(new()
-            {
-                Title = "ประกาศ",
-                Icon = "fa-solid fa-bullhorn",
-                SubMenu = new()
-                {
-                    new() { Title = "ประกาศอัตราดอกเบี้ย", ModuleName = "AnnounceRate", Link = "AnnounceRate", Icon = "fa-solid fa-percent" },
-                    new() { Title = "ประกาศจาก NPL/NPA", ModuleName = "AnnounceNPA", Link = "AnnounceNPA", Icon = "fa-solid fa-city" }, 
-                    new() { Title = "ประกาศทั่วไป (กลุ่ม)", ModuleName = "AnnounceOtherGroup", Link = "AnnounceOtherGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "ประกาศทั่วไป", ModuleName = "AnnounceOther", Link = "AnnounceOther", Icon = "fa-regular fa-file-lines" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ประกาศ",
+                //Icon = "fa-solid fa-bullhorn",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ประกาศอัตราดอกเบี้ย", ModuleName = "AnnounceRate", Link = "AnnounceRate", Icon = "fa-solid fa-percent" },
+                    //new() { Title = "ประกาศจาก NPL/NPA", ModuleName = "AnnounceNPA", Link = "AnnounceNPA", Icon = "fa-solid fa-city" },
+                    //new() { Title = "ประกาศทั่วไป (กลุ่ม)", ModuleName = "AnnounceOtherGroup", Link = "AnnounceOtherGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "ประกาศทั่วไป", ModuleName = "AnnounceOther", Link = "AnnounceOther", Icon = "fa-regular fa-file-lines" },
+                //}
+            //});
             #endregion
 
             #region ประกาศจัดซื้อจัดจ้าง
-            listMenu.Add(new()
-            {
-                Title = "ประกาศจัดซื้อจัดจ้าง",
-                Icon = "fa-regular fa-comment-dots",
-                SubMenu = new()
-                {
-                    new() { Title = "ประกาศจัดซื้อจัดจ้าง", ModuleName = "AnnouncePro", Link = "AnnouncePro", Icon = "fa-regular fa-comment-dots" },
-                    new() { Title = "ประเภท", ModuleName = "AnnounceProGroup", Link = "AnnounceProGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "วิธีการจัดซื้อ", ModuleName = "AnnounceProType", Link = "AnnounceProType", Icon = "fa-regular fa-message" },
-                    new() { Title = "รายชื่อผู้ลงทะเบียน", ModuleName = "AnnounceSubmit", Link = "AnnounceSubmit", Icon = "fa-solid fa-user-check" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ประกาศจัดซื้อจัดจ้าง",
+                //Icon = "fa-regular fa-comment-dots",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ประกาศจัดซื้อจัดจ้าง", ModuleName = "AnnouncePro", Link = "AnnouncePro", Icon = "fa-regular fa-comment-dots" },
+                    //new() { Title = "ประเภท", ModuleName = "AnnounceProGroup", Link = "AnnounceProGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "วิธีการจัดซื้อ", ModuleName = "AnnounceProType", Link = "AnnounceProType", Icon = "fa-regular fa-message" },
+                    //new() { Title = "รายชื่อผู้ลงทะเบียน", ModuleName = "AnnounceSubmit", Link = "AnnounceSubmit", Icon = "fa-solid fa-user-check" },
+                //}
+            //});
             #endregion
 
             #region ร่วมงานกับเรา
-            listMenu.Add(new()
-            {
-                Title = "ร่วมงานกับเรา",
-                Icon = "fa-solid fa-briefcase",
-                SubMenu = new()
-                {
-                    new() { Title = "ตำแหน่งงาน", ModuleName = "AnnounceJob", Link = "AnnounceJob", Icon = "fa-solid fa-briefcase" },
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ร่วมงานกับเรา",
+                //Icon = "fa-solid fa-briefcase",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ตำแหน่งงาน", ModuleName = "AnnounceJob", Link = "AnnounceJob", Icon = "fa-solid fa-briefcase" },
                     //new() { Title = "รายชื่อผู้สมัครงาน", ModuleName = "AnnounceJobSubmit", Link = "AnnounceJobSubmit", Icon = "fa-solid fa-user-check" },
-                    new() { Title = "รายชื่อผู้สมัครงาน", ModuleName = "AnnounceJobSubmitFull", Link = "AnnounceJobSubmitFull", Icon = "fa-solid fa-clipboard-user" },
-                    new() { Title = "รูปประกอบ", ModuleName = "JobCMS", Link = "JobCMS", Icon = "fa-solid fa-people-roof" }
-                }
-            });
+                    //new() { Title = "รายชื่อผู้สมัครงาน", ModuleName = "AnnounceJobSubmitFull", Link = "AnnounceJobSubmitFull", Icon = "fa-solid fa-clipboard-user" },
+                    //new() { Title = "รูปประกอบ", ModuleName = "JobCMS", Link = "JobCMS", Icon = "fa-solid fa-people-roof" },
+                //}
+            //});
             #endregion
 
             #region ติดต่อเรา
-            listMenu.Add(new()
-            {
-                Title = "ติดต่อเรา",
-                Icon = "fa-solid fa-headset",
-                SubMenu = new()
-                {
-                    new() { Title = "สำนักงานใหญ่/สาขา", ModuleName = "ContactOffice", Link = "ContactOffice", Icon = "fa-solid fa-building" },
-                    new() { Title = "ช่องทางร้องเรียน/ข้อเสนอแนะ", ModuleName = "ContactCMS", Link = "ContactCMS", Icon = "fa-solid fa-bullhorn" },
-                    new() { Title = "รายชื่อผู้ติดต่อ", ModuleName = "ContactSubmit", Link = "ContactSubmit", Icon = "fa-solid fa-user-check" },
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ติดต่อเรา",
+                //Icon = "fa-solid fa-headset",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "สำนักงานใหญ่/สาขา", ModuleName = "ContactOffice", Link = "ContactOffice", Icon = "fa-solid fa-building" },
+                    //new() { Title = "ช่องทางร้องเรียน/ข้อเสนอแนะ", ModuleName = "ContactCMS", Link = "ContactCMS", Icon = "fa-solid fa-bullhorn" },
+                    //new() { Title = "รายชื่อผู้ติดต่อ", ModuleName = "ContactSubmit", Link = "ContactSubmit", Icon = "fa-solid fa-user-check" },
                     
                     
-                }
-            });
+                //}
+            //});
             #endregion
               
             #region ดาวน์โหลด
-            listMenu.Add(new()
-            {
-                Title = "ดาวน์โหลด",
-                Icon = "fa-solid fa-file-arrow-down",
-                SubMenu = new()
-                {
-                    new() { Title = "ดาวน์โหลด (กลุ่ม)", ModuleName = "DownloadGroup", Link = "DownloadGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "ดาวน์โหลด", ModuleName = "Download", Link = "Download", Icon = "fa-solid fa-file-arrow-down" },
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ดาวน์โหลด",
+                //Icon = "fa-solid fa-file-arrow-down",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ดาวน์โหลด (กลุ่ม)", ModuleName = "DownloadGroup", Link = "DownloadGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "ดาวน์โหลด", ModuleName = "Download", Link = "Download", Icon = "fa-solid fa-file-arrow-down" },
                     //new() { Title = "รายชื่อผู้กรอกข้อมูล", ModuleName = "DownloadSubmit", Link = "DownloadSubmit", Icon = "fa-solid fa-user-check" },
-                }
-            });
+                //}
+            //});
             #endregion
 
             #region คำถามที่พบบ่อย
-            listMenu.Add(new()
-            {
-                Title = "คำถามที่พบบ่อย",
-                Icon = "fa-regular fa-circle-question",
-                SubMenu = new()
-                {
-                    new() { Title = "คำถามที่พบบ่อย (กลุ่ม)", ModuleName = "FAQGroup", Link = "FAQGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "คำถามที่พบบ่อย", ModuleName = "FAQ", Link = "FAQ", Icon = "fa-regular fa-circle-question" },
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "คำถามที่พบบ่อย",
+                //Icon = "fa-regular fa-circle-question",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "คำถามที่พบบ่อย (กลุ่ม)", ModuleName = "FAQGroup", Link = "FAQGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "คำถามที่พบบ่อย", ModuleName = "FAQ", Link = "FAQ", Icon = "fa-regular fa-circle-question" },
+                //}
+            //});
             #endregion
 
             #region ลิงค์หน่วยงาน
-            listMenu.Add(new()
-            {
-                Title = "ลิงค์หน่วยงาน",
-                Icon = "fa-solid fa-link",
-                SubMenu = new()
-                {
-                    new() { Title = "ลิงค์หน่วยงาน (กลุ่ม)", ModuleName = "LinkGroup", Link = "LinkGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "ลิงค์หน่วยงาน", ModuleName = "Link", Link = "Link", Icon = "fa-solid fa-link" },
-                    new() { Title = "แลกเปลี่ยนลิงค์", ModuleName = "LinkCMS", Link = "LinkCMS", Icon = "fa-brands fa-ubuntu" },
-                    new() { Title = "รายชื่อผู้แลกเปลี่ยน", ModuleName = "LinkSubmit", Link = "LinkSubmit", Icon = "fa-solid fa-user-check" },
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ลิงค์หน่วยงาน",
+                //Icon = "fa-solid fa-link",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "ลิงค์หน่วยงาน (กลุ่ม)", ModuleName = "LinkGroup", Link = "LinkGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "ลิงค์หน่วยงาน", ModuleName = "Link", Link = "Link", Icon = "fa-solid fa-link" },
+                    //new() { Title = "แลกเปลี่ยนลิงค์", ModuleName = "LinkCMS", Link = "LinkCMS", Icon = "fa-brands fa-ubuntu" },
+                    //new() { Title = "รายชื่อผู้แลกเปลี่ยน", ModuleName = "LinkSubmit", Link = "LinkSubmit", Icon = "fa-solid fa-user-check" },
+                //}
+            //});
             #endregion
 
             #region โปรโมชั่น
-            listMenu.Add(new()
-            {
-                Title = "โปรโมชั่น",
-                Icon = "fa-solid fa-tags",
-                SubMenu = new()
-                {
-                    new() { Title = "โปรโมชั่น (กลุ่ม)", ModuleName = "PromotionGroup", Link = "PromotionGroup", Icon = "fa-regular fa-folder-open" }, 
-                    new() { Title = "โปรโมชั่น", ModuleName = "Promotion", Link = "Promotion", Icon = "fa-solid fa-tags" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "โปรโมชั่น",
+                //Icon = "fa-solid fa-tags",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "โปรโมชั่น (กลุ่ม)", ModuleName = "PromotionGroup", Link = "PromotionGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "โปรโมชั่น", ModuleName = "Promotion", Link = "Promotion", Icon = "fa-solid fa-tags" },
+                //}
+            //});
             #endregion
 
             #region Banner
@@ -302,128 +319,136 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             #endregion
              
             #region E-Form
-            listMenu.Add(new()
-            {
-                Title = "E-Form",
-                Icon = "fa-brands fa-wpforms",
-                SubMenu = new()
-                {
-                    new() { Title = "E-Form (กลุ่ม)", ModuleName = "EFormGroup", Link = "EFormGroup", Icon = "fa-regular fa-folder-open" },
-                    new() { Title = "E-Form", ModuleName = "EForm", Link = "EForm", Icon = "fa-solid fa-clipboard-list" },
-                    new() { Title = "รายชื่อผู้กรอกข้อมูล", ModuleName = "EFormSubmit", Link = "EFormSubmit", Icon = "fa-solid fa-user-pen" },
-                    /*new() { Title = "อีเมลแจ้งเตือน", ModuleName = "EFormEmail", Link = "EFormEmail", Icon = "fa-regular fa-envelope" }*/
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "E-Form",
+                //Icon = "fa-brands fa-wpforms",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "E-Form (กลุ่ม)", ModuleName = "EFormGroup", Link = "EFormGroup", Icon = "fa-regular fa-folder-open" },
+                    //new() { Title = "E-Form", ModuleName = "EForm", Link = "EForm", Icon = "fa-solid fa-clipboard-list" },
+                    //new() { Title = "รายชื่อผู้กรอกข้อมูล", ModuleName = "EFormSubmit", Link = "EFormSubmit", Icon = "fa-solid fa-user-pen" },
+                    ///*new() { Title = "อีเมลแจ้งเตือน", ModuleName = "EFormEmail", Link = "EFormEmail", Icon = "fa-regular fa-envelope" }*/
+                //}
+            //});
             #endregion
 
             #region เมนู Footer
-            listMenu.Add(new()
-            {
-                Title = "เมนู Footer",
-                Icon = "fa-regular fa-window-maximize",
-                SubMenu = new()
-                {
-                    new() { Title = "แบบสำรวจ", ModuleName = "FooterPoll", Link = "FooterPoll", Icon = "fa-solid fa-square-poll-vertical" },
-                    new() { Title = "ประกาศความเป็นส่วนตัว", ModuleName = "FooterPrivacy1", Link = "FooterPrivacy1", Icon = "fa-solid fa-shield-halved" },
-                    new() { Title = "รายชื่อผู้ยินยอม", ModuleName = "FooterPrivacy1Submit", Link = "FooterPrivacy1Submit", Icon = "fa-solid fa-shield-halved" },
-                    new() { Title = "ข้อตกลงและเงื่อนไข", ModuleName = "FooterPrivacy2", Link = "FooterPrivacy2", Icon = "fa-regular fa-square-check" },
-                    new() { Title = "รายชื่อผู้ยินยอม", ModuleName = "FooterPrivacy2Submit", Link = "FooterPrivacy2Submit", Icon = "fa-regular fa-square-check" },
-                    new() { Title = "เปิดเผยข้อมูลความโปร่งใส", ModuleName = "FooterLink", Link = "FooterLink", Icon = "fa-brands fa-readme" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "เมนู Footer",
+                //Icon = "fa-regular fa-window-maximize",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "แบบสำรวจ", ModuleName = "FooterPoll", Link = "FooterPoll", Icon = "fa-solid fa-square-poll-vertical" },
+                    //new() { Title = "ประกาศความเป็นส่วนตัว", ModuleName = "FooterPrivacy1", Link = "FooterPrivacy1", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "รายชื่อผู้ยินยอม", ModuleName = "FooterPrivacy1Submit", Link = "FooterPrivacy1Submit", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "ข้อตกลงและเงื่อนไข", ModuleName = "FooterPrivacy2", Link = "FooterPrivacy2", Icon = "fa-regular fa-square-check" },
+                    //new() { Title = "รายชื่อผู้ยินยอม", ModuleName = "FooterPrivacy2Submit", Link = "FooterPrivacy2Submit", Icon = "fa-regular fa-square-check" },
+                    //new() { Title = "เปิดเผยข้อมูลความโปร่งใส", ModuleName = "FooterLink", Link = "FooterLink", Icon = "fa-brands fa-readme" },
+                //}
+            //});
             #endregion
 
             #region สมาชิก
-            listMenu.Add(new()
-            {
-                Title = "สมาชิก",
-                Icon = "fa-solid fa-users",
-                SubMenu = new()
-                {
-                    new() { Title = "จัดการสมาชิก", ModuleName = "MemberList", Link = "MemberList", Icon = "fa-solid fa-users" }, 
-                    new() { Title = "รายงานสมาชิก", ModuleName = "MemberReport", Link = "MemberReport", Icon = "fa-solid fa-chart-bar" }, 
-                    new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "MemberEmail", Link = "MemberEmail", Icon = "fa-regular fa-envelope" }, 
-                    new() { Title = "ส่งข่าวสารสมาชิก", ModuleName = "MemberNews", Link = "MemberNews", Icon = "fa-regular fa-newspaper" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "สมาชิก",
+                //Icon = "fa-solid fa-users",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "จัดการสมาชิก", ModuleName = "MemberList", Link = "MemberList", Icon = "fa-solid fa-users" },
+                    //new() { Title = "รายงานสมาชิก", ModuleName = "MemberReport", Link = "MemberReport", Icon = "fa-solid fa-chart-bar" },
+                    //new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "MemberEmail", Link = "MemberEmail", Icon = "fa-regular fa-envelope" },
+                    //new() { Title = "ส่งข่าวสารสมาชิก", ModuleName = "MemberNews", Link = "MemberNews", Icon = "fa-regular fa-newspaper" },
+                //}
+            //});
             #endregion
             
             #region ตัวแทนขายทรัพย์ (Agent)
-            listMenu.Add(new()
-            {
-                Title = "ตัวแทนขายทรัพย์ (Agent)",
-                Icon = "fa-solid fa-users-line",
-                SubMenu = new()
-                {
-                    new() { Title = "รายชื่อผู้สมัครตัวแทน", ModuleName = "AgentList", Link = "AgentList", Icon = "fa-regular fa-address-card" }, 
-                    new() { Title = "นำเข้าข้อมูลผู้สมัคร", ModuleName = "AgentImport", Link = "AgentImport", Icon = "fa-solid fa-file-csv" }, 
-                    new() { Title = "รายงานตัวแทน", ModuleName = "AgentReport", Link = "AgentReport", Icon = "fa-solid fa-newspaper" }, 
-                    new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "AgentEmail", Link = "AgentEmail", Icon = "fa-solid fa-envelope" },
-                    new() { Title = "ส่งข่าวสารเอเจนต์", ModuleName = "AgentNews", Link = "AgentNews", Icon = "fa-solid fa-envelope" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ตัวแทนขายทรัพย์ (Agent)",
+                //Icon = "fa-solid fa-users-line",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "รายชื่อผู้สมัครตัวแทน", ModuleName = "AgentList", Link = "AgentList", Icon = "fa-regular fa-address-card" },
+                    //new() { Title = "นำเข้าข้อมูลผู้สมัคร", ModuleName = "AgentImport", Link = "AgentImport", Icon = "fa-solid fa-file-csv" },
+                    //new() { Title = "รายงานตัวแทน", ModuleName = "AgentReport", Link = "AgentReport", Icon = "fa-solid fa-newspaper" },
+                    //new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "AgentEmail", Link = "AgentEmail", Icon = "fa-solid fa-envelope" },
+                    //new() { Title = "ส่งข่าวสารเอเจนต์", ModuleName = "AgentNews", Link = "AgentNews", Icon = "fa-solid fa-envelope" },
+                //}
+            //});
             #endregion
             
             #region ข้อมูลทรัพย์สิน (NPA)
-            listMenu.Add(new()
-            {
-                Title = "ข้อมูลทรัพย์สิน (NPA)",
-                Icon = "bi-house-door",
-                SubMenu = new()
-                {
-                    new() { Title = "กำหนดสถานะทรัพย์สิน", ModuleName = "NpaStatus", Link = "NpaStatus", Icon = "fa-solid fa-house-circle-check" }, 
-                    new() { Title = "รายชื่อทรัพย์ Wishlist", ModuleName = "NpaFav", Link = "NpaFav", Icon = "fa-solid fa-city" }, 
-                    new() { Title = "รายการ ย่าน/ทำเล", ModuleName = "NpaLocate", Link = "NpaLocate", Icon = "fa-solid fa-tree-city" }, 
-                    new() { Title = "รายการ Facility", ModuleName = "NpaFacility", Link = "NpaFacility", Icon = "fa-regular fa-hospital" },
-                    new() { Title = "ยื่นข้อเสนอซื้อ", ModuleName = "NpaOffer", Link = "NpaOffer", Icon = "fa-solid fa-hand-holding-dollar" },
-                    new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "NpaOfferEmail", Link = "NpaOfferEmail", Icon = "fa-regular fa-envelope" },
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ข้อมูลทรัพย์สิน (NPA)",
+                //Icon = "bi-house-door",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "กำหนดสถานะทรัพย์สิน", ModuleName = "NpaStatus", Link = "NpaStatus", Icon = "fa-solid fa-house-circle-check" },
+                    //new() { Title = "รายชื่อทรัพย์ Wishlist", ModuleName = "NpaFav", Link = "NpaFav", Icon = "fa-solid fa-city" },
+                    //new() { Title = "รายการ ย่าน/ทำเล", ModuleName = "NpaLocate", Link = "NpaLocate", Icon = "fa-solid fa-tree-city" },
+                    //new() { Title = "รายการ Facility", ModuleName = "NpaFacility", Link = "NpaFacility", Icon = "fa-regular fa-hospital" },
+                    //new() { Title = "ยื่นข้อเสนอซื้อ", ModuleName = "NpaOffer", Link = "NpaOffer", Icon = "fa-solid fa-hand-holding-dollar" },
+                    //new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "NpaOfferEmail", Link = "NpaOfferEmail", Icon = "fa-regular fa-envelope" },
                     //new() { Title = "รายงานการค้นหาข้อมูลทรัพย์สิน", ModuleName = "NpaReport", Link = "NpaReport", Icon = "fa-solid fa-chart-bar" }
-                }
-            });
+                //}
+            //});
             #endregion
 
             #region ลูกค้าปรับโครงสร้างหนี้
-            listMenu.Add(new()
-            {
-                Title = "ลูกค้าปรับโครงสร้างหนี้",
-                Icon = "fa-solid fa-house-user",
-                SubMenu = new()
-                {
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "ลูกค้าปรับโครงสร้างหนี้",
+                //Icon = "fa-solid fa-house-user",
+                //SubMenu = new()
+                //{
                     //new() { Title = "แก้ไขรายละเอียดโครงการ", ModuleName = "NplWeb", Link = "NplWeb", Icon = "fa-solid fa-file-invoice" }, 
-                    new() { Title = "รายชื่อผู้ลงทะเบียน (NPL)", ModuleName = "NplRegister", Link = "NplRegister", Icon = "fa-solid fa-list" }, 
-                    new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "NplEmail", Link = "NplEmail", Icon = "fa-regular fa-envelope" }, 
+                    //new() { Title = "รายชื่อผู้ลงทะเบียน (NPL)", ModuleName = "NplRegister", Link = "NplRegister", Icon = "fa-solid fa-list" },
+                    //new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "NplEmail", Link = "NplEmail", Icon = "fa-regular fa-envelope" },
                     //new() { Title = "ข้อมูลลูกหนี้", ModuleName = "NplCustomer", Link = "NplCustomer", Icon = "fa-solid fa-user-group" }
-                }
-            });
+                //}
+            //});
             #endregion
 
             /* 
             //มีแล้วอยู่ด้านบน
             #region โครงการคลินิกแก้หนี้
-            listMenu.Add(new()
-            {
-                Title = "โครงการคลินิกแก้หนี้",
-                Icon = "fa-solid fa-building-circle-check",
-                SubMenu = new()
-                {
-                    new() { Title = "แก้ไขรายละเอียดโครงการ", ModuleName = "CliWeb", Link = "CliWeb", Icon = "fa-brands fa-readme" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "โครงการคลินิกแก้หนี้",
+                //Icon = "fa-solid fa-building-circle-check",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "แก้ไขรายละเอียดโครงการ", ModuleName = "CliWeb", Link = "CliWeb", Icon = "fa-brands fa-readme" },
+                //}
+            //});
             #endregion
             */
 
             #region แจ้งความประสงค์ซื้อทรัพย์
-            listMenu.Add(new()
-            {
-                Title = "แจ้งความประสงค์ซื้อทรัพย์",
-                Icon = "fa-solid fa-house-laptop",
-                SubMenu = new()
-                {
-                    new() { Title = "รายการผู้สนใจซื้อทรัพย์", ModuleName = "BuyNPA", Link = "BuyNPA", Icon = "fa-solid fa-user-check" }, 
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "แจ้งความประสงค์ซื้อทรัพย์",
+                //Icon = "fa-solid fa-house-laptop",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "รายการผู้สนใจซื้อทรัพย์", ModuleName = "BuyNPA", Link = "BuyNPA", Icon = "fa-solid fa-user-check" },
                     //new() { Title = "รายงานผู้สนใจซื้อทรัพย์", ModuleName = "BuyNPAReport", Link = "BuyNPAReport", Icon = "fa-regular fa-file-lines" }, 
-                    new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "BuyNPAEmail", Link = "BuyNPAEmail", Icon = "fa-regular fa-envelope" }
-                }
-            });
+                    //new() { Title = "อีเมลเจ้าหน้าที่แจ้งเตือน", ModuleName = "BuyNPAEmail", Link = "BuyNPAEmail", Icon = "fa-regular fa-envelope" },
+                //}
+            //});
             #endregion
              
             #region นัดหมายชมทรัพย์
@@ -440,82 +465,149 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             #endregion
                     
             #region Subscription
-            listMenu.Add(new()
-            {
-                Title = "Subscription",
-                Icon = "fa-solid fa-envelope",
-                SubMenu = new()
-                {
-                    new() { Title = "รายชื่อผู้ลงทะเบียน", ModuleName = "Subscription", Link = "Subscription", Icon = "fa-solid fa-user-check" }, new() { Title = "ส่งข่าวสารทางอีเมล", ModuleName = "SubscriptionEmail", Link = "SubscriptionEmail", Icon = "fa-solid fa-envelopes-bulk" }, new() { Title = "ข่าวสารทางอีเมลย้อนหลัง", ModuleName = "SubscriptionNews", Link = "SubscriptionNews", Icon = "fa-solid fa-clock-rotate-left" }
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "Subscription",
+                //Icon = "fa-solid fa-envelope",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "รายชื่อผู้ลงทะเบียน", ModuleName = "Subscription", Link = "Subscription", Icon = "fa-solid fa-user-check" },
+                    //new() { Title = "ส่งข่าวสารทางอีเมล", ModuleName = "SubscriptionEmail", Link = "SubscriptionEmail", Icon = "fa-solid fa-envelopes-bulk" },
+                    //new() { Title = "ข่าวสารทางอีเมลย้อนหลัง", ModuleName = "SubscriptionNews", Link = "SubscriptionNews", Icon = "fa-solid fa-clock-rotate-left" },
+                //}
+            //});
             #endregion
              
             #region Monitor
-            listMenu.Add(new()
-            {
-                Title = "Monitor",
-                Icon = "fa-solid fa-display",
-                SubMenu = new()
-                {
-                    new() { Title = "Server Health", ModuleName = "ServerStatus", Link = "ServerStatus", Icon = "fa-solid fa-bars-progress" },  
-                    new() { Title = "Error Logs", ModuleName = "ErrorLogs", Link = "ErrorLogs", Icon = "fa-solid fa-triangle-exclamation" },
-                    new() { Title = "Google Analytics", ModuleName = "GoogleAnalytics", Link = "GoogleAnalytics", Icon = "fa-brands fa-google" },
-                }
-            });
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "Monitor",
+                //Icon = "fa-solid fa-display",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "Server Health", ModuleName = "ServerStatus", Link = "ServerStatus", Icon = "fa-solid fa-bars-progress" },
+                    //new() { Title = "Error Logs", ModuleName = "ErrorLogs", Link = "ErrorLogs", Icon = "fa-solid fa-triangle-exclamation" },
+                    //new() { Title = "Google Analytics", ModuleName = "GoogleAnalytics", Link = "GoogleAnalytics", Icon = "fa-brands fa-google" },
+                //}
+            //});
             #endregion
              
             #region Setting
-            listMenu.Add(new()
-            {
-                Title = "Setting",
-                Icon = "fa-solid fa-gear",
-                SubMenu = new()
-                {
-                    new() { Title = "File Manager", ModuleName = "FileManager", Link = "FileManager", Icon = "fa-solid fa-box-archive" }, 
-                    new() { Title = "Google Map Key", ModuleName = "GoogleKey", Link = "GoogleKey", Icon = "fa-regular fa-map" }, 
-                    new() { Title = "AI Settings", ModuleName = "AISetting", Link = "AISetting", Icon = "fa-brands fa-openai" }, 
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "Setting",
+                //Icon = "fa-solid fa-gear",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "File Manager", ModuleName = "FileManager", Link = "FileManager", Icon = "fa-solid fa-box-archive" },
+                    //new() { Title = "Google Map Key", ModuleName = "GoogleKey", Link = "GoogleKey", Icon = "fa-regular fa-map" },
+                    //new() { Title = "AI Settings", ModuleName = "AISetting", Link = "AISetting", Icon = "fa-brands fa-openai" },
                     //new() { Title = "LDAP Azure AD", ModuleName = "LDAPSetting", Link = "LDAPSetting", Icon = "fa-brands fa-microsoft" }
-                }
-            });
+                //}
+            //});
             #endregion
 
             #region Landing / Microsite
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "Landing / Microsite",
+                //Icon = "fa-solid fa-sitemap",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "Microsite", ModuleName = "Microsite", Link = "Microsite", Icon = "fa-solid fa-sitemap" },
+                    ///*
+                    //new() { Title = "Lead Form", ModuleName = "MicrositeForm", Link = "MicrositeForm", Icon = "fa-regular fa-file-lines" },
+                    //new() { Title = "รายชื่อผู้กรอกข้อมูล", ModuleName = "MicrositeSubmit", Link = "MicrositeSubmit", Icon = "fa-solid fa-user-check" },
+                    //*/
+                //}
+            //});
+            #endregion
+
+            #region Logs
+            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
+            //listMenu.Add(new()
+            //{
+                //Title = "Logs",
+                //Icon = "fa-solid fa-magnifying-glass",
+                //SubMenu = new()
+                //{
+                    //new() { Title = "Activities สมาชิก", ModuleName = "LogsMember", Link = "LogsMember", Icon = "fa-solid fa-user-clock" },
+                    //new() { Title = "ให้ความยินยอม PDPA", ModuleName = "LogsPDPA", Link = "LogsPDPA", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "AI Services API", ModuleName = "LogsAI", Link = "LogsAI", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "CRM Data API", ModuleName = "LogsCRM", Link = "LogsCRM", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "LINE LIFF Data API", ModuleName = "LogsLINE", Link = "LogsLINE", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "AD/LDAP Login API", ModuleName = "LogsLDAP", Link = "LogsLDAP", Icon = "fa-solid fa-shield-halved" },
+                    //new() { Title = "จับคู่ทรัพย์สินอัตโนมัติ API", ModuleName = "LogsMatchAPI", Link = "LogsMatchAPI", Icon = "fa-solid fa-building" }, 
+                    //new() { Title = "Google Map API", ModuleName = "LogsGoogleMap", Link = "LogsGoogleMap", Icon = "fa-regular fa-map" },
+                    //new() { Title = "ค้นหาทรัพย์ NPA", ModuleName = "LogsNpaSearch", Link = "LogsNpaSearch", Icon = "fa-solid fa-magnifying-glass-location" },
+                //}
+            //}); 
+            #endregion
+             
+            //================================================================================
+            //  เมนูที่พอร์ตมาจากหลังบ้านเดิมของ Asset Plus (http://localhost:8099/assetplus/backoffice/)
+            //  ทำงานบนตารางเดิม tb_* โดยตรง — นิยามโมดูลอยู่ที่ Helpers/AdminMenuAssetPlus.cs
+            //================================================================================
+
+            #region หน้าหลัก (Asset Plus)
             listMenu.Add(new()
             {
-                Title = "Landing / Microsite",
-                Icon = "fa-solid fa-sitemap",
+                Title = "หน้าหลัก",
+                Icon = "fa-solid fa-house",
                 SubMenu = new()
                 {
-                    new() { Title = "Microsite", ModuleName = "Microsite", Link = "Microsite", Icon = "fa-solid fa-sitemap" } 
-                    /*
-                    new() { Title = "Lead Form", ModuleName = "MicrositeForm", Link = "MicrositeForm", Icon = "fa-regular fa-file-lines" }, 
-                    new() { Title = "รายชื่อผู้กรอกข้อมูล", ModuleName = "MicrositeSubmit", Link = "MicrositeSubmit", Icon = "fa-solid fa-user-check" }
-                    */
+                    new() { Title = "Get Other Indices", ModuleName = "ApOtherIndices", Link = "ApOtherIndices", Icon = "fa-solid fa-chart-line" },
                 }
             });
             #endregion
 
-            #region Logs
+            #region ข้อมูลกองทุน (Asset Plus)
             listMenu.Add(new()
             {
-                Title = "Logs",
-                Icon = "fa-solid fa-magnifying-glass",
+                Title = "ข้อมูลกองทุน",
+                Icon = "fa-solid fa-coins",
                 SubMenu = new()
                 {
-                    new() { Title = "Activities สมาชิก", ModuleName = "LogsMember", Link = "LogsMember", Icon = "fa-solid fa-user-clock" }, 
-                    new() { Title = "ให้ความยินยอม PDPA", ModuleName = "LogsPDPA", Link = "LogsPDPA", Icon = "fa-solid fa-shield-halved" },
-                    new() { Title = "AI Services API", ModuleName = "LogsAI", Link = "LogsAI", Icon = "fa-solid fa-shield-halved" },
-                    new() { Title = "CRM Data API", ModuleName = "LogsCRM", Link = "LogsCRM", Icon = "fa-solid fa-shield-halved" },
-                    new() { Title = "LINE LIFF Data API", ModuleName = "LogsLINE", Link = "LogsLINE", Icon = "fa-solid fa-shield-halved" },
-                    //new() { Title = "AD/LDAP Login API", ModuleName = "LogsLDAP", Link = "LogsLDAP", Icon = "fa-solid fa-shield-halved" },
-                    //new() { Title = "จับคู่ทรัพย์สินอัตโนมัติ API", ModuleName = "LogsMatchAPI", Link = "LogsMatchAPI", Icon = "fa-solid fa-building" }, 
-                    new() { Title = "Google Map API", ModuleName = "LogsGoogleMap", Link = "LogsGoogleMap", Icon = "fa-regular fa-map" },
-                    new() { Title = "ค้นหาทรัพย์ NPA", ModuleName = "LogsNpaSearch", Link = "LogsNpaSearch", Icon = "fa-solid fa-magnifying-glass-location" }
+                    new() { Title = "ประเภทกองทุนรวม", ModuleName = "ApFundCat", Link = "ApFundCat", Icon = "fa-regular fa-folder-open" },
+                    new() { Title = "Get Fund Fact Sheet", ModuleName = "ApFundFactSheet", Link = "ApFundFactSheet", Icon = "fa-regular fa-file-lines" },
+                    new() { Title = "Get NAV", ModuleName = "ApFundNav", Link = "ApFundNav", Icon = "fa-solid fa-money-bill-trend-up" },
+                    new() { Title = "Delete NAV", ModuleName = "ApFundNavDelete", Link = "ApFundNavDelete", Icon = "fa-solid fa-eraser" },
+                    new() { Title = "Get Performance", ModuleName = "ApFundPerformance", Link = "ApFundPerformance", Icon = "fa-solid fa-chart-simple" },
                 }
-            }); 
+            });
             #endregion
-             
+
+            #region ปฏิทินกองทุน (Asset Plus)
+            listMenu.Add(new()
+            {
+                Title = "ปฏิทินกองทุน",
+                Icon = "fa-regular fa-calendar-days",
+                SubMenu = new()
+                {
+                    new() { Title = "หมวดหมู่ปฏิทิน", ModuleName = "ApCalendarCat", Link = "ApCalendarCat", Icon = "fa-regular fa-folder-open" },
+                    new() { Title = "ปฏิทินกองทุน", ModuleName = "ApCalendar", Link = "ApCalendar", Icon = "fa-regular fa-calendar-check" },
+                }
+            });
+            #endregion
+
+            #region กองทุนสำรองเลี้ยงชีพ (Asset Plus)
+            listMenu.Add(new()
+            {
+                Title = "กองทุนสำรองเลี้ยงชีพ",
+                Icon = "fa-solid fa-piggy-bank",
+                SubMenu = new()
+                {
+                    new() { Title = "Factsheet (Group)", ModuleName = "ApProvSheetCat", Link = "ApProvSheetCat", Icon = "fa-regular fa-folder-open" },
+                    new() { Title = "Factsheet", ModuleName = "ApProvSheet", Link = "ApProvSheet", Icon = "fa-regular fa-file-pdf" },
+                    new() { Title = "ข้อมูลอื่นๆ", ModuleName = "ApProvOther", Link = "ApProvOther", Icon = "fa-solid fa-circle-info" },
+                }
+            });
+            #endregion
+
             #region ผู้ดูแลระบบ
             listMenu.Add(new()
             {
@@ -640,7 +732,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             Add("license_expiry", "วันหมดอายุใบอนุญาต");
             Add("news_source", "แหล่งข่าวการสมัคร");
             Add("source_detail", "รายละเอียดแหล่งข่าว");
-            Add("has_relative_in_sam", "มีญาติ/คนรู้จักใน บสส.");
+            Add("has_relative_in_sam", "มีญาติ/คนรู้จักใน บลจ. แอสเซท พลัส");
             Add("relative_name", "ชื่อ-นามสกุล (ญาติ)");
             Add("relative_relation", "ความสัมพันธ์ (ญาติ)");
             Add("CASE WHEN certify = 1 THEN 'ยอมรับ' ELSE 'ไม่ยอมรับ' END", "ยอมรับคำรับรอง");
@@ -1134,7 +1226,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "HomeSamText",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "SAM ใส่ใจ",TextBreadcrumb = "ข้อมูลหน้าแรก/SAM ใส่ใจ",
+                        Text = "แอสเซท พลัส ใส่ใจ",TextBreadcrumb = "ข้อมูลหน้าแรก/แอสเซท พลัส ใส่ใจ",
                         Table = "web_core_single",TableModuleID = 1,OrderBy = "sort",Sort = "asc",
                         CanAdd = false,CanEdit = true,CanDelete = false,CanMove = false,CanStatus = false,CanApprove = true,
                         UseViewCreateFrom = "HomeSamText",UseViewEditFrom = "HomeSamText",
@@ -1716,7 +1808,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "AboutText1",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "การบริหารสินทรัพย์ด้อยคุณภาพ บสส.",TextBreadcrumb = "เกี่ยวกับเรา/การบริหารสินทรัพย์ด้อยคุณภาพ บสส.",
+                        Text = "การบริหารสินทรัพย์ด้อยคุณภาพ",TextBreadcrumb = "เกี่ยวกับเรา/การบริหารสินทรัพย์ด้อยคุณภาพ",
                         Table = "web_core_single",TableModuleID = 10,OrderBy = "sort",Sort = "asc",
                         CanAdd = false,CanEdit = true,CanDelete = false,CanMove = false,CanStatus = false,CanApprove = true,
                         UseViewCreateFrom = "AboutText1",UseViewEditFrom = "AboutText1",
@@ -1748,7 +1840,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "AboutText3",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "สร้างโอกาสทางธุรกิจ บสส.",TextBreadcrumb = "เกี่ยวกับเรา/สร้างโอกาสทางธุรกิจ บสส.",
+                        Text = "สร้างโอกาสทางธุรกิจ",TextBreadcrumb = "เกี่ยวกับเรา/สร้างโอกาสทางธุรกิจ",
                         Table = "web_core_single",TableModuleID = 12,OrderBy = "sort",Sort = "asc",
                         CanAdd = false,CanEdit = true,CanDelete = false,CanMove = false,CanStatus = false,CanApprove = true,
                         UseViewCreateFrom = "AboutText1",UseViewEditFrom = "AboutText1",
@@ -5628,7 +5720,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     }
                 },
                 #endregion
-            };
+            }
+            //----- เมนูที่พอร์ตมาจากหลังบ้านเดิมของ Asset Plus (ตาราง tb_* ดูไฟล์ AdminMenuAssetPlus.cs) -----
+            .Concat(AssetPlusLegacyModules()).ToList();
         }
     }
 }

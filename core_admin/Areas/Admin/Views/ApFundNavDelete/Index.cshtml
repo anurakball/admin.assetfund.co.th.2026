@@ -1,0 +1,101 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var funds = ViewBag.FundCodes as System.Data.DataTable;
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" action="/Admin/ApFundNavDelete/DeleteNav" id="fm_navdel">
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDate("NAV Date", "nav_date", ""))
+                <small class="text-muted">ลบข้อมูล NAV ของวันที่นี้ เฉพาะกองทุนที่เลือกด้านล่าง</small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-2">
+                <div class="field">
+                    <label class="form-label">Fund Code</label>
+                    <div class="mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="ap_check_all">
+                            <label class="form-check-label" for="ap_check_all"><b>All</b> (เลือกทั้งหมด)</label>
+                        </div>
+                    </div>
+                    <div style="max-height:420px;overflow:auto;border:1px solid #e3e8ef;border-radius:8px;padding:12px;background:#fff;">
+                        <div class="row">
+                            @if (funds != null && funds.Rows.Count > 0)
+                            {
+                                foreach (System.Data.DataRow r in funds.Rows)
+                                {
+                                    string fc = r["FundCode"] + "";
+                                    <div class="col-lg-3 col-md-4 col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input ap-fund" type="checkbox" name="Fund" value="@fc" id="fund_@fc.GetHashCode()">
+                                            <label class="form-check-label" for="fund_@fc.GetHashCode()">@fc</label>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="col-12 text-muted">ไม่พบข้อมูลกองทุนในตาราง tb_fund_nav</div>
+                            }
+                        </div>
+                    </div>
+                    <small class="text-muted">ทั้งหมด @(funds?.Rows.Count ?? 0) กองทุน</small>
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="btn-group">
+            <button type="button" class="btn btn--red btn-icon" onclick="apConfirmDelete();">
+                <i class="bi bi-trash"></i> ลบข้อมูล NAV
+            </button>
+            <a href="/Admin/User/LastActivity" class="btn btn--gray">ยกเลิก</a>
+        </div>
+    </form>
+</div>
+
+<br /><br /><br />
+
+@section Scripts{
+<script>
+    $(document).ready(function () {
+        $('#ap_check_all').on('change', function () {
+            $('.ap-fund').prop('checked', $(this).is(':checked'));
+        });
+    });
+
+    function apConfirmDelete() {
+        var n = $('.ap-fund:checked').length;
+        var d = $(':input[name="nav_date"]').val();
+        if (!d) { sAlert('ข้อมูลไม่ครบ', 'กรุณาระบุวันที่ NAV', 'warning'); return false; }
+        if (n === 0) { sAlert('ข้อมูลไม่ครบ', 'กรุณาเลือกกองทุนอย่างน้อย 1 รายการ', 'warning'); return false; }
+
+        Swal.fire({
+            title: 'ยืนยันการลบ',
+            html: 'ลบข้อมูล NAV วันที่ <b>' + d + '</b> จำนวน <b>' + n + '</b> กองทุน ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#00295A',
+            cancelButtonColor: '#BC1320',
+            confirmButtonText: 'ใช่, ลบเลย',
+            cancelButtonText: 'ยกเลิก'
+        }).then(function (result) {
+            if (result.isConfirmed) { document.getElementById('fm_navdel').submit(); }
+        });
+        return false;
+    }
+</script>
+}

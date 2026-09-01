@@ -83,6 +83,19 @@
             /// ถ้าไม่ครบ จะแสดง URL เป็นข้อความ + ป้ายเตือน แทนลิงก์ที่กดแล้วไม่เจอ
             /// </summary>
             public List<string>? FrontLinkRequire1Fields { get; set; } = null;
+            /// <summary>
+            /// เมนูนี้ทำงานบน "ตารางระบบเดิม" (backoffice ASP ของ Asset Plus — ตาราง <c>tb_*</c> ไม่มี prefix 2026_)
+            /// สคีมาต่างจากระบบใหม่ จึงต้องใช้ <c>AdminLegacyController</c> เป็น base:
+            ///   ไม่มี <c>web_id</c> / <c>created_at</c> / <c>updated_at</c> / <c>created_by</c> / <c>updated_by</c> / <c>approve_by</c>
+            ///   ใช้ <c>lastcreate</c> <c>lastupdate</c> (unix seconds) + <c>last_user</c> + <c>pb_last_user</c> แทน
+            /// </summary>
+            public bool? LegacyTable { get; set; } = false;
+            /// <summary>ตารางเดิมที่คอลัมน์ <c>id</c> ไม่ใช่ IDENTITY — ตอน insert ต้องคำนวณ id เอง (MAX(id)+1) เหมือนระบบเดิม</summary>
+            public bool? LegacyIdManual { get; set; } = false;
+            /// <summary>เขียน/ลบคิวรออนุมัติในตาราง <c>tb_admin_approve</c> ให้ตรงกับระบบเดิม (เมนู Approve List ของหลังบ้านเดิมจะเห็นด้วย)</summary>
+            public bool? LegacyApproveQueue { get; set; } = true;
+            /// <summary>ฟิลด์ที่ต้องไม่ซ้ำในตาราง (ตรวจก่อน insert/update) เช่น <c>datatype</c> ของ tb_calendar_category</summary>
+            public List<string>? UniqueFields { get; set; } = null;
             public string UseViewListFrom { get; set; } = "AdminCore";
             public string UseViewDetailFrom { get; set; } = "AdminCore";
             public string UseViewCreateFrom { get; set; } = "AdminCore";

@@ -103,12 +103,12 @@
     }
 
     .btn--edit {
-        background-color: #3E75CE;
+        background-color: #004699;
         color: $white;
         transition: 0.4s, background-position 0s;
 
         &:hover {
-            background-color: #013CA6;
+            background-color: #00326E;
         }
     }
 
@@ -228,3 +228,72 @@
         }
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Asset Plus brand override — คลาส primary/info ของ Bootstrap + ธีม Datta Able
+   (ถ้า compile ใหม่ ต้องคง override ชุดนี้ไว้ ไม่งั้นปุ่มจะกลับเป็นฟ้า #04a9f5 ของ template)
+   --------------------------------------------------------------------------- */
+
+// ===========================================================================
+   Asset Plus brand override — คลาส primary/info ของ Bootstrap + ธีม Datta Able
+   (assets/css/style.css ตั้ง .btn-primary เป็นฟ้า #04a9f5 ของ template)
+   ไฟล์นี้ถูกโหลดหลัง style.css จึงเขียนทับได้ด้วย specificity เท่ากัน
+   =========================================================================
+.btn-primary {
+  --bs-btn-bg: #00295A;
+  --bs-btn-border-color: #00295A;
+  --bs-btn-hover-bg: #004699;
+  --bs-btn-hover-border-color: #004699;
+  --bs-btn-active-bg: #00326E;
+  --bs-btn-active-border-color: #00326E;
+  --bs-btn-disabled-bg: #00295A;
+  --bs-btn-disabled-border-color: #00295A;
+  color: #fff;
+  background-color: #00295A;
+  border-color: #00295A;
+}
+.btn-primary:hover {
+  color: #fff;
+  background-color: #004699;
+  border-color: #004699;
+}
+.btn-primary.disabled, .btn-primary:disabled {
+  color: #fff;
+  background-color: #00295A;
+  border-color: #00295A;
+}
+.btn-primary:not(:disabled):not(.disabled).active,
+.btn-primary:not(:disabled):not(.disabled):active,
+.show > .btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #00326E;
+  border-color: #00326E;
+}
+.btn-outline-primary {
+  color: #00295A;
+  border-color: #00295A;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:not(:disabled):not(.disabled):active {
+  color: #fff;
+  background-color: #00295A;
+  border-color: #00295A;
+}
+.text-primary { color: #00295A !important; }
+.bg-primary { background-color: #00295A !important; }
+.border-primary { border-color: #00295A !important; }
+.btn-info {
+  color: #fff;
+  background-color: #00B4E5;
+  border-color: #00B4E5;
+}
+.btn-info:hover,
+.btn-info:not(:disabled):not(.disabled):active {
+  color: #fff;
+  background-color: #009FCC;
+  border-color: #009FCC;
+}
+.text-info { color: #009FCC !important; }
+.bg-info { background-color: #00B4E5 !important; }
+

@@ -604,6 +604,21 @@ border-radius: 0.25rem;
                     {
                         <td>-</td>  
                     }
+                    else if (head.Key == "lastcreate" || head.Key == "lastupdate")
+                    {
+                        @* ตารางระบบเดิม (tb_*) เก็บเวลาเป็น unix seconds ไม่ใช่ datetime *@
+                        <td>
+                            @{
+                                string _unixTxt = item[head.Key] + "";
+                                string _unixOut = _unixTxt;
+                                if (long.TryParse(_unixTxt, out long _unixVal) && _unixVal > 0)
+                                {
+                                    _unixOut = DateTimeOffset.FromUnixTimeSeconds(_unixVal).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss");
+                                }
+                            }
+                            <a href="javascript:;" title="แก้ไขโดย @(item.Table.Columns.Contains("last_user") ? item["last_user"] + "" : "")">@_unixOut</a>
+                        </td>
+                    }
                     else if (head.Key == "created_at")
                     {
                         <td><a href="javascript:;" title="สร้างโดย @item["created_by"]">@(((DateTime)item[head.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</a></td>
@@ -615,6 +630,12 @@ border-radius: 0.25rem;
                     else if ((head.Key).EndsWith("_date"))
                     {
                         <td>@(((DateTime)item[head.Key]).ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss"))</td>
+                    }
+                    else if (item[head.Key] is DateTime)
+                    {
+                        @* คอลัมน์ชนิดวันที่ของตารางระบบเดิม (เช่น holidaydate) — ไม่มีเวลา จึงแสดงเฉพาะวันที่ *@
+                        DateTime _dv = (DateTime)item[head.Key];
+                        <td>@(_dv.TimeOfDay == TimeSpan.Zero ? _dv.ToString("dd/MM/yyyy") : _dv.ToString("dd/MM/yyyy HH:mm:ss"))</td>
                     } 
                     else if (head.Key == "pb_status")
                     {
@@ -622,7 +643,9 @@ border-radius: 0.25rem;
                         @{
                             if (item[head.Key].ToString() == "1")
                             {
-                                 <h6><span class="badge bg-success" title="อนุมัติโดย @item["approve_by"]">Published</span></h6>
+                                 string _approver = item.Table.Columns.Contains("approve_by") ? item["approve_by"] + ""
+                                                       : (item.Table.Columns.Contains("pb_last_user") ? item["pb_last_user"] + "" : "");
+                                 <h6><span class="badge bg-success" title="อนุมัติโดย @_approver">Published</span></h6>
                             }
                             else if (item[head.Key].ToString() == "0" && mod_config.CanApprove == true)
                             {

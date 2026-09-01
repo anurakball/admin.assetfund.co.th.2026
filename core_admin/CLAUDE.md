@@ -292,7 +292,7 @@ MySQL:      Server=localhost; Database=sam_npa;        UserID=root; Password=(�
 
 - ปกติเซิร์ฟเวอร์รันค้างอยู่แล้วที่ `https://localhost:7140/` — **ไม่ต้อง `dotnet run` ใหม่ถ้าเข้าได้**
 - ถ้าเข้าไม่ได้ → `dotnet run --launch-profile https` แล้ว **รอจนพอร์ต 7140 listen** (ใช้เวลาสักครู่) ค่อยทดสอบ
-- ทดสอบด้วย **Playwright** และ **ต้อง login ก่อนเสมอ** ด้วย `user` / `Asset@2026`
+- ทดสอบด้วย **Playwright** และ **ต้อง login ก่อนเสมอ** ด้วย `user` / `P@ssw0rd`
 - ลำดับการเข้าหลังบ้าน: `https://localhost:7140/` → redirect ไป `/Admin/User/Login?webID=&targetUrl=/Admin`
   → กรอก user/pass โดยปล่อย dropdown ไว้ที่ **เว็บไซต์หลัก** (webID = 0) → `/Admin/User/Dashboard`
   → กดปุ่ม **Admin Panel** → `/Admin/User/LastActivity` คือหน้าหลังบ้าน
@@ -321,13 +321,13 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{Comman
 
 ```bash
 # 1) ทำ hash ของรหัสใหม่ (SHA512 hex ตัวเล็ก)
-printf '%s' 'Asset@2026' | sha512sum
+printf '%s' 'P@ssw0rd' | sha512sum
 # 2) เขียนลง DB + ปลดล็อก + ปิด force change password
 sqlcmd -S . -U sa -P sasa -d asset_plus_uat -Q "update [2026_web_admin] set password='<hash>', status=1, force_change_password=0, use_otp=0, last_change_password_at=getdate() where id=1;"
 ```
 
-hash ของ `Asset@2026` =
-`88873ff5f6790837a23b486bebfb61b117c9387e202447f284a2a2ce26e06022ad0a6a6a9969f46980451708b94c48c37021791111c9562746b6500104ae5945`
+hash ของ `P@ssw0rd` =
+`6bfcc4026b5f162799a6dc8305c09db9c1674ac616bd5c7422a45fbb6d0816ac163047c47a1f426f4f4c6b5b5042c671eabc4fdc7310fd5b183eef59dc274604`
 
 ## เว็บไซต์ front-end (เว็บสาธารณะ / public site)
 

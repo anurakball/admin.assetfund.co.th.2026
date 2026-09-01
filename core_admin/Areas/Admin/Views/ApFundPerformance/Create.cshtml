@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    string wsUrl = ViewBag.WsUrl + "";
+    string wsOp = ViewBag.WsOperation + "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDate("วันที่ (Performance Date)", "nav_date", DateTime.Now.ToString("dd/MM/yyyy")))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="field">
+                    <label class="form-label">แหล่งข้อมูล</label>
+                    <div class="p-3" style="background:#f7f9fc;border:1px solid #e3e8ef;border-radius:8px;">
+                        <div class="mb-2">
+                            <i class="bi bi-hdd-network"></i>
+                            <b>Web Service ระบบเดิม</b> :
+                            <code>@(string.IsNullOrEmpty(wsUrl) ? "(ยังไม่ได้ตั้งค่า AssetPlusWS:URL)" : wsUrl)</code>
+                            &nbsp;→&nbsp; operation <code>@wsOp</code>
+                        </div>
+                        <div class="text-muted" style="font-size:.9rem;">
+                            ระบบจะเรียก web service ตัวเดียวกับหลังบ้านเดิมเพื่อดึงข้อมูลตามวันที่ที่เลือก
+                            แล้วบันทึกลงตารางเดิมโดยตรง
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-8 mb-3">
+                <div class="field">
+                    <label for="id_xml_file" class="form-label">หรือ อัปโหลดไฟล์ XML แทน (ไม่บังคับ)</label>
+                    <input type="file" class="form-control" id="id_xml_file" name="xml_file" accept=".xml,text/xml">
+                    <small class="text-muted">
+                        ใช้เมื่อเข้า web service ไม่ได้ — รองรับไฟล์รูปแบบเดียวกับที่ระบบเดิมบันทึกไว้
+                        (เช่น <code>FundReturnPerformance.xml</code>) ถ้าเลือกไฟล์ ระบบจะใช้ไฟล์นี้แทนการเรียก web service
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="btn-group">
+            <button type="submit" class="btn btn--primary btn-icon">
+                <i class="bi bi-cloud-arrow-down"></i> ดึงข้อมูล
+            </button>
+            <a href="/Admin/@mod.Name" class="btn btn--gray">ยกเลิก</a>
+        </div>
+    </form>
+</div>
+
+<br /><br /><br />

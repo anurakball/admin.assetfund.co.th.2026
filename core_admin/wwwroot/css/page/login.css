@@ -37,7 +37,7 @@ section#formHolder {
   top: 100%;
   width: 75px;
   height: 4px;
-  background: #F79727;
+  background: #00B4E5;
 }
 .section .head .title-form.no-border:before {
   display: none;
@@ -71,7 +71,7 @@ section#formHolder {
   border-radius: 21px;
 }
 .brand a.logo {
-  color: #0146B2;
+  color: #00295A;
   font-size: 20px;
   font-weight: 700;
   text-decoration: none;
@@ -131,7 +131,7 @@ section#formHolder {
   font-size: 12px;
   text-transform: uppercase;
   padding: 8px 30px;
-  background: #0146B2;
+  background: #00295A;
   text-decoration: none;
   color: #fff;
   border-radius: 30px;
@@ -210,10 +210,10 @@ section#formHolder {
 }
 .form form .form-group .form-control:focus {
   box-shadow: none;
-  border-bottom: 1px solid #0146B2;
+  border-bottom: 1px solid #00295A;
 }
 .form form .form-group .form-control:valid {
-  color: #0146B2;
+  color: #00295A;
 }
 .form form label {
   font-size: 12px;
@@ -242,7 +242,7 @@ section#formHolder {
   border: none;
   font-size: 0.825rem;
   line-height: 1rem;
-  color: #0146B2;
+  color: #00295A;
   padding-left: 0;
   padding-right: 0;
 }
@@ -304,8 +304,8 @@ section#formHolder {
   min-width: 120px;
 }
 .swal2-container .swal2-popup .swal2-actions .swal2-styled.swal2-confirm {
-  background-color: #0146B2;
-  border: 1px solid #0146B2;
+  background-color: #00295A;
+  border: 1px solid #00295A;
   color: #FFFFFF;
   transition: 0.4s, background-position 0s;
 }

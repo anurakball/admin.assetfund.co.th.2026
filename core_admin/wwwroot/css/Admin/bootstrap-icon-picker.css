@@ -41,7 +41,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 20px;
-    background: #0047B6;
+    background: #00295A;
     color: #fff;
 }
 .bsicon-modal-title { font-size: 1.05rem; font-weight: 600; }
@@ -119,7 +119,7 @@
     text-overflow: ellipsis;
     flex: 0 0 auto;
 }
-.bsicon-cell:hover { border-color: #0047B6; background: #f1f6ff; transform: translateY(-1px); }
-.bsicon-cell:hover i { color: #0047B6; }
-.bsicon-cell.active { border-color: #0047B6; background: #e3edff; box-shadow: inset 0 0 0 1px #0047B6; }
-.bsicon-cell.active i { color: #0047B6; }
+.bsicon-cell:hover { border-color: #00295A; background: #f1f6ff; transform: translateY(-1px); }
+.bsicon-cell:hover i { color: #00295A; }
+.bsicon-cell.active { border-color: #00295A; background: #e3edff; box-shadow: inset 0 0 0 1px #00295A; }
+.bsicon-cell.active i { color: #00295A; }

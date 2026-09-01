@@ -54,7 +54,7 @@ builder.Services.AddSession(options =>
     // front-end app. Cookies are scoped by host only (not port, per RFC 6265), so a
     // shared default name (.AspNetCore.Session) on the same localhost host lets the
     // front-end overwrite the admin session cookie and silently log the admin out.
-    options.Cookie.Name = "SAM.Admin.Session";
+    options.Cookie.Name = "AssetPlus.Admin.Session";
     options.IdleTimeout = TimeSpan.FromSeconds(60 * 60 * 24);//sec*min*hr
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;

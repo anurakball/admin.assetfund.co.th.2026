@@ -3,7 +3,7 @@
 }
 
 .bg--primary {
-  background-color: #0047B6;
+  background-color: #00295A;
 }
 
 .tooltip .tooltip-inner {
@@ -11,9 +11,8 @@
 }
 
 .intropage-wrapper .img-bgintro {
-  background-image: url("../../images/intro/bg-intro.png");
-  background-repeat: no-repeat;
-  background-size: cover;
+  /* เดิมอ้างรูป bg-intro.png ซึ่งไม่มีอยู่จริง (404 ทุกครั้งที่เปิด Dashboard)
+     ตัดทิ้ง — พื้นหลังใช้สี navy ของแบรนด์จาก .bg--primary แทน */
   width: 100%;
   padding: 6rem 0;
 }
@@ -57,7 +56,7 @@
   font-size: 1.25rem;
 }
 .intropage-wrapper .box-display .head-display .icon-display:hover {
-  background-color: #0047b6;
+  background-color: #00295A;
   transition: all 0.3s ease-out;
 }
 .intropage-wrapper .box-display .head-display .icon-display:hover i {

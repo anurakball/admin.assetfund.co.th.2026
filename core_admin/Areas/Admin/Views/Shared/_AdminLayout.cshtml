@@ -27,6 +27,9 @@
     <meta name="csrf-token" content="@GetCsrfToken()" csrf-param="_csrf_token" method-param="_method">
     <meta name="web-id" content="@(HttpContextAccessor.HttpContext.Session.GetInt32("admin_web_id") ?? 0)" >
     <meta name="elfinder-roots-hash" content="@(HttpContextAccessor.HttpContext.Session.GetString("admin_elfinder_root_hash") ?? "")" >
+    <!-- Favicon : ตราสัญลักษณ์ ASSET PLUS - Fund Management -->
+    <link rel="icon" href="~/favicon.ico?v=ap2026" type="image/x-icon" />
+    <link rel="shortcut icon" href="~/favicon.ico?v=ap2026" type="image/x-icon" />
 
     <!-- Google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,8 +83,8 @@
     <!-- animation css -->
     <link href="~/assets/plugins/animation/css/animate.min.css" rel="stylesheet" />
     <!-- vendor css -->
-    <link href="~/assets/css/style.css" rel="stylesheet" />
-    <link href="~/css/main.min.css" rel="stylesheet" />
+    <link href="~/assets/css/style.css?v=ap2026" rel="stylesheet" />
+    <link href="~/css/main.min.css?v=ap2026" rel="stylesheet" />
     <!-- //Plugin html -->
 
 
@@ -96,16 +99,16 @@
 
     @*  ธีมเนื้อหา CKEditor — ให้พื้นที่พิมพ์ (.ck-content) แสดงสี/สไตล์เหมือนหน้าเว็บจริง (front-end)
         - scope = .ck-editor__editable.ck-content (พื้นที่พิมพ์เท่านั้น ไม่กระทบ UI อื่นของ admin)
-        - ใช้ 2 class เพื่อ specificity สูงกว่า default ของ CKEditor (.ck-content ...) จึง override สีหัวตาราง (เทา -> เขียว) ได้โดยไม่ต้องใช้ !important
+        - ใช้ 2 class เพื่อ specificity สูงกว่า default ของ CKEditor (.ck-content ...) จึง override สีหัวตาราง (เทา -> น้ำเงิน) ได้โดยไม่ต้องใช้ !important
         - ใช้ค่าสี hex ตรง ๆ เพราะ admin ไม่มีตัวแปร --clr-* ของ front-end
         - ไม่พอร์ต max-width/จัดกึ่งกลาง และ overflow-x ของ figure.table มา เพราะจะรบกวน widget แก้ไขตารางใน editor  *@
     <style type="text/css">
-        /* หัวข้อ: สีเขียวแบรนด์ + ขนาดไล่ระดับ (เทียบเท่า front-end) */
+        /* หัวข้อ: สีน้ำเงินแบรนด์ + ขนาดไล่ระดับ (เทียบเท่า front-end) */
         .ck-editor__editable.ck-content h2,
         .ck-editor__editable.ck-content h3,
         .ck-editor__editable.ck-content h4,
         .ck-editor__editable.ck-content h5 {
-            color: #286140;
+            color: #00295A;
             font-weight: 700;
             line-height: 1.3;
         }
@@ -118,7 +121,7 @@
         .ck-editor__editable.ck-content strong,
         .ck-editor__editable.ck-content b { font-weight: 700; color: #363636; }
         .ck-editor__editable.ck-content a {
-            color: #429f69;
+            color: #00295A;
             text-decoration: underline;
             text-underline-offset: 2px;
         }
@@ -127,7 +130,7 @@
         .ck-editor__editable.ck-content ul,
         .ck-editor__editable.ck-content ol { padding-left: 1.5em; }
         .ck-editor__editable.ck-content li { margin-bottom: 0.5em; }
-        .ck-editor__editable.ck-content li::marker { color: #429f69; }
+        .ck-editor__editable.ck-content li::marker { color: #00B4E5; }
 
         /* รูปภาพ + คำบรรยายรูป (figcaption) */
         .ck-editor__editable.ck-content img { border-radius: 16px; }
@@ -140,24 +143,24 @@
         /* blockquote */
         .ck-editor__editable.ck-content blockquote {
             padding: 1em 1.5em;
-            border-left: 4px solid #429f69;
+            border-left: 4px solid #00B4E5;
             background: #f9f9f9;
             border-radius: 0 8px 8px 0;
             color: #4a4a4a;
             font-style: italic;
         }
 
-        /* ตาราง: หัวตารางสีเขียว + เส้นขอบ + zebra (ให้เหมือน front-end แทนหัวสีเทา default ของ CKEditor) */
+        /* ตาราง: หัวตารางสีน้ำเงิน + เส้นขอบ + zebra (ให้เหมือน front-end แทนหัวสีเทา default ของ CKEditor) */
         .ck-editor__editable.ck-content .table table th,
         .ck-editor__editable.ck-content .table table td {
             border: 1px solid #ececec;
             padding: 0.7em 1em;
         }
         .ck-editor__editable.ck-content .table table th {
-            background: #429f69;
+            background: #00295A;
             color: #ffffff;
             font-weight: 600;
-            border-color: #429f69;
+            border-color: #00295A;
         }
         .ck-editor__editable.ck-content .table table tbody tr:nth-child(even) td { background: #f9f9f9; }
 
@@ -178,10 +181,10 @@
         <div class="m-header">
             <a class="mobile-menu" id="mobile-collapse1" href="javascript:"><span></span></a>
             <a href="/" class="b-brand">
-                <div class="b-bg">
-                    <img src="/assets/images/icon/SAM_logo-white-pink.png" />
+                <div class="b-bg" style="width:100px;">
+                    <img src="/assets/images/icon/assetplus-logo-white.png" style="width:100%;" />
                 </div>
-                <span class="b-title">บริษัท บริหารสินทรัพย์สุขุมวิท จำกัด</span>
+                <span class="b-title">บลจ. แอสเซท พลัส</span>
             </a>
         </div>
         <a class="mobile-menu" id="mobile-header" href="javascript:">
@@ -224,7 +227,8 @@
 
                     @{
                         var moduleName = ViewBag.ModuleName;
-                        var icon = new AdminMenu().Menu().SelectMany(x => x.SubMenu).FirstOrDefault(x => x.ModuleName == moduleName)?.Icon;
+                        var icon = new AdminMenu().Menu().SelectMany(x => x.SubMenu).FirstOrDefault(x => x.ModuleName == moduleName)?.Icon
+                            ?? "fa-solid fa-window-maximize";   // เมนูที่ถูก comment ซ่อนไว้จะหาไอคอนไม่เจอ จึงใส่ไอคอนกลางไว้กัน <i> ว่าง
                     }
 
                     <div class="page-header">

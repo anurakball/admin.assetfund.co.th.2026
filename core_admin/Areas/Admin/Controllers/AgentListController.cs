@@ -409,7 +409,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 string firstname = (r["name"]?.ToString() ?? "").Trim();
                 string surname = (r["surname"]?.ToString() ?? "").Trim();
 
-                string subject = $"ยินดีต้อนรับสู่การเป็นตัวแทน SAM คุณ{firstname}";
+                string subject = $"ยินดีต้อนรับสู่การเป็นตัวแทน Asset Plus คุณ{firstname}";
                 string body = BuildWelcomeEmailBody(firstname, surname);
                 string ccList = string.Join(",", GetWelcomeCcEmails());
 
@@ -460,7 +460,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 string surname = (r["surname"]?.ToString() ?? "").Trim();
                 string codeid = (r["codeid"]?.ToString() ?? "").Trim();
 
-                string subject = $"แจ้งผลการพิจารณาการสมัครเป็นตัวแทนขายทรัพย์ SAM คุณ{firstname}";
+                string subject = $"แจ้งผลการพิจารณาการสมัครเป็นตัวแทนขายทรัพย์ Asset Plus คุณ{firstname}";
                 string body = BuildRejectEmailBody(firstname, surname, codeid);
                 string ccList = string.Join(",", GetWelcomeCcEmails());
 
@@ -480,7 +480,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             return $@"
 <div style=""font-family:'Sarabun',Tahoma,Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;line-height:1.7;"">
   <p>เรียน คุณ {fullName}</p>
-  <p>ยินดีต้อนรับสู่การเป็น <strong>ตัวแทนขายทรัพย์ SAM</strong> 🎉</p>
+  <p>ยินดีต้อนรับสู่การเป็น <strong>ตัวแทนขายทรัพย์ Asset Plus</strong> 🎉</p>
   <p>การสมัครเป็นตัวแทนของคุณได้รับการ <strong>ยืนยัน</strong> เรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบเพื่อใช้งานได้ทันที</p>
   <p style=""text-align:center;margin:32px 0;"">
     <a href=""{loginUrl}"" style=""background:#00b894;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:16px;display:inline-block;"">เข้าสู่ระบบ</a>
@@ -505,7 +505,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 <div style=""font-family:'Sarabun',Tahoma,Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;line-height:1.7;"">
   <p>เรียน คุณ {fullName}</p>
   {codeLine}
-  <p>ตามที่ท่านได้สมัครเป็น <strong>ตัวแทนขายทรัพย์ SAM</strong> นั้น
+  <p>ตามที่ท่านได้สมัครเป็น <strong>ตัวแทนขายทรัพย์ Asset Plus</strong> นั้น
      บริษัทฯ ขอเรียนให้ทราบว่า ผลการพิจารณาใบสมัครของท่าน
      <strong style=""color:#c0392b;"">ไม่ผ่านการตรวจสอบ</strong></p>
   <p>หากท่านต้องการทราบรายละเอียดเพิ่มเติม หรือประสงค์จะยื่นเอกสารเพิ่มเติมเพื่อขอรับการพิจารณาอีกครั้ง
@@ -537,7 +537,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 _utility.writeLogs("GetHotlineNumber error - " + e.Message);
             }
-            return "ฝ่ายบริหารทรัพย์สิน บริษัท บริหารสินทรัพย์สุขุมวิท จำกัด";
+            return "ฝ่ายบริหารทรัพย์สิน บริษัทหลักทรัพย์จัดการกองทุน แอสเซท พลัส จำกัด";
         }
 
         /// <summary>

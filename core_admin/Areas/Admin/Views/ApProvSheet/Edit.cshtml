@@ -1,0 +1,141 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    string _uploadUrl = ViewBag.LegacyUploadUrl + "";
+    var item = (System.Data.DataRow)ViewBag.itemEdit;
+    Func<string, string> V = k => (item.Table.Columns.Contains(k) && item[k] != null) ? item[k].ToString() : "";
+    string _title = V("title");
+    string _en_title = V("en_title");
+    string _img1 = V("img1");
+    string _en_img1 = V("en_img1");
+    string _url = V("url");
+    string _en_url = V("en_url");
+    string _url_target = V("url_target");
+    string _link_type = V("link_type") == "link" ? "link" : "file";
+    string _cat_id = V("cat_id");
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputSelectDB("Group", "cat_id", _cat_id, showAllOption: true,
+                          table_name: mod_config.TableCate, value_field: "id", text_field: mod_config.TableCateTitle,
+                          order_by: mod_config.TableCateOrderby, sort: mod_config.TableCateSort, txtAllOption: "-- เลือกกลุ่ม --"))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", _title))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", _en_title))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="field">
+                    <label class="form-label mb-2">ประเภทลิงก์</label>
+                    <div class="row">
+                        <div class="col-md-3 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="link_type" id="id_link_type_file" value="file" @(_link_type == "file" ? "checked" : "")>
+                                <label class="form-check-label" for="id_link_type_file">Upload File</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="link_type" id="id_link_type_link" value="link" @(_link_type == "link" ? "checked" : "")>
+                                <label class="form-check-label" for="id_link_type_link">URL Link</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ap_type_file">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label for="id_img1" class="form-label">ไฟล์ <span class='fi fi-th'></span></label>
+                        <input type="file" class="form-control" id="id_img1" name="img1">
+                        <input type="hidden" name="img1_old" value="@_img1">
+                    @if (!string.IsNullOrEmpty(_img1))
+                    {
+                        <small class="d-block mt-1">ไฟล์ปัจจุบัน :
+                            <a href="@(_uploadUrl + _img1)" target="_blank" rel="noopener">@_img1</a>
+                        </small>
+                    }
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label for="id_en_img1" class="form-label">ไฟล์ <span class='fi fi-us'></span></label>
+                        <input type="file" class="form-control" id="id_en_img1" name="en_img1">
+                        <input type="hidden" name="en_img1_old" value="@_en_img1">
+                    @if (!string.IsNullOrEmpty(_en_img1))
+                    {
+                        <small class="d-block mt-1">ไฟล์ปัจจุบัน :
+                            <a href="@(_uploadUrl + _en_img1)" target="_blank" rel="noopener">@_en_img1</a>
+                        </small>
+                    }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ap_type_link">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("URL <span class='fi fi-th'></span>", "url", _url))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("URL <span class='fi fi-us'></span>", "en_url", _en_url))
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputUrlTarget("การเปิดลิงก์", "url_target", _url_target))
+                </div>
+            </div>
+        </div>
+
+        <br />
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+<br /><br /><br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    function apToggleLinkType() {
+        var el = document.querySelector('input[name="link_type"]:checked');
+        var isFile = !el || el.value === 'file';
+        document.getElementById('ap_type_file').style.display = isFile ? '' : 'none';
+        document.getElementById('ap_type_link').style.display = isFile ? 'none' : '';
+    }
+    $(document).ready(function () {
+        $('input[name="link_type"]').on('change', apToggleLinkType);
+        apToggleLinkType();
+    });
+</script>
+}

@@ -1232,9 +1232,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             คณะกรรมการอื่นๆ$abo-com,
             คณะผู้บริหารระดับสูง$abo-boe,
             คณะผู้บริหารฝ่าย$abo-vic,
-            การบริหารสินทรัพย์ด้อยคุณภาพ บสส.$bus-man,
+            การบริหารสินทรัพย์ด้อยคุณภาพ$bus-man,
             การบริหารทรัพย์สินรอการขาย$bus-ass,
-            การสร้างโอกาสทางธุรกิจ บสส.$bus-opp";
+            การสร้างโอกาสทางธุรกิจ$bus-opp";
 
             help_sub[2] = @"
             ค้นหาทรัพย์สิน$npa-sea,
@@ -1374,7 +1374,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 "id_" + input_name);
         }
 
-        public string InputColor(string input_label, string input_name, string input_value = "#0146B2")
+        public string InputColor(string input_label, string input_name, string input_value = "#00295A")
         {
             string html = @"
                 <div class=""field"">
@@ -1766,7 +1766,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             {
                 q_module_id = " and module_id = '" + ModuleID + "' ";
             }
-            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1} from {2} where web_id = @web_id " + q_module_id + " order by {3} {4}", value_field, text_field, Db.T(table_name), order_by, sort), new() { { "web_id", _currentWebID } });
+            //----- ตารางระบบเดิม (tb_*) ไม่มีคอลัมน์ web_id จึงต้องตัดเงื่อนไขนั้นออก -----
+            bool _isLegacy = Db.IsLegacy(table_name);
+            string _whereWebId = _isLegacy ? " where 1=1 " : " where web_id = @web_id ";
+            var _selParam = new Dictionary<string, object>();
+            if (!_isLegacy) { _selParam.Add("web_id", _currentWebID); }
+            var optionDT = _db.ExecuteQuery(string.Format("select {0}, {1} from {2} " + _whereWebId + q_module_id + " order by {3} {4}", value_field, text_field, Db.T(table_name), order_by, sort), _selParam);
             if (optionDT.Rows.Count > 0)
             {
                 foreach (System.Data.DataRow item in optionDT.Rows)

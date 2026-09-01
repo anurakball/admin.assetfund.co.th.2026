@@ -1713,7 +1713,7 @@ p.text-muted {
 .pcoded-header .input-group .input-group-text:hover,
 .pcoded-header a:hover,
 .pcoded-header dropdown-toggle:hover {
-  color: #0047B6;
+  color: #00295A;
 }
 .pcoded-header #mobile-header {
   display: none;
@@ -1740,7 +1740,7 @@ p.text-muted {
 }
 .pcoded-header .navbar-nav > li.name-user {
   font-size: 18px;
-  color: #0047B6;
+  color: #00295A;
 }
 .pcoded-header .navbar-nav > li.name-user i {
   margin-right: 5px;
@@ -1962,7 +1962,7 @@ p.text-muted {
   border-radius: 0.25rem 0.25rem 0 0;
   padding: 15px;
   position: relative;
-  background: #0047B6;
+  background: #00295A;
 }
 .pcoded-header .dropdown .profile-notification .pro-head img {
   width: 40px;
@@ -2007,7 +2007,7 @@ p.text-muted {
   background: transparent;
 }
 .pcoded-header .dropdown.drp-user.show:before {
-  color: #0047B6;
+  color: #00295A;
 }
 
 /* header css end */

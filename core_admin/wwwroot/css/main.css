@@ -1,5 +1,5 @@
 ﻿.text-color-primary {
-  color: #0047B6;
+  color: #00295A;
 }
 
 .alert {
@@ -19,11 +19,11 @@
 }
 
 .pcoded-navbar {
-  background-color: #0047B6;
+  background-color: #00295A;
   box-shadow: 1px 0 20px 0 #999;
 }
 .pcoded-navbar .navbar-wrapper .navbar-brand {
-  background-color: #0047B6;
+  background-color: #00295A;
 }
 .pcoded-navbar .navbar-wrapper .header-logo .b-brand .b-title {
   color: #fff;
@@ -42,16 +42,16 @@
   background-color: transparent;
 }
 .pcoded-navbar .pcoded-inner-navbar li .nav-link:hover .pcoded-micon i {
-  color: #F79727;
+  color: #00B4E5;
 }
 .pcoded-navbar .pcoded-inner-navbar li .nav-link:hover .pcoded-mtext {
-  color: #F79727;
+  color: #00B4E5;
 }
 .pcoded-navbar .pcoded-inner-navbar li .nav-link:hover:after {
-  color: #F79727;
+  color: #00B4E5;
 }
 .pcoded-navbar .pcoded-inner-navbar .nav-item.active a {
-  background-color: #3E75CE;
+  background-color: #004699;
 }
 .pcoded-navbar .pcoded-inner-navbar .nav-item.active a:hover .pcoded-micon i {
   color: #fff;
@@ -63,16 +63,16 @@
   color: #fff;
 }
 .pcoded-navbar .pcoded-inner-navbar .nav-item.active:after {
-  background-color: #F79727;
+  background-color: #00B4E5;
 }
 .pcoded-navbar .pcoded-inner-navbar .nav-item .pcoded-submenu li:hover a {
-  color: #F79727 !important;
+  color: #00B4E5 !important;
 }
 .pcoded-navbar .pcoded-inner-navbar .nav-item .pcoded-submenu li:hover a:before {
-  background-color: #F79727 !important;
+  background-color: #00B4E5 !important;
 }
 .pcoded-navbar .pcoded-inner-navbar .pcoded-trigger .nav-link {
-  background-color: #3E75CE;
+  background-color: #004699;
 }
 .pcoded-navbar .pcoded-inner-navbar .pcoded-trigger .nav-link:hover .pcoded-micon i {
   color: #fff;
@@ -84,16 +84,16 @@
   color: #fff;
 }
 .pcoded-navbar .pcoded-inner-navbar .pcoded-trigger .pcoded-submenu .active a {
-  color: #F79727;
+  color: #00B4E5;
 }
 .pcoded-navbar .pcoded-inner-navbar .pcoded-trigger .pcoded-submenu .active a:before {
-  background: #F79727;
+  background: #00B4E5;
 }
 .pcoded-navbar .pcoded-inner-navbar .pcoded-trigger:after {
-  background-color: #F79727 !important;
+  background-color: #00B4E5 !important;
 }
 .pcoded-navbar .pcoded-submenu {
-  background: #013CA6;
+  background: #00326E;
 }
 
 .navbar-collapsed .navbar-wrapper .navbar-content.scroll-div {
@@ -161,10 +161,10 @@
   line-height: 1.25rem;
 }
 .card__dash:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
 }
 .card__dash:hover .card-block .card--icon {
-  background-color: #F79727;
+  background-color: #00B4E5;
 }
 .card__dash:hover .card-block .card--icon i {
   color: #fff;
@@ -179,7 +179,7 @@
 
 @media only screen and (max-width: 991px) {
   .pcoded-header {
-    background-color: #0047B6;
+    background-color: #00295A;
   }
   .pcoded-header .m-header .b-brand .b-title {
     font-weight: 600;
@@ -227,7 +227,7 @@
 .page-header .page-block .page-header-title .title {
   font-size: 2.75rem;
   line-height: 3.75rem;
-  color: #0047B6;
+  color: #00295A;
   font-weight: 600;
   position: relative;
 }
@@ -237,7 +237,7 @@
   top: 100%;
   width: 75px;
   height: 4px;
-  background: #F79727;
+  background: #00B4E5;
 }
 @media only screen and (max-width: 767px) {
   .page-header .page-block .page-header-title .title {
@@ -259,8 +259,8 @@
   margin-top: 10px;
 }
 .condition--password .alert-passsword {
-  background-color: #0047B6;
-  border-color: #0047B6;
+  background-color: #00295A;
+  border-color: #00295A;
 }
 .condition--password .alert-passsword .alert-heading {
   color: #fff;
@@ -279,7 +279,7 @@
   height: 0;
   border-style: solid;
   border-width: 0 12.5px 12.5px 12.5px;
-  border-color: transparent transparent #0047B6 transparent;
+  border-color: transparent transparent #00295A transparent;
   margin: auto;
 }
 .condition--password .alert-passsword.no-border:before {
@@ -316,10 +316,10 @@
   margin-right: 0;
 }
 .popoverWrapper .popover-content .display:hover i {
-  color: #0047B6;
+  color: #00295A;
 }
 .popoverWrapper .popover-content .display:hover .text {
-  color: #0047B6;
+  color: #00295A;
 }
 .popoverWrapper .popover-content .close-popover {
   position: absolute;
@@ -332,7 +332,7 @@
   display: flex;
 }
 .popoverWrapper.show .popover-opener .btn-group .btn {
-  background-color: #F79727;
+  background-color: #00B4E5;
   color: #FFFFFF;
 }
 .popoverWrapper.show .popover-content {
@@ -381,20 +381,20 @@
   margin-right: 10px;
 }
 .btn-group .btn--primary {
-  background-color: #0047B6;
+  background-color: #00295A;
   color: #FFFFFF;
   transition: 0.4s, background-position 0s;
 }
 .btn-group .btn--primary:hover {
-  background-color: #F79727;
+  background-color: #00B4E5;
 }
 .btn-group .btn--secondary {
-  background-color: #F79727;
+  background-color: #00B4E5;
   color: #FFFFFF;
   transition: 0.4s, background-position 0s;
 }
 .btn-group .btn--secondary:hover {
-  background-color: #F79727;
+  background-color: #00B4E5;
 }
 .btn-group .btn--gray {
   background-color: #8B8B8B;
@@ -429,27 +429,27 @@
   background-color: #4a934a;
 }
 .btn-group .btn--edit {
-  background-color: #3E75CE;
+  background-color: #004699;
   color: #FFFFFF;
   transition: 0.4s, background-position 0s;
 }
 .btn-group .btn--edit:hover {
-  background-color: #013CA6;
+  background-color: #00326E;
 }
 .btn-group .btn--outline--primary {
-  border-color: #0047B6;
-  color: #0047B6;
+  border-color: #00295A;
+  color: #00295A;
 }
 .btn-group .btn--outline--primary:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
   color: #FFFFFF;
 }
 .btn-group .btn--outline--secondary {
-  border-color: #F79727;
-  color: #F79727;
+  border-color: #00B4E5;
+  color: #00B4E5;
 }
 .btn-group .btn--outline--secondary:hover {
-  background-color: #F79727;
+  background-color: #00B4E5;
   color: #FFFFFF;
 }
 .btn-group .btn--outline--red {
@@ -620,7 +620,7 @@
   line-height: 1.75rem;
 }
 .form-wrapper .field .form-control:focus {
-  border-color: #0047B6;
+  border-color: #00295A;
 }
 .form-wrapper .field .form-control:read-only {
   background-color: #FFFFFF;
@@ -637,7 +637,7 @@
   line-height: 1.75rem;
 }
 .form-wrapper .field .form-select optgroup[label] {
-  color: #0047B6;
+  color: #00295A;
   font-size: 1.25rem;
   font-weight: 600;
   text-shadow: none;
@@ -650,20 +650,20 @@
   color: #4A4A4A;
 }
 .form-wrapper .field .form-select:focus {
-  border-color: #0047B6;
+  border-color: #00295A;
 }
 .form-wrapper .field .form-check-input {
   margin-left: -18px;
 }
 .form-wrapper .field .form-check-input:checked {
-  background-color: #0047B6;
-  border-color: #0047B6;
+  background-color: #00295A;
+  border-color: #00295A;
 }
 .form-wrapper .field .form-check-input:focus {
   box-shadow: none;
 }
 .form-wrapper .field .form-check-input:checked + label {
-  color: #0047B6;
+  color: #00295A;
 }
 .form-wrapper .field .form-check-label {
   font-size: 1rem;
@@ -671,10 +671,10 @@
   padding-left: 5px;
 }
 .form-wrapper .field .form-check-label a {
-  color: #0047B6;
+  color: #00295A;
 }
 .form-wrapper .field .form-check-label a:hover {
-  color: #F79727;
+  color: #00B4E5;
 }
 .form-wrapper .field .input-file {
   height: 40px;
@@ -751,8 +751,8 @@
   cursor: pointer;
 }
 .form-wrapper .form-switch .form-check-input:checked {
-  background-color: #0047B6;
-  border-color: #0047B6;
+  background-color: #00295A;
+  border-color: #00295A;
 }
 .form-wrapper .form-switch .form-check-input:disabled {
   cursor: default;
@@ -768,7 +768,7 @@
   width: 100%;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed thead tr th.datepicker-switch:hover, .datepicker.dropdown-menu .datepicker-days .table-condensed thead tr th.prev:hover, .datepicker.dropdown-menu .datepicker-days .table-condensed thead tr th.next:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed thead tr th.datepicker-switch:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed thead tr th.prev:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed thead tr th.next:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed thead tr th.datepicker-switch:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed thead tr th.prev:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed thead tr th.next:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed thead tr th.datepicker-switch:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed thead tr th.prev:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed thead tr th.next:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
   background-image: none;
   color: #fff;
 }
@@ -776,11 +776,11 @@
   border-radius: 0;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td.day.active, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td.day.active, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td.day.active, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td.day.active {
-  background-color: #0047B6;
+  background-color: #00295A;
   background-image: none;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td.day.range, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td.day.range, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td.day.range, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td.day.range {
-  background-color: #3E75CE;
+  background-color: #004699;
   background-image: none;
   color: #fff;
 }
@@ -789,47 +789,47 @@
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td.day.range-start.selected, .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td.day.range-end.selected, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td.day.range-start.selected, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td.day.range-end.selected, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td.day.range-start.selected, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td.day.range-end.selected, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td.day.range-start.selected, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td.day.range-end.selected {
   background-image: none;
-  background-color: #0047B6;
+  background-color: #00295A;
   color: #fff;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td.day:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td.day:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td.day:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td.day:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td .month.focused, .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td .year.focused, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td .month.focused, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td .year.focused, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td .month.focused, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td .year.focused, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td .month.focused, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td .year.focused {
-  background-color: #0047B6;
+  background-color: #00295A;
   background-image: none;
   color: #fff;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td .month:hover, .datepicker.dropdown-menu .datepicker-days .table-condensed tbody tr td .year:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td .month:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed tbody tr td .year:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td .month:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed tbody tr td .year:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td .month:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed tbody tr td .year:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
   color: #fff;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tfoot tr th.today:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed tfoot tr th.today:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed tfoot tr th.today:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed tfoot tr th.today:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
   background-image: none;
   color: #fff;
 }
 .datepicker.dropdown-menu .datepicker-days .table-condensed tfoot tr th.clear:hover, .datepicker.dropdown-menu .datepicker-months .table-condensed tfoot tr th.clear:hover, .datepicker.dropdown-menu .datepicker-years .table-condensed tfoot tr th.clear:hover, .datepicker.dropdown-menu .datepicker-decades .table-condensed tfoot tr th.clear:hover {
-  background-color: #0047B6;
+  background-color: #00295A;
   background-image: none;
   color: #fff;
 }
 .datepicker.datepicker-dropdown {
   background-color: #fff;
-  border: 2px solid #0047B6;
-  color: #0047B6;
+  border: 2px solid #00295A;
+  color: #00295A;
 }
 .datepicker.datepicker-dropdown.datepicker-orient-top:before {
-  border-top: 7px solid #0047B6;
+  border-top: 7px solid #00295A;
 }
 .datepicker.datepicker-dropdown.datepicker-orient-top:after {
-  border-top: 6px solid #0047B6;
+  border-top: 6px solid #00295A;
 }
 .datepicker.datepicker-dropdown.datepicker-orient-bottom:before {
-  border-bottom: 7px solid #0047B6;
+  border-bottom: 7px solid #00295A;
 }
 .datepicker.datepicker-dropdown.datepicker-orient-bottom:after {
-  border-bottom: 6px solid #0047B6;
+  border-bottom: 6px solid #00295A;
 }
 
 .xdsoft_datetimepicker {
@@ -842,34 +842,34 @@
   font-family: "Noto Sans Thai", sans-serif;
 }
 .xdsoft_datetimepicker .xdsoft_datepicker .xdsoft_calendar table tbody tr td.xdsoft_today {
-  color: #F79727;
+  color: #00B4E5;
 }
 .xdsoft_datetimepicker .xdsoft_datepicker .xdsoft_calendar table tbody tr td.xdsoft_current {
-  background: #0047B6;
+  background: #00295A;
   box-shadow: none;
 }
 .xdsoft_datetimepicker .xdsoft_datepicker .xdsoft_calendar table tbody tr td.xdsoft_current.xdsoft_today {
   color: #fff;
 }
 .xdsoft_datetimepicker .xdsoft_datepicker .xdsoft_calendar table tbody tr td:hover {
-  background: #F79727 !important;
+  background: #00B4E5 !important;
 }
 .xdsoft_datetimepicker .xdsoft_timepicker .xdsoft_time_box .xdsoft_time_variant .xdsoft_time.xdsoft_current {
-  background: #0047B6;
+  background: #00295A;
   box-shadow: none;
 }
 .xdsoft_datetimepicker .xdsoft_timepicker .xdsoft_time_box .xdsoft_time_variant .xdsoft_time:hover {
-  background: #F79727;
+  background: #00B4E5;
 }
 
 .table-responsive .table thead tr {
-  background-color: #0047B6;
+  background-color: #00295A;
 }
 .table-responsive .table thead tr th {
   color: #fff;
 }
 .table-responsive .table thead tr th .text-active {
-  color: #F79727;
+  color: #00B4E5;
 }
 .table-responsive .table thead tr th .text-white {
   color: #fff;
@@ -879,7 +879,7 @@
 }
 .table-responsive .table tbody tr.table-title td {
   border-top: none;
-  color: #0047B6;
+  color: #00295A;
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -899,7 +899,7 @@
   vertical-align: middle;
 }
 .table-responsive .table tbody tr td .table-title {
-  color: #0047B6;
+  color: #00295A;
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -966,7 +966,7 @@
   pointer-events: none;
 }
 .pagination .page-item.active .page-link {
-  background-color: #0047B6;
+  background-color: #00295A;
   color: #fff;
 }
 .pagination .page-item:hover.disabled .page-link {
@@ -976,7 +976,7 @@
   color: #333;
 }
 .pagination .page-item:hover .page-link {
-  background-color: #0047B6;
+  background-color: #00295A;
   color: #fff;
 }
 .pagination .page-item:hover .page-link:before {
@@ -1028,3 +1028,67 @@ body {
 a {
   text-decoration: none;
 }
+
+/* ===========================================================================
+   Asset Plus brand override — คลาส primary/info ของ Bootstrap + ธีม Datta Able
+   (assets/css/style.css ตั้ง .btn-primary เป็นฟ้า #04a9f5 ของ template)
+   ไฟล์นี้ถูกโหลดหลัง style.css จึงเขียนทับได้ด้วย specificity เท่ากัน
+   =========================================================================== */
+.btn-primary {
+  --bs-btn-bg: #00295A;
+  --bs-btn-border-color: #00295A;
+  --bs-btn-hover-bg: #004699;
+  --bs-btn-hover-border-color: #004699;
+  --bs-btn-active-bg: #00326E;
+  --bs-btn-active-border-color: #00326E;
+  --bs-btn-disabled-bg: #00295A;
+  --bs-btn-disabled-border-color: #00295A;
+  color: #fff;
+  background-color: #00295A;
+  border-color: #00295A;
+}
+.btn-primary:hover {
+  color: #fff;
+  background-color: #004699;
+  border-color: #004699;
+}
+.btn-primary.disabled, .btn-primary:disabled {
+  color: #fff;
+  background-color: #00295A;
+  border-color: #00295A;
+}
+.btn-primary:not(:disabled):not(.disabled).active,
+.btn-primary:not(:disabled):not(.disabled):active,
+.show > .btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #00326E;
+  border-color: #00326E;
+}
+.btn-outline-primary {
+  color: #00295A;
+  border-color: #00295A;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:not(:disabled):not(.disabled):active {
+  color: #fff;
+  background-color: #00295A;
+  border-color: #00295A;
+}
+.text-primary { color: #00295A !important; }
+.bg-primary { background-color: #00295A !important; }
+.border-primary { border-color: #00295A !important; }
+.btn-info {
+  color: #fff;
+  background-color: #00B4E5;
+  border-color: #00B4E5;
+}
+.btn-info:hover,
+.btn-info:not(:disabled):not(.disabled):active {
+  color: #fff;
+  background-color: #009FCC;
+  border-color: #009FCC;
+}
+.text-info { color: #009FCC !important; }
+.bg-info { background-color: #00B4E5 !important; }
+

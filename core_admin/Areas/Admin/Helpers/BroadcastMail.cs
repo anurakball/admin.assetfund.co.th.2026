@@ -297,7 +297,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             ("ul",         "margin:0 0 12px;padding-left:24px;"),
             ("ol",         "margin:0 0 12px;padding-left:24px;"),
             ("li",         "margin:0 0 6px;"),
-            ("a",          "color:#0047B6;text-decoration:underline;"),
+            ("a",          "color:#00295A;text-decoration:underline;"),
             ("blockquote", "margin:0 0 12px;padding:8px 16px;border-left:4px solid #dfe2e5;color:#555555;"),
             ("hr",         "border:0;border-top:1px solid #e3e6ea;margin:20px 0;"),
             ("table",      "border-collapse:collapse;width:100%;margin:0 0 12px;"),

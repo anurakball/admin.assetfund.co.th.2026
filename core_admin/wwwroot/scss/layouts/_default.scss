@@ -79,7 +79,7 @@
         .nav-item {
             &.active {
                 a {
-                    background-color: #3E75CE; //#49A0EA#3E75CE
+                    background-color: #004699; //#49A0EA#004699
 
                     &:hover {
                         .pcoded-micon {
@@ -120,7 +120,7 @@
 
         .pcoded-trigger {
             .nav-link {
-                background-color: #3E75CE; //#49A0EA#3E75CE
+                background-color: #004699; //#49A0EA#004699
 
                 &:hover {
                     .pcoded-micon {
@@ -157,7 +157,7 @@
     }
 
     .pcoded-submenu {
-        background: #013CA6;
+        background: #00326E;
     }
 }
 .navbar-collapsed{
@@ -332,7 +332,7 @@
                     top: 100%;
                     width: 75px;
                     height: 4px;
-                    background: #F79727;
+                    background: #00B4E5;
                 }
             }
             @media only screen and (max-width: 767px){

@@ -1,0 +1,81 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    string _uploadUrl = ViewBag.LegacyUploadUrl + "";
+    var item = (System.Data.DataRow)ViewBag.itemEdit;
+    Func<string, string> V = k => (item.Table.Columns.Contains(k) && item[k] != null) ? item[k].ToString() : "";
+    string _datatype = V("datatype");
+    string _fundcode = V("fundcode");
+    string _holidaydate = V("holidaydate").Length >= 10 ? DateTime.Parse(V("holidaydate")).ToString("dd/MM/yyyy") : "";
+    string _desc = V("holidaydesc");
+    string _en_desc = V("en_holidaydesc");
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+
+        @{
+            var _dtList = ViewBag.DataTypeList as System.Data.DataTable;
+            string _opts = "<option value=\"\">-- เลือกหมวดหมู่ --</option>";
+            if (_dtList != null)
+            {
+                foreach (System.Data.DataRow r in _dtList.Rows)
+                {
+                    string dv = r["datatype"] + "";
+                    _opts += string.Format("<option value=\"{0}\" {2}>{0} - {1}</option>",
+                             System.Web.HttpUtility.HtmlEncode(dv),
+                             System.Web.HttpUtility.HtmlEncode(r["title"] + ""),
+                             (dv == _datatype ? "selected" : ""));
+                }
+            }
+        }
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label for="id_datatype" class="form-label">หมวดหมู่ (Data Type)</label>
+                    <select class="form-select" id="id_datatype" name="datatype">@Html.Raw(_opts)</select>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("Fundcode", "fundcode", _fundcode))
+                <small class="text-muted">เว้นว่าง = ใช้กับทุกกองทุน</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputDate("วันที่หยุด", "holidaydate", _holidaydate))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("รายละเอียด <span class='fi fi-th'></span>", "holidaydesc", _desc))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("รายละเอียด <span class='fi fi-us'></span>", "en_holidaydesc", _en_desc))
+            </div>
+        </div>
+
+        <br />
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+<br /><br /><br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+
+}

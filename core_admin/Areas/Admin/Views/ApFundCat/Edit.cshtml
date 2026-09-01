@@ -1,0 +1,46 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    string _uploadUrl = ViewBag.LegacyUploadUrl + "";
+    var item = (System.Data.DataRow)ViewBag.itemEdit;
+    Func<string, string> V = k => (item.Table.Columns.Contains(k) && item[k] != null) ? item[k].ToString() : "";
+    string _title = V("title");
+    string _en_title = V("en_title");
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อประเภทกองทุน <span class='fi fi-th'></span>", "title", _title))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อประเภทกองทุน <span class='fi fi-us'></span>", "en_title", _en_title))
+            </div>
+        </div>
+
+        <br />
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+<br /><br /><br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+
+}

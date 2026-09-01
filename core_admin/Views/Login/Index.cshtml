@@ -7,7 +7,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Welcome to SAM Admin Management</title>
+    <!-- Favicon : ตราสัญลักษณ์ ASSET PLUS - Fund Management -->
+    <link rel="icon" href="~/favicon.ico?v=ap2026" type="image/x-icon" />
+    <link rel="shortcut icon" href="~/favicon.ico?v=ap2026" type="image/x-icon" />
+    <title>Login - Welcome to Asset Plus Admin Management</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link href="~/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
     @*css Back*@
@@ -55,9 +58,9 @@
             <img src="~/images/bg/@bg" />
         </div>
         <div class="section-text" style="background: rgba(255, 255, 255, .7); color:#111111; backdrop-filter: blur(10px); padding: 30px;">
-            <div class="head-text" style="color:#111111;">Welcome to <br /> SAM Admin Management</div>
+            <div class="head-text" style="color:#111111;">Welcome to <br /> Asset Plus Admin Management</div>
             <div class="sub-text" style="color:#111111;">
-                SAM มุ่งมั่นทำงานด้วยใจ เพื่อสร้าง “โอกาส” ให้กับทุก “ความสำเร็จ” ของคนไทย พร้อมเดินหน้าช่วยเหลือสังคมไทยในทุกมิติ
+                ระบบบริหารจัดการเนื้อหาเว็บไซต์ บริษัทหลักทรัพย์จัดการกองทุน แอสเซท พลัส จำกัด (ASSET PLUS - Fund Management)
             </div>
         </div>
         <div class="section-login">
@@ -66,7 +69,7 @@
                     <form class="login-form" action="#" method="post">
                         @Html.AntiForgeryToken()
                         <div class="head-form">
-                            <img src="~/images/logo/logo-32.png" alt="icon logo" />
+                            <img src="~/images/logo/logo-32.png" alt="icon logo" asp-append-version="true" />
                             <p>Login @((ViewBag.webTitle+"" != "") ? (": " +ViewBag.webTitle) : "")</p>
                         </div>
                         <div class="body-form">
