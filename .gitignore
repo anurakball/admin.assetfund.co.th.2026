@@ -1,12 +1,37 @@
-/.vs
-/core_admin/bin
-/core_admin/Logs
-/core_admin/obj
-# --- Local secrets (real values live here, never committed) ---
+# ---------------------------------------------------------------------------
+# repo root — โฟลเดอร์นี้มีแค่ core_admin.sln + ไฟล์ตั้งค่า git/IDE
+# กฎละเอียดของตัวโปรเจกต์อยู่ที่ core_admin/.gitignore (ตัวนั้นเป็นตัวหลัก)
+# ---------------------------------------------------------------------------
+.vs/
+.idea/
+*.user
+*.suo
+
+# Build / publish output ของ core_admin
+# (ซ้ำกับ core_admin/.gitignore โดยตั้งใจ — กันพลาดถ้าไฟล์นั้นถูกย้าย)
+/core_admin/bin/
+/core_admin/obj/
+/core_admin/publish/
+/core_admin/Logs/
+/core_admin/node_modules/
+/core_admin/App_Data/
+
+# ---------------------------------------------------------------------------
+# ความลับ (ค่าจริงอยู่บนเครื่อง/เซิร์ฟเวอร์เท่านั้น ห้าม commit)
+# appsettings.json ที่ track ไว้มีแต่โครง ช่องรหัสผ่านเว้นว่างไว้หมด
+# ตัวอย่างค่า dev อยู่ที่ core_admin/appsettings.Development.json.example (track ไว้)
+# ---------------------------------------------------------------------------
 appsettings.Development.json
-appsettings.Local.json
+appsettings.Staging.json
 appsettings.Production.json
-!appsettings.Development.json.example
+appsettings.Local.json
+*.pfx
+*.p12
 
 # Playwright MCP screenshots/snapshots (temp)
 .playwright-mcp/
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store

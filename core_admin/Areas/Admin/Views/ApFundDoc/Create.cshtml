@@ -1,0 +1,182 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@*
+    ข้อมูลกองทุน / … / เอกสารกองทุน — เพิ่มเอกสาร
+    ระบบเดิม : mod_tb_fund_doc/add.aspx → mod_main_fund_doc/add.aspx
+
+    เอกสารที่เพิ่มเองมี file_id = 0 เสมอ (แถว file_id 1–18 คือเอกสารมาตรฐานที่ระบบสร้างให้ตอนเพิ่มกองทุน)
+    ชื่อไฟล์บนดิสก์ถูกกำหนดจาก <fundcode>_<ชื่อไฟล์ที่กรอก>[_en].<นามสกุล> — ตั้งซ้ำกันไม่ได้เพราะจะทับกัน
+*@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    string _fundcode = ViewBag.CurrentFundCode + "";
+    string _catTitle = ViewBag.FundCatTitle + "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+@if (string.IsNullOrEmpty(_fundcode))
+{
+    <div class="alert alert-warning">
+        ยังไม่ได้เลือกกองทุน — กรุณากลับไปที่หน้ารายการแล้วเลือกกองทุนจาก dropdown "กองทุน" ก่อนกดเพิ่มเอกสาร
+    </div>
+}
+else
+{
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return apDocValidate(this);">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="fundcode" value="@_fundcode" />
+        <input type="hidden" name="file_id" value="0" />
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ประเภทกองทุนรวม</label>
+                    <input type="text" class="form-control" value="@_catTitle" readonly>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label class="form-label">ชื่อย่อกองทุน</label>
+                    <input type="text" class="form-control" value="@_fundcode" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อเอกสาร <span class='fi fi-th'></span>", "title", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อเอกสาร <span class='fi fi-us'></span>", "en_title", ""))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="field">
+                    <label class="form-label mb-2">ประเภท</label>
+                    <div class="row">
+                        <div class="col-md-3 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type_file" id="id_type_file_file" value="file" checked>
+                                <label class="form-check-label" for="id_type_file_file">Download File</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type_file" id="id_type_file_link" value="link">
+                                <label class="form-check-label" for="id_type_file_link">URL</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ap_doc_file">
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <div class="field">
+                        <label for="id_file_n" class="form-label">ชื่อไฟล์</label>
+                        <div class="input-group">
+                            <span class="input-group-text">@(_fundcode)_</span>
+                            <input type="text" class="form-control" id="id_file_n" name="file_n" value="" maxlength="200">
+                            <span class="input-group-text">(ไม่ต้องใส่นามสกุลไฟล์)</span>
+                        </div>
+                        <small class="d-block mt-2 text-danger">
+                            ** ตัวอย่าง @(_fundcode)_fundfactsheet<br />
+                            ** กรณีภาษาอังกฤษ ระบบจะตั้งชื่อเป็น @(_fundcode)_fundfactsheet_en ให้อัตโนมัติ<br />
+                            ** โปรดระวังการตั้งชื่อไฟล์ซ้ำ เนื่องจากเป็นการกำหนดชื่อไฟล์เอง
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label for="id_file1" class="form-label">ไฟล์ <span class='fi fi-th'></span></label>
+                        <input type="file" class="form-control" id="id_file1" name="file1">
+                        <input type="hidden" name="file1_old" value="">
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label for="id_en_file1" class="form-label">ไฟล์ <span class='fi fi-us'></span></label>
+                        <input type="file" class="form-control" id="id_en_file1" name="en_file1">
+                        <input type="hidden" name="en_file1_old" value="">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ap_doc_link">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("URL", "link_file", "", "https://", 255))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <div class="field">
+                        <label class="form-label mb-2">การเปิดลิงก์</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="url_target" id="id_url_target_top" value="_top" checked>
+                            <label class="form-check-label" for="id_url_target_top">Redirect (หน้าเดิม)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="url_target" id="id_url_target_blank" value="_blank">
+                            <label class="form-check-label" for="id_url_target_blank">New Window</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br />
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+}
+
+<br /><br /><br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+<script>
+    // สลับส่วนของฟอร์มตามประเภท (ไฟล์ / URL) — เหมือน div_file / div_link ของระบบเดิม
+    function apDocToggleType() {
+        var el = document.querySelector('input[name="type_file"]:checked');
+        var isFile = !el || el.value === 'file';
+        document.getElementById('ap_doc_file').style.display = isFile ? '' : 'none';
+        document.getElementById('ap_doc_link').style.display = isFile ? 'none' : '';
+    }
+
+    // ตรวจก่อนบันทึก — ชุดเดียวกับ save_form() ของระบบเดิม (ฝั่ง server ตรวจซ้ำอีกชั้น)
+    function apDocValidate(form) {
+        var isLink = document.getElementById('id_type_file_link').checked;
+        if (isLink) {
+            if ($('#id_link_file').val().trim() === '') { alert('กรุณากรอก URL'); return false; }
+        } else {
+            if ($('#id_title').val().trim() === '') { alert('กรุณากรอกชื่อเอกสารภาษาไทย'); return false; }
+            if ($('#id_en_title').val().trim() === '') { alert('กรุณากรอกชื่อเอกสารภาษาอังกฤษ'); return false; }
+            if ($('#id_file_n').val().trim() === '') { alert('กรุณากรอกชื่อไฟล์'); return false; }
+        }
+        return sConfirmCustom(form);
+    }
+
+    $(document).ready(function () {
+        $('input[name="type_file"]').on('change', apDocToggleType);
+        apDocToggleType();
+    });
+</script>
+}

@@ -9,6 +9,10 @@
     <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
     <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
     <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+    <!-- The Web SDK globs **/*.json and **/*.config into Content, which otherwise sweeps a
+         previous publish output (its deps.json / runtimeconfig.json / web.config) and
+         node_modules back into the next one. bin/obj are excluded by the SDK already. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);publish\**;node_modules\**;docs\**;.playwright-mcp\**</DefaultItemExcludes>
     <WarningLevel>0</WarningLevel>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -19,14 +23,12 @@
     <PackageReference Include="EPPlus" Version="6.0.7" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
     <PackageReference Include="MailKit" Version="4.16.0" />
-    <PackageReference Include="Microsoft.Build" Version="18.4.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
-    <PackageReference Include="NuGet.DependencyResolver.Core" Version="7.6.0" />
+    <!-- Scaffolding only (dotnet-aspnet-codegenerator). PrivateAssets="all" keeps this package
+         and everything it drags in - Roslyn Workspaces/Features, MSBuild, NuGet.*,
+         EntityFrameworkCore - out of the publish output. No source file references any of it;
+         it used to add ~60 MB of unused assemblies to every deploy. -->
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" PrivateAssets="all" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
-    <PackageReference Include="NuGet.LibraryModel" Version="7.6.0" />
-    <PackageReference Include="NuGet.Packaging" Version="7.6.0" />
-    <PackageReference Include="NuGet.ProjectModel" Version="7.6.0" />
-    <PackageReference Include="NuGet.Protocol" Version="7.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.0" />
     <PackageReference Include="MimeKit" Version="4.16.0" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
@@ -36,7 +38,22 @@
 	  <Content Update="Logs\**\*">
 		<CopyToPublishDirectory>Never</CopyToPublishDirectory>
 	  </Content>
-	  <Content Update="wwwroot\**\*">
+	  <!-- wwwroot IS published: the site's own css/js/logos live there and a deploy has to
+	       carry them. Excluded from it are only the folders the running site writes into -
+	       uploaded content must never be overwritten by whatever happens to sit in a
+	       developer's copy - plus the scss sources, which are compiled into wwwroot/css and
+	       are never served directly. Keep this list in sync with the same folders in .gitignore. -->
+	  <Content Update="wwwroot\Files\**;wwwroot\uploads\**;wwwroot\images\bg\**;wwwroot\scss\**">
+		<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+	  </Content>
+	  <!-- Templates and fonts read at runtime through ContentRootPath (for instance
+	       Storage/Template/Email/TwoFactor.html in UserController). None of those extensions
+	       are in the Web SDK's default Content globs, so they have to be named here. -->
+	  <Content Include="Storage\**\*">
+		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	  <!-- Runtime data: the XML that ws_schedule fetches. Created on the server, never deployed. -->
+	  <Content Update="App_Data\**\*">
 		<CopyToPublishDirectory>Never</CopyToPublishDirectory>
 	  </Content>
     <!-- The Web SDK globs every **/*.json and **/*.config into Content. None of the root

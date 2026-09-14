@@ -572,11 +572,31 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 Icon = "fa-solid fa-coins",
                 SubMenu = new()
                 {
+                    //----- ประเภทกองทุนรวม → [จัดการกองทุน] → ApFund → [จัดการไฟล์] → ApFundDoc
+                    //      ApFund / ApFundDoc เป็นเมนูลูกแบบ drill-down เข้าจากปุ่มในหน้า list
+                    //      จึงไม่อยู่ในเมนูด้านซ้าย (ตรงกับหลังบ้านเดิม) แต่ยังต้องมีสิทธิ์ใน 2026_web_admin_module
                     new() { Title = "ประเภทกองทุนรวม", ModuleName = "ApFundCat", Link = "ApFundCat", Icon = "fa-regular fa-folder-open" },
                     new() { Title = "Get Fund Fact Sheet", ModuleName = "ApFundFactSheet", Link = "ApFundFactSheet", Icon = "fa-regular fa-file-lines" },
                     new() { Title = "Get NAV", ModuleName = "ApFundNav", Link = "ApFundNav", Icon = "fa-solid fa-money-bill-trend-up" },
                     new() { Title = "Delete NAV", ModuleName = "ApFundNavDelete", Link = "ApFundNavDelete", Icon = "fa-solid fa-eraser" },
                     new() { Title = "Get Performance", ModuleName = "ApFundPerformance", Link = "ApFundPerformance", Icon = "fa-solid fa-chart-simple" },
+                }
+            });
+            #endregion
+
+            #region กองทุนส่วนบุคคล (Asset Plus)
+            listMenu.Add(new()
+            {
+                Title = "กองทุนส่วนบุคคล",
+                Icon = "fa-solid fa-user-tie",
+                SubMenu = new()
+                {
+                    new() { Title = "รู้จักกองทุนส่วนบุคคล", ModuleName = "ApPrivate", Link = "ApPrivate", Icon = "fa-solid fa-circle-info" },
+                    new() { Title = "ขั้นตอนการลงทุน", ModuleName = "ApPrivateProcess", Link = "ApPrivateProcess", Icon = "fa-solid fa-list-ol" },
+                    new() { Title = "นโยบายการลงทุน", ModuleName = "ApPrivatePolicy", Link = "ApPrivatePolicy", Icon = "fa-solid fa-scale-balanced" },
+                    new() { Title = "คำถามที่พบบ่อย", ModuleName = "ApPrivateQanda", Link = "ApPrivateQanda", Icon = "fa-regular fa-circle-question" },
+                    new() { Title = "ติดต่อเรา", ModuleName = "ApPrivateContact", Link = "ApPrivateContact", Icon = "fa-regular fa-address-card" },
+                    new() { Title = "ติดต่อกองทุนส่วนบุคคล", ModuleName = "ApPrivateInterested", Link = "ApPrivateInterested", Icon = "fa-regular fa-envelope-open" },
                 }
             });
             #endregion
@@ -601,6 +621,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 Icon = "fa-solid fa-piggy-bank",
                 SubMenu = new()
                 {
+                    new() { Title = "เกี่ยวกับกองทุนสำรองเลี้ยงชีพ", ModuleName = "ApProv", Link = "ApProv", Icon = "fa-solid fa-circle-info" },
                     new() { Title = "Factsheet (Group)", ModuleName = "ApProvSheetCat", Link = "ApProvSheetCat", Icon = "fa-regular fa-folder-open" },
                     new() { Title = "Factsheet", ModuleName = "ApProvSheet", Link = "ApProvSheet", Icon = "fa-regular fa-file-pdf" },
                     new() { Title = "ข้อมูลอื่นๆ", ModuleName = "ApProvOther", Link = "ApProvOther", Icon = "fa-solid fa-circle-info" },

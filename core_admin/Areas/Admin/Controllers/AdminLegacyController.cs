@@ -142,11 +142,20 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             }
         }
 
-        /// <summary>ฟิลด์นี้เป็นช่องอัปโหลดไฟล์ของระบบเดิมหรือไม่ (img1 / en_img1 / file1 …)</summary>
+        /// <summary>
+        /// ฟิลด์นี้เป็นช่องอัปโหลดไฟล์ของระบบเดิมหรือไม่
+        ///
+        /// ระบบเดิมตั้งชื่อคอลัมน์อัปโหลดเป็น <c>img1</c> / <c>en_img1</c> / <c>file1</c> / <c>en_file1</c> / <c>file2</c> …
+        /// (ชื่อฐาน + เลขลำดับเสมอ) จึงจับด้วย regex ไม่ใช่ "ขึ้นต้นด้วย file" ลอย ๆ
+        ///
+        /// ⚠ สำคัญ : <c>tb_fund_doc</c> มีคอลัมน์ข้อความที่ขึ้นต้นด้วย file แต่ **ไม่ใช่** ช่องอัปโหลด
+        ///   <c>file_n</c> (ชื่อไฟล์ที่ผู้ใช้ตั้งเอง) · <c>file_id</c> (เลขประเภทเอกสาร 1–18)
+        /// ถ้าจับกว้างเกินไป ค่าที่ผู้ใช้กรอกจะถูกมองเป็นไฟล์แล้วหายไป
+        /// </summary>
         protected static bool IsLegacyFileField(string field)
         {
             string f = (field ?? "").ToLowerInvariant();
-            return f.Contains("img") || f.StartsWith("file");
+            return System.Text.RegularExpressions.Regex.IsMatch(f, @"^(en_)?(img|file)\d+$");
         }
 
         /// <summary>
@@ -154,7 +163,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         /// เพราะ front-end เดิมอ่านไฟล์จากที่นั่นด้วยชื่อไฟล์เปล่า ๆ ที่เก็บไว้ในคอลัมน์
         /// ตั้งค่าที่ appsettings → LegacyUpload:Path (ไม่ตั้ง = เก็บลง wwwroot/Files/legacy_upload ของระบบใหม่)
         /// </summary>
-        protected string LegacyUploadPath()
+        protected virtual string LegacyUploadPath()
         {
             string p = _config["LegacyUpload:Path"] ?? "";
             if (string.IsNullOrWhiteSpace(p))
@@ -165,7 +174,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         }
 
         /// <summary>URL สำหรับแสดงรูป/ไฟล์ที่อัปโหลด (ต้องลงท้ายด้วย /)</summary>
-        protected string LegacyUploadUrl()
+        protected virtual string LegacyUploadUrl()
         {
             string u = _config["LegacyUpload:Url"] ?? "";
             if (string.IsNullOrWhiteSpace(u)) u = _utility.rootURL() + "/Files/legacy_upload/";
@@ -177,7 +186,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         /// บันทึกไฟล์ที่อัปโหลด แล้วคืน "ชื่อไฟล์เปล่า" ตามรูปแบบเดิมของระบบเก่า
         /// (include/image_copy_add.aspx) : &lt;table&gt;_&lt;rand 0-999&gt;_&lt;unix&gt;_&lt;field&gt;.&lt;ext&gt;
         /// </summary>
-        protected string SaveLegacyUpload(IFormFile file, string field)
+        protected string SaveLegacyUpload(IFormFile file, string field, IFormCollection f)
         {
             string ext = Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant();
             var allow = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -187,14 +196,24 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             string dir = LegacyUploadPath();
             Directory.CreateDirectory(dir);
 
-            string name = string.Format("{0}_{1}_{2}_{3}.{4}",
-                Module.Config.Table, new Random().Next(0, 999), UnixNow(), field, ext);
+            string name = LegacyUploadFileName(field, ext, f);
 
             using (var fs = new FileStream(Path.Combine(dir, name), FileMode.Create))
             {
                 file.CopyTo(fs);
             }
             return name;
+        }
+
+        /// <summary>
+        /// ชื่อไฟล์ที่จะเก็บลงคอลัมน์ — ค่าตั้งต้นคือรูปแบบของ <c>include/image_copy_add.aspx</c>
+        /// เมนูที่ตั้งชื่อไฟล์ด้วยกฎอื่น (เช่น <c>tb_fund_doc</c> ที่ใช้ <c>&lt;fundcode&gt;_&lt;ชนิดเอกสาร&gt;[_en].&lt;ext&gt;</c>)
+        /// ให้ override เมธอดนี้
+        /// </summary>
+        protected virtual string LegacyUploadFileName(string field, string ext, IFormCollection f)
+        {
+            return string.Format("{0}_{1}_{2}_{3}.{4}",
+                Module.Config.Table, new Random().Next(0, 999), UnixNow(), field, ext);
         }
 
         /// <summary>ค่าที่จะเขียนลงตาราง — เอาเฉพาะฟิลด์ที่ประกาศไว้ใน FieldCreate / FieldUpdate เท่านั้น</summary>
@@ -256,7 +275,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         var up = f.Files.GetFile(field);
                         if (up != null && up.Length > 0)
                         {
-                            fields[field] = SaveLegacyUpload(up, field);
+                            fields[field] = SaveLegacyUpload(up, field, f);
                         }
                         else if (f.ContainsKey(field + "_old"))
                         {
@@ -338,17 +357,27 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 #region ----- Date Search (lastcreate เป็น unix seconds) -----
                 if (Module.Config.EnableDateSearch == true)
                 {
+                    //----- ค่าใน session ถูกเก็บเป็น "yyyy-MM-dd" (ต่อกันจากชิ้นส่วนใน query string โดยไม่แปลงศักราช)
+                    //      จึงต้องอ่านกลับด้วย InvariantCulture — culture ของแอปคือ th-TH ซึ่งใช้ปฏิทินพุทธ
+                    //      ถ้าใช้ culture ปัจจุบัน "2025-11-24" จะถูกอ่านเป็น พ.ศ. 2025 (= ค.ศ. 1482) แล้วค้นไม่เจออะไรเลย
+                    //      (ตัวเลือกวันที่ในหน้าค้นหาเป็น ค.ศ. — ตรงกับที่ AdminCoreController ส่งสตริงให้ SQL Server แปลงเอง)
+                    //      ⚠ ต่างจาก LegacyFields() ที่รับค่าจาก "ฟอร์ม" เป็น dd/MM/yyyy พ.ศ. และต้องใช้ culture ปัจจุบัน
                     string after = _session.GetString("admin_" + Module.Name + "_after") ?? "";
                     string before = _session.GetString("admin_" + Module.Name + "_before") ?? "";
-                    if (!string.IsNullOrEmpty(after) && DateTime.TryParse(after, out var dAfter))
+                    var inv = System.Globalization.CultureInfo.InvariantCulture;
+                    var noStyle = System.Globalization.DateTimeStyles.None;
+
+                    //----- lastcreate เป็น unix seconds ของเวลาจริง (UTC) และหน้า list แสดงเป็นเวลาท้องถิ่น
+                    //      ขอบเขตของช่วงวันจึงต้องคิดเป็น "วันตามเวลาท้องถิ่น" ไม่ใช่ UTC
+                    if (!string.IsNullOrEmpty(after) && DateTime.TryParseExact(after, "yyyy-MM-dd", inv, noStyle, out var dAfter))
                     {
                         sqlDateSearch += " and lastcreate >= @after ";
-                        sqlParam.Add("after", new DateTimeOffset(DateTime.SpecifyKind(dAfter.Date, DateTimeKind.Utc)).ToUnixTimeSeconds());
+                        sqlParam.Add("after", new DateTimeOffset(DateTime.SpecifyKind(dAfter.Date, DateTimeKind.Local)).ToUnixTimeSeconds());
                     }
-                    if (!string.IsNullOrEmpty(before) && DateTime.TryParse(before, out var dBefore))
+                    if (!string.IsNullOrEmpty(before) && DateTime.TryParseExact(before, "yyyy-MM-dd", inv, noStyle, out var dBefore))
                     {
                         sqlDateSearch += " and lastcreate <= @before ";
-                        sqlParam.Add("before", new DateTimeOffset(DateTime.SpecifyKind(dBefore.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Utc)).ToUnixTimeSeconds());
+                        sqlParam.Add("before", new DateTimeOffset(DateTime.SpecifyKind(dBefore.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local)).ToUnixTimeSeconds());
                     }
                 }
                 #endregion
@@ -480,7 +509,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
                 #endregion
 
-                string? dup = CheckUnique(collection);
+                string? dup = CheckUnique(collection) ?? ValidateLegacy(collection, 0);
                 if (dup != null)
                 {
                     TempData["alert_message"] = dup;
@@ -489,6 +518,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 }
 
                 var fields = LegacyFields(collection, isCreate: true);
+                BeforeLegacyCreate(collection, fields);
 
                 int newId = 0;
                 if (Module.Config.LegacyIdManual == true)
@@ -507,6 +537,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         if (last.Rows.Count > 0) newId = Convert.ToInt32(last.Rows[0]["last_id"]);
                     }
 
+                    AfterLegacyCreate(newId, collection, fields);
                     ApproveQueueUpsert(newId, collection.ContainsKey("title") ? collection["title"] + "" : "");
 
                     _admin.ActionLogs(
@@ -596,7 +627,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     return RedirectToAction("Index");
                 }
 
-                string? dup = CheckUnique(collection, id);
+                string? dup = CheckUnique(collection, id) ?? ValidateLegacy(collection, id);
                 if (dup != null)
                 {
                     TempData["alert_message"] = dup;
@@ -656,6 +687,15 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         protected virtual void BeforeLegacyUpdate(int id, System.Data.DataRow oldRow, IFormCollection f, Dictionary<string, object> fields) { }
         /// <summary>hook หลัง UPDATE — ให้เมนูลูก override ได้</summary>
         protected virtual void AfterLegacyUpdate(int id, System.Data.DataRow oldRow, IFormCollection f, Dictionary<string, object> fields) { }
+        /// <summary>hook ก่อน INSERT — ปรับค่าที่จะเขียนได้ (เช่น เติมคอลัมน์ที่ฟอร์มไม่ได้ส่งมา)</summary>
+        protected virtual void BeforeLegacyCreate(IFormCollection f, Dictionary<string, object> fields) { }
+        /// <summary>hook หลัง INSERT — ให้เมนูลูกสร้างข้อมูลต่อเนื่องได้ (เช่น tb_fund สร้างแถวเอกสาร 18 รายการ)</summary>
+        protected virtual void AfterLegacyCreate(int newId, IFormCollection f, Dictionary<string, object> fields) { }
+        /// <summary>
+        /// ตรวจความถูกต้องเพิ่มเติมก่อนบันทึก — คืนข้อความ error ถ้าไม่ผ่าน, คืน null ถ้าผ่าน
+        /// (<paramref name="id"/> = 0 คือกำลังเพิ่มใหม่)
+        /// </summary>
+        protected virtual string? ValidateLegacy(IFormCollection f, int id) { return null; }
 
         // ======================================================================
         //  Delete
@@ -699,6 +739,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                         if (child.Rows.Count > 0 && Convert.ToInt32(child.Rows[0]["c"]) > 0) { rowBlocked++; continue; }
                     }
 
+                    BeforeLegacyDelete(id, itemDelete.Rows[0]);
+
                     var affected = _db.ExecuteNonQuery(string.Format("delete from {0} where id = @id", Db.T(Module.Config.Table)),
                                                        new Dictionary<string, object>() { { "id", id } });
                     rowDel += affected;
@@ -733,6 +775,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 return Redirect(string.Format("/Admin/{0}", Module.Name));
             }
         }
+
+        /// <summary>hook ก่อน DELETE — ให้เมนูลูกลบข้อมูลที่ผูกอยู่ตามไปด้วย (เช่น tb_fund ลบ tb_fund_doc ของ fundcode นั้น)</summary>
+        protected virtual void BeforeLegacyDelete(int id, System.Data.DataRow row) { }
 
         /// <summary>ตารางลูกที่อ้างถึงเมนูนี้ (กันลบกลุ่มที่ยังถูกใช้งาน) — ตั้งค่าที่ controller ของเมนู</summary>
         protected string LegacyChildTable { get; set; } = "";

@@ -36,6 +36,17 @@
         inviteCatId != "" && row.Table.Columns.Contains("cat_id") && row["cat_id"].ToString() == inviteCatId;
     Func<DataRow, string> submitLinkHtml = row =>
         "<a href=\"/Admin/AnnounceSubmit?cat_id=" + row["id"] + "&text=&page=1\" class=\"badge bg-primary\" style=\"margin-left:6px;text-decoration:none;white-space:nowrap;\" title=\"ดูรายชื่อผู้ลงทะเบียนของประกาศนี้\"><i class=\"bi bi-people\"></i> ดูรายชื่อผู้สมัคร</a>";
+
+    @* ── เมนู drill-down ของ Asset Plus (ตารางระบบเดิม tb_*) ──
+       ประเภทกองทุนรวม → [จัดการกองทุน] → รายชื่อกองทุน → [จัดการไฟล์] → เอกสารกองทุน
+       ลิงก์ต่อท้ายด้วย text=&page=1 เพื่อล้างคำค้นหา/หน้าเดิมที่ค้างอยู่ใน session ของเมนูปลายทาง
+
+       เอกสารมาตรฐาน 18 รายการของแต่ละกองทุน (file_id 1–18) ลบไม่ได้ —
+       จึงต้องซ่อน checkbox และปุ่มลบของแถวเหล่านั้น เหมือนหลังบ้านเดิม *@
+    Func<DataRow, bool> apDocIsFixed = row =>
+        mod.Name == "ApFundDoc" && row.Table.Columns.Contains("file_id")
+        && int.TryParse(row["file_id"] + "", out int _fid) && _fid > 0;
+    Func<DataRow, bool> apRowDeletable = row => !apDocIsFixed(row);
 }
 @section NavbarBack{
     @if (mod_config.IsCMSPage == true && mod_config.FieldCMSPage != "" && _session.GetInt32("admin_" + mod.Name + "_parent_lv").HasValue && _session.GetInt32("admin_" + mod.Name + "_parent_lv") > 1)
@@ -136,6 +147,43 @@ border-radius: 0.25rem;
                         </div>
                         <script>
                         $("#id_cat_id").change(function () { $('#btnSearch').trigger('click'); });
+                        </script>
+                    }
+                    else if (@mod.Name == "ApFundDoc")
+                    {
+                        @* เอกสารกองทุนผูกกับกองทุนด้วย "fundcode" ไม่ใช่ id ของ tb_fund — InputSelectDB ใช้ไม่ได้
+                           (ยึด value_field/text_field คนละคอลัมน์ และกองทุนบางตัวไม่มีชื่อไทย ป้ายจะว่างเปล่า)
+                           จึงเรนเดอร์เองเป็น "<code> — <ชื่อกองทุน>" *@
+                        @* รวม fundcode จาก 2 ทาง :
+                             1) กองทุนที่ยังมีอยู่ใน tb_fund
+                             2) fundcode ที่มีเอกสารค้างอยู่ใน tb_fund_doc แต่กองทุนถูกลบไปแล้ว (ข้อมูลค้างจากระบบเดิม ~48 รหัส)
+                           ถ้าเอาเฉพาะข้อ 1 เอกสารกำพร้าจะเลือกดู/ลบจากหน้านี้ไม่ได้เลย *@
+                        var apFundList = _db.ExecuteQuery(
+                            "select fundcode, max(title) as title, max(en_title) as en_title, max(orphan) as orphan from ( " +
+                            "  select fundcode, title, en_title, 0 as orphan from [tb_fund] where isnull(fundcode,'') <> '' " +
+                            "  union all " +
+                            "  select d.fundcode, '', '', 1 from [tb_fund_doc] d where isnull(d.fundcode,'') <> '' " +
+                            "    and not exists (select 1 from [tb_fund] f where f.fundcode = d.fundcode) " +
+                            ") x group by fundcode order by fundcode asc");
+                        string apFundSel = (searchInputVal.ContainsKey("fundcode") && !string.IsNullOrEmpty(searchInputVal["fundcode"])) ? searchInputVal["fundcode"] : "";
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="field">
+                                <label for="id_fundcode" class="form-label">@mod_config.TableCateLabel</label>
+                                <select class="form-select" id="id_fundcode" name="fundcode">
+                                    <option value="">ทั้งหมด</option>
+                                    @foreach (DataRow f in apFundList.Rows)
+                                    {
+                                        string fcode = f["fundcode"] + "";
+                                        string fname = (f["title"] + "") != "" ? f["title"] + "" : f["en_title"] + "";
+                                        string flabel = fname != "" ? fcode + " — " + fname : fcode;
+                                        if ((f["orphan"] + "") == "1") { flabel += "  (ไม่มีกองทุนแล้ว)"; }
+                                        <option value="@fcode" selected="@(apFundSel == fcode)">@flabel</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <script>
+                        $("#id_fundcode").change(function () { $('#btnSearch').trigger('click'); });
                         </script>
                     }
                     else if (@mod.Name == "AboutBoard4" || @mod.Name == "VDO" || @mod.Name == "AnnounceSubmit")
@@ -321,11 +369,14 @@ border-radius: 0.25rem;
                 @if (mod_config.CanDelete == true || mod_config.CanExport == true)
                 {
                     <td class="text-center chk">
-                    <div class="field">
-                        <div class="form-check">
-                            <input type="checkbox" name="_id" value="@item["id"]" id="_id_@item["id"]" class="form-check-input">
+                    @if (apRowDeletable(item))
+                    {
+                        <div class="field">
+                            <div class="form-check">
+                                <input type="checkbox" name="_id" value="@item["id"]" id="_id_@item["id"]" class="form-check-input">
+                            </div>
                         </div>
-                    </div>
+                    }
                     </td>     
                 }
                 <td class="text-center order" scope="row">
@@ -337,7 +388,12 @@ border-radius: 0.25rem;
                     }
                     else if (item.Table.Columns.Contains("sort"))
                     {
-                        this_sort = item["sort"].ToString().Remove(item["sort"].ToString().Length - 1);
+                        @* คอลัมน์ "#" แสดง sort โดยตัดหลักสุดท้ายทิ้ง (10 → 1, 180 → 18)
+                           ตารางระบบเดิม (tb_*) มีแถวที่ sort เป็น NULL อยู่จริง (เช่น tb_fund_doc 28 แถว)
+                           ถ้าไม่กันไว้ Remove(-1) จะโยน ArgumentOutOfRangeException ทำให้ทั้งหน้าพัง *@
+                        string _sortTxt = (item["sort"] ?? "").ToString();
+                        this_sort = _sortTxt.Length > 0 ? _sortTxt.Remove(_sortTxt.Length - 1) : "-";
+                        if (this_sort == "") { this_sort = "-"; }
                     }
                 }
                 <span class="ps-2">@this_sort</span>
@@ -412,7 +468,7 @@ border-radius: 0.25rem;
                                         } 
                                     }
 
-                                    @if (mod_config.CanDelete == true)
+                                    @if (mod_config.CanDelete == true && apRowDeletable(item))
                                     {
                                         <button type="button" class="btn btn--red" onclick="deleteRow('@mod.Name', '@item["id"]')" title="ลบ" data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="bi bi-trash"></i>
@@ -495,6 +551,62 @@ border-radius: 0.25rem;
                                 <span class="badge bg-warning text-dark" title="ยังไม่แสดงบนเว็บไซต์" data-bs-toggle="tooltip" data-bs-placement="top">@reason</span>
                             }
                         </td>
+                    }
+                    else if (mod.Name == "ApFundCat" && head.Key == "title")
+                    {
+                        @* ประเภทกองทุนรวม → นับจำนวนกองทุนในหมวด + ลิงก์ลงไปหน้ารายชื่อกองทุนของหมวดนั้น
+                           (ระบบเดิม: ปุ่ม [จัดการกองทุน] ใน mod_tb_fund_cat/iframe_data.aspx) *@
+                        <td>
+                            @item[head.Key]
+                            @{
+                                var _fundCntDT = _db.ExecuteQuery(
+                                    "select count(id) as c from [tb_fund] where cast(cat_id as nvarchar(max)) = cast(@cid as nvarchar(max))",
+                                    new Dictionary<string, object>() { { "cid", item["id"] + "" } });
+                                int _fundCnt = _fundCntDT.Rows.Count > 0 ? Convert.ToInt32(_fundCntDT.Rows[0]["c"]) : 0;
+                            }
+                            <span class="text-muted">(@_fundCnt.ToString("n0") กองทุน)</span>
+                            <a href="/Admin/ApFund?cat_id=@item["id"]&amp;text=&amp;page=1" class="badge bg-primary"
+                               style="margin-left:6px;text-decoration:none;white-space:nowrap;"
+                               title="จัดการรายชื่อกองทุนในหมวดนี้" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-list-ul"></i> จัดการกองทุน
+                            </a>
+                        </td>
+                    }
+                    else if (mod.Name == "ApFund" && head.Key == "title")
+                    {
+                        @* รายชื่อกองทุน → ลิงก์ลงไปหน้าเอกสารของกองทุนนั้น
+                           (ระบบเดิม: ปุ่ม [จัดการไฟล์] ใน mod_main_fund/iframe_data.aspx) *@
+                        string _fundTitle = item[head.Key] + "";
+                        if (_fundTitle == "") { _fundTitle = item["en_title"] + ""; }
+                        if (_fundTitle.Length > 80) { _fundTitle = _fundTitle.Substring(0, 80) + "..."; }
+                        <td>
+                            @(_fundTitle == "" ? "-" : _fundTitle)
+                            <a href="/Admin/ApFundDoc?fundcode=@Uri.EscapeDataString(item["fundcode"] + "")&amp;text=&amp;page=1" class="badge bg-primary"
+                               style="margin-left:6px;text-decoration:none;white-space:nowrap;"
+                               title="จัดการเอกสารของกองทุนนี้" data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-folder2-open"></i> จัดการไฟล์
+                            </a>
+                        </td>
+                    }
+                    else if (mod.Name == "ApFund" && head.Key == "template")
+                    {
+                        <td>Template @(item[head.Key] + "" == "" ? "-" : item[head.Key] + "")</td>
+                    }
+                    else if (mod.Name == "ApFundDoc" && head.Key == "title")
+                    {
+                        @* ชื่อเอกสาร : แถวมาตรฐาน (file_id 1–18) ใช้ชื่อคงที่ตาม file_id
+                           แถวที่ผู้ใช้เพิ่มเอง (file_id = 0) ใช้ title ที่กรอกไว้ *@
+                        <td>
+                            @thaicredit_hr_admin.Areas.Admin.Controllers.ApFundDocController.DocName(item["file_id"], item[head.Key])
+                            @if (apDocIsFixed(item))
+                            {
+                                <span class="badge bg-secondary" style="margin-left:6px;" title="เอกสารมาตรฐานของทุกกองทุน — ลบไม่ได้">มาตรฐาน</span>
+                            }
+                        </td>
+                    }
+                    else if (mod.Name == "ApFundDoc" && head.Key == "type_file")
+                    {
+                        <td>@((item[head.Key] + "") == "link" ? "URL" : "ไฟล์")</td>
                     }
                     else if (mod.Name == "AnnounceSubmit" && head.Key == "file_status")
                     {
@@ -647,8 +759,12 @@ border-radius: 0.25rem;
                                                        : (item.Table.Columns.Contains("pb_last_user") ? item["pb_last_user"] + "" : "");
                                  <h6><span class="badge bg-success" title="อนุมัติโดย @_approver">Published</span></h6>
                             }
-                            else if (item[head.Key].ToString() == "0" && mod_config.CanApprove == true)
+                            else if ((item[head.Key].ToString() == "0" || mod_config.LegacyTable == true) && mod_config.CanApprove == true)
                             {
+                                @* ตารางระบบเดิม (tb_*) : pb_status ของบางแถวไม่ใช่ 0/1
+                                   เช่น tb_fund_doc ที่หลังบ้านเดิม insert ค่า sort ลงคอลัมน์นี้ผิด (10, 20, 30 …)
+                                   หลังบ้านเดิมถือว่า "ทุกค่าที่ไม่ใช่ 1 = ยังไม่อนุมัติ" จึงต้องขึ้นปุ่ม Approve ให้เหมือนกัน
+                                   ไม่งั้นแถวเหล่านั้นจะอนุมัติไม่ได้เลยจากระบบใหม่ *@
                                     @if (item["show_front"].ToString() == "0")
                                 {
                                     <div class="btn-group">

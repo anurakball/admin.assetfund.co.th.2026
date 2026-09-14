@@ -13,7 +13,16 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
     /// </summary>
     public abstract class AssetPlusImportController : AdminLegacyController
     {
-        protected AssetPlusImportController(IWebHostEnvironment e, IConfiguration c, IHttpContextAccessor x) : base(e, c, x) { }
+        /// <summary>
+        /// เครื่องยนต์นำเข้าตัวเดียวกับที่ scheduler ใช้ (<see cref="AssetPlusImporter"/>)
+        /// — กดเองจากหลังบ้าน กับให้ ws_schedule เรียก จึงได้ผลลัพธ์เหมือนกันเป๊ะ
+        /// </summary>
+        protected readonly AssetPlusImporter _importer;
+
+        protected AssetPlusImportController(IWebHostEnvironment e, IConfiguration c, IHttpContextAccessor x) : base(e, c, x)
+        {
+            _importer = new AssetPlusImporter(_db);
+        }
 
         /// <summary>ชื่อ operation ของ web service</summary>
         protected abstract string WsOperation { get; }
@@ -110,28 +119,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         /// <summary>แปลง XML → เขียนลงตารางเดิม (แต่ละเมนู implement เอง) คืนจำนวนแถวที่นำเข้า</summary>
         protected abstract int ImportData(XmlElement data, string navDate, out string detail);
 
-        /// <summary>ค่าคงที่ของคอลัมน์ระบบ ตอน import (ระบบเดิมตั้ง status/pb_status/show_front = 1 คือเผยแพร่ทันที)</summary>
-        protected Dictionary<string, object> ImportAuditFields()
-        {
-            long now = UnixNow();
-            string user = CurrentUser();
-            return new Dictionary<string, object>()
-            {
-                { "lastcreate", now }, { "lastupdate", now }, { "sort", 0 },
-                { "status", 1 }, { "pb_status", 1 },
-                { "last_user", user }, { "pb_last_user", user }, { "show_front", 1 },
-            };
-        }
-
-        /// <summary>คอลัมน์ที่มีจริงในตาราง (ใช้กรองก่อนเขียน กัน SQL error เมื่อ XML มี element เกินมา)</summary>
-        protected HashSet<string> TableColumns(string table)
-        {
-            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var dt = _db.ExecuteQuery("select column_name from information_schema.columns where table_schema = 'dbo' and table_name = @t",
-                                      new Dictionary<string, object>() { { "t", table } });
-            foreach (System.Data.DataRow r in dt.Rows) set.Add(r["column_name"] + "");
-            return set;
-        }
     }
 
     // =====================================================================================
@@ -149,45 +136,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
         /// <summary>
         /// โครงสร้าง XML: &lt;OtherIndices&gt;&lt;ValueDate&gt;dd/MM/yyyy&lt;/ValueDate&gt;&lt;Index&gt;&lt;…&gt;&lt;IndexName/&gt;&lt;IndexValue/&gt;&lt;Change/&gt;&lt;PercentChange/&gt;…
-        /// ระบบเดิม: ถ้ามีแถวเดิม (IndexName + ValueDateFormat) ให้ตั้ง Flag=0 ก่อน แล้ว insert แถวใหม่ Flag=1
+        /// (ตรรกะจริงอยู่ที่ <see cref="AssetPlusImporter.ImportOtherIndices"/> — ใช้ร่วมกับ ws_schedule)
         /// </summary>
         protected override int ImportData(XmlElement data, string navDate, out string detail)
-        {
-            detail = "";
-            string valueDate = AssetPlusWsClient.Child(data, "ValueDate");
-            if (string.IsNullOrEmpty(valueDate)) valueDate = navDate;
-            string valueDateFormat = AssetPlusWsClient.ToDateKey(valueDate);
-            string valueDateIn = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-
-            int n = 0;
-            foreach (var indexGroup in AssetPlusWsClient.Children(data, "Index"))
-            {
-                foreach (XmlNode item in indexGroup.ChildNodes)
-                {
-                    if (item is not XmlElement) continue;
-                    string indexName = AssetPlusWsClient.Child(item, "IndexName");
-                    if (string.IsNullOrEmpty(indexName)) continue;
-
-                    _db.ExecuteNonQuery("update [tb_home_other_indices] set Flag = 0 where IndexName = @n and ValueDateFormat = @d",
-                        new Dictionary<string, object>() { { "n", indexName }, { "d", valueDateFormat } });
-
-                    var f = ImportAuditFields();
-                    f["title"] = indexName;
-                    f["IndexName"] = indexName;
-                    f["IndexValue"] = AssetPlusWsClient.Child(item, "IndexValue");
-                    f["Change"] = AssetPlusWsClient.Child(item, "Change");
-                    f["PercentChange"] = AssetPlusWsClient.Child(item, "PercentChange");
-                    f["ValueDate"] = valueDate;
-                    f["ValueDateFormat"] = valueDateFormat;
-                    f["ValueDateIn"] = valueDateIn;
-                    f["Flag"] = 1;
-                    _db.Insert("tb_home_other_indices", f);
-                    n++;
-                }
-            }
-            detail = string.Format("(ValueDate {0})", valueDate);
-            return n;
-        }
+            => _importer.ImportOtherIndices(data, navDate, CurrentUser(), out detail);
     }
 
     // =====================================================================================
@@ -203,48 +155,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         protected override string WsOperation => "NAVAnnounce";
         protected override string? WsDateParam => null;   // ระบบเดิมเรียก NAVAnnounce() ไม่ส่งพารามิเตอร์
 
-        /// <summary>โครงสร้าง XML: &lt;ArrayOfNAV&gt;&lt;NAV&gt;&lt;FundCode/&gt;&lt;FundNameTH/&gt;…&lt;/NAV&gt;…</summary>
+        /// <summary>
+        /// โครงสร้าง XML: &lt;ArrayOfNAV&gt;&lt;NAV&gt;&lt;FundCode/&gt;&lt;FundNameTH/&gt;…&lt;/NAV&gt;…
+        /// (ตรรกะจริงอยู่ที่ <see cref="AssetPlusImporter.ImportNav"/> — ใช้ร่วมกับ ws_schedule)
+        /// </summary>
         protected override int ImportData(XmlElement data, string navDate, out string detail)
-        {
-            detail = "";
-            string navDateIn = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-            int n = 0;
-
-            //----- payload อาจเป็น <ArrayOfNAV> (มีลูก NAV) หรือเป็น <NAV> ตัวเดียว -----
-            var items = AssetPlusWsClient.Children(data, "NAV");
-            if (items.Count == 0 && string.Equals(data.LocalName, "NAV", StringComparison.OrdinalIgnoreCase)) items.Add(data);
-
-            foreach (var nav in items)
-            {
-                string fundCode = AssetPlusWsClient.Child(nav, "FundCode");
-                if (string.IsNullOrEmpty(fundCode)) continue;
-
-                string navDateVal = AssetPlusWsClient.Child(nav, "NAVDate");
-                string navDateFormat = AssetPlusWsClient.ToDateKey(navDateVal);
-
-                _db.ExecuteNonQuery("update [tb_fund_nav] set Flag = 0 where FundCode = @c and NAVDateFormat = @d",
-                    new Dictionary<string, object>() { { "c", fundCode }, { "d", navDateFormat } });
-
-                var f = ImportAuditFields();
-                f["title"] = fundCode;
-                f["FundCode"] = fundCode;
-                f["FundNameTH"] = AssetPlusWsClient.Child(nav, "FundNameTH");
-                f["FundNameEN"] = AssetPlusWsClient.Child(nav, "FundNameEN");
-                f["NAVDate"] = navDateVal;
-                f["TotalNAV"] = AssetPlusWsClient.Child(nav, "TotalNAV");
-                f["NAVPerUnit"] = AssetPlusWsClient.Child(nav, "NAVPerUnit");
-                f["Offer"] = AssetPlusWsClient.Child(nav, "Offer");
-                f["Bid"] = AssetPlusWsClient.Child(nav, "Bid");
-                f["BahtChange"] = AssetPlusWsClient.Child(nav, "BahtChange");
-                f["Change"] = AssetPlusWsClient.Child(nav, "Change");
-                f["NAVDateIn"] = navDateIn;
-                f["NAVDateFormat"] = navDateFormat;
-                f["Flag"] = 1;
-                _db.Insert("tb_fund_nav", f);
-                n++;
-            }
-            return n;
-        }
+            => _importer.ImportNav(data, CurrentUser(), out detail);
     }
 
     // =====================================================================================
@@ -262,54 +178,11 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
         /// <summary>
         /// โครงสร้าง XML: &lt;ReturnPerformance&gt;&lt;ReturnPerformanceDate/&gt;…&lt;PastPerformance&gt;&lt;Performance&gt;&lt;FundCode/&gt;…
-        /// ระบบเดิม: ตั้ง Flag=0 ให้แถวเดิมของวันเดียวกันทั้งหมด แล้ว insert ชุดใหม่ Flag=1
+        /// (ตรรกะจริงอยู่ที่ <see cref="AssetPlusImporter.ImportPerformance"/> — ใช้ร่วมกับ ws_schedule
+        ///  รวมถึงการคำนวณ FundCodeMark และอัปเดตหัวตาราง tb_fund_performance_hd)
         /// </summary>
         protected override int ImportData(XmlElement data, string navDate, out string detail)
-        {
-            detail = "";
-            string returnDate = AssetPlusWsClient.Child(data, "ReturnPerformanceDate");
-            if (string.IsNullOrEmpty(returnDate)) returnDate = navDate;
-            string navDateFormat = AssetPlusWsClient.ToDateKey(returnDate);
-            string navDateIn = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-
-            _db.ExecuteNonQuery("update [tb_fund_performance] set Flag = 0 where NAVDateFormat = @d",
-                new Dictionary<string, object>() { { "d", navDateFormat } });
-
-            int n = 0;
-            foreach (var group in AssetPlusWsClient.Children(data, "PastPerformance"))
-            {
-                foreach (var perf in AssetPlusWsClient.Children(group, "Performance"))
-                {
-                    string fundCode = AssetPlusWsClient.Child(perf, "FundCode");
-                    if (string.IsNullOrEmpty(fundCode)) continue;
-
-                    var f = ImportAuditFields();
-                    f["title"] = fundCode;
-                    f["ReturnPerformanceDate"] = returnDate;
-                    f["FundCode"] = fundCode;
-                    f["FundNameTH"] = AssetPlusWsClient.Child(perf, "FundNameTH");
-                    f["FundNameEN"] = AssetPlusWsClient.Child(perf, "FundNameEN");
-                    f["InceptionDateTH"] = AssetPlusWsClient.Child(perf, "InceptionDateTH");
-                    f["InceptionDateEN"] = AssetPlusWsClient.Child(perf, "InceptionDateEN");
-                    f["NAVPerUnit"] = AssetPlusWsClient.Child(perf, "NAVPerUnit");
-                    f["ThreeMonth"] = AssetPlusWsClient.Child(perf, "ThreeMonth");
-                    f["SixMonth"] = AssetPlusWsClient.Child(perf, "SixMonth");
-                    f["OneYear"] = AssetPlusWsClient.Child(perf, "OneYear");
-                    f["ThreeYear"] = AssetPlusWsClient.Child(perf, "ThreeYear");
-                    f["YTD"] = AssetPlusWsClient.Child(perf, "YTD");
-                    f["InceptionPort"] = AssetPlusWsClient.Child(perf, "InceptionPort");
-                    f["InceptionBM"] = AssetPlusWsClient.Child(perf, "InceptionBM");
-                    f["NAVDateIn"] = navDateIn;
-                    f["NAVDateFormat"] = navDateFormat;
-                    f["FundCodeMark"] = AssetPlusWsClient.Child(perf, "FundCodeMark");
-                    f["Flag"] = 1;
-                    _db.Insert("tb_fund_performance", f);
-                    n++;
-                }
-            }
-            detail = string.Format("(ReturnPerformanceDate {0})", returnDate);
-            return n;
-        }
+            => _importer.ImportPerformance(data, navDate, CurrentUser(), out detail);
     }
 
     // =====================================================================================
@@ -326,56 +199,12 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         protected override string? WsDateParam => "fundDate";
 
         /// <summary>
-        /// โครงสร้าง XML: &lt;ArrayOfFundFact&gt;&lt;FundFact&gt;&lt;FundCode/&gt;&lt;…อีกกว่า 250 element…&gt;
-        ///
-        /// ระบบเดิมเขียนทีละคอลัมน์ตามชื่อ element (element name = ชื่อคอลัมน์ตรงตัว)
-        /// ที่นี่จึง map แบบ generic: เอาเฉพาะ element ที่ชื่อ "ตรงกับคอลัมน์จริง" ในตาราง
-        /// ทำให้รองรับ element ใหม่ที่ web service เพิ่มมาโดยไม่ต้องแก้โค้ด และไม่พังถ้ามี element เกิน
+        /// โครงสร้าง XML: &lt;ArrayOfFundFact&gt;&lt;FundFact&gt;&lt;FundCode/&gt;&lt;…element เดี่ยวอีกกว่า 250 ตัว…&gt;
+        ///   + ชุดรายการอีก 11 ชุด (NAVHistory, FundPerformanceData, …) ที่แตกลงตารางลูก tb_fund_fundfact_*
+        /// (ตรรกะจริงอยู่ที่ <see cref="AssetPlusImporter.ImportFundFact"/> — ใช้ร่วมกับ ws_schedule)
         /// </summary>
         protected override int ImportData(XmlElement data, string navDate, out string detail)
-        {
-            detail = "";
-            var columns = TableColumns("tb_fund_fundfact");
-            //----- คอลัมน์ระบบ : ห้ามให้ XML เขียนทับ -----
-            var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { "id", "lastcreate", "lastupdate", "sort", "status", "pb_status", "last_user", "pb_last_user", "show_front", "Flag", "title" };
-
-            string navDateIn = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
-            int n = 0;
-
-            var items = AssetPlusWsClient.Children(data, "FundFact");
-            if (items.Count == 0 && string.Equals(data.LocalName, "FundFact", StringComparison.OrdinalIgnoreCase)) items.Add(data);
-
-            foreach (var ff in items)
-            {
-                string fundCode = AssetPlusWsClient.Child(ff, "FundCode");
-                if (string.IsNullOrEmpty(fundCode)) continue;
-
-                //----- แถวเดิมของกองทุนนี้ → Flag = 0 (ระบบเดิมทำแบบเดียวกัน) -----
-                _db.ExecuteNonQuery("update [tb_fund_fundfact] set Flag = 0 where fundcode = @c",
-                    new Dictionary<string, object>() { { "c", fundCode } });
-
-                var f = ImportAuditFields();
-                f["title"] = fundCode;
-                f["fundcode"] = fundCode;
-                f["NAVDateIn"] = navDateIn;
-                f["Flag"] = "1";
-
-                foreach (XmlNode c in ff.ChildNodes)
-                {
-                    if (c is not XmlElement el) continue;
-                    string col = el.LocalName;
-                    if (reserved.Contains(col) || !columns.Contains(col)) continue;
-                    if (string.Equals(col, "fundcode", StringComparison.OrdinalIgnoreCase)) continue;
-                    f[col] = el.InnerText;
-                }
-
-                _db.Insert("tb_fund_fundfact", f);
-                n++;
-            }
-            detail = string.Format("(fundDate {0})", navDate);
-            return n;
-        }
+            => _importer.ImportFundFact(data, CurrentUser(), out detail);
     }
 
     // =====================================================================================

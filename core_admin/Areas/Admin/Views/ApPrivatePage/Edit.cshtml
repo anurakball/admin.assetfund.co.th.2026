@@ -1,0 +1,80 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@*
+    ฟอร์มร่วมของกลุ่ม "กองทุนส่วนบุคคล" + "เกี่ยวกับกองทุนสำรองเลี้ยงชีพ"
+    (ระบบเดิม: mod_tb_fund_private, *_investment_process, *_investment_policy,
+               *_investment_qanda, *_contact_us, mod_tb_fund_prov)
+
+    ทุกตารางมีโครงเดียวกัน : title / en_title / info / en_info (+ คู่ pb_*)
+    จึงใช้ view เดียวร่วมกันผ่าน UseViewEditFrom = "ApPrivatePage"
+
+    เมนูที่ระบบเดิมซ่อนช่องหัวข้อไว้ (tb_fund_prov) ประกาศ FieldUpdate โดยไม่มี "title"
+    → ที่นี่จึงส่งหัวข้อเป็น hidden แทน เพื่อไม่ให้ค่าเดิมหาย และให้ตรงกับพฤติกรรมเดิม
+*@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    var item = (System.Data.DataRow)ViewBag.itemEdit;
+    Func<string, string> V = k => (item.Table.Columns.Contains(k) && item[k] != null) ? item[k].ToString() : "";
+
+    string _title = V("title");
+    string _en_title = V("en_title");
+    string _info = V("info");
+    string _en_info = V("en_info");
+
+    bool canEditTitle = mod_config.FieldUpdate != null && mod_config.FieldUpdate.Contains("title");
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+
+        @if (canEditTitle)
+        {
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "title", _title))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_title", _en_title))
+                </div>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="title" value="@_title" />
+            <input type="hidden" name="en_title" value="@_en_title" />
+        }
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-th'></span>", "info", _info))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                @Html.Raw(_admin.InputTextEditor("เนื้อหา <span class='fi fi-us'></span>", "en_info", _en_info))
+            </div>
+        </div>
+
+        <br />
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+<br /><br /><br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+}

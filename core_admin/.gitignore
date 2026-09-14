@@ -5,8 +5,12 @@
 # ---------------------------------------------------------------------------
 bin/
 obj/
+# ปลายทางของ publish profile เดียวที่มี (Properties/PublishProfiles/FolderProfile.pubxml)
+# — โฟลเดอร์นี้ถูกล้างทุกครั้งที่ publish อย่าเก็บไฟล์อื่นไว้ในนี้
 publish/
 *.publishproj
+*.binlog
+TestResults/
 
 # ---------------------------------------------------------------------------
 # IDE / editor / tooling artifacts
@@ -14,6 +18,8 @@ publish/
 .vs/
 .idea/
 *.suo
+# ครอบคลุม core_admin.csproj.user และ Properties/PublishProfiles/*.pubxml.user
+# (ไฟล์ .user เก็บ path ของเครื่องคนแก้ ไม่ควร track)
 *.user
 *.userosscache
 *.sln.docstates
@@ -28,11 +34,18 @@ Logs/
 *.log
 
 # ---------------------------------------------------------------------------
-# Local-only settings (never commit machine/developer specific config)
+# Local-only settings / ความลับ (ห้าม commit — ค่าจริงอยู่บนเครื่อง/เซิร์ฟเวอร์เท่านั้น)
+# appsettings.json ที่ track ไว้มีแต่โครง ช่องรหัสผ่านเว้นว่างไว้หมด
+# ตัวอย่างค่า dev อยู่ที่ appsettings.Development.json.example (ไฟล์นี้ track)
 # ---------------------------------------------------------------------------
-.claude/settings.local.json
-appsettings.*.local.json
+appsettings.Development.json
+appsettings.Staging.json
+appsettings.Production.json
 appsettings.Local.json
+appsettings.*.local.json
+.claude/settings.local.json
+*.pfx
+*.p12
 
 # ---------------------------------------------------------------------------
 # Node modules (Playwright etc. — regenerate with npm install)
@@ -46,6 +59,8 @@ node_modules/
 
 # ---------------------------------------------------------------------------
 # Server-managed / runtime content — not versioned
+# (ตรงกับรายการที่ core_admin.csproj ตั้ง CopyToPublishDirectory=Never ไว้
+#  แก้ที่นี่แล้วต้องตามไปแก้ csproj ด้วย ไม่งั้น deploy จะไปทับไฟล์ที่ผู้ใช้อัปโหลด)
 # ---------------------------------------------------------------------------
 # uploaded content (elFinder / article attachments)
 wwwroot/Files/
@@ -65,7 +80,10 @@ docs/*
 
 # ---------------------------------------------------------------------------
 # One-off debug / audit scratch output (ไม่ถูกอ้างจากโค้ด — ลบทิ้งได้)
+# ไฟล์ scratch ใหม่ให้ตั้งชื่อลงท้าย .scratch.json / .scratch.txt จะถูกกันให้เอง
 # ---------------------------------------------------------------------------
+*.scratch.json
+*.scratch.txt
 /btn-audit.json
 /buttons.json
 /edit78-current.json
@@ -85,3 +103,9 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 .DS_Store
+
+# ---------------------------------------------------------------------------
+# ws_schedule : XML ที่ดึงมาจาก web service ของ Asset Plus (ข้อมูลรันไทม์ ไม่ใช่ซอร์ส)
+# เก็บไว้นอก wwwroot เพื่อไม่ให้โหลดจากเว็บได้ — ดูหัวข้อ ws_schedule ใน CLAUDE.md
+# ---------------------------------------------------------------------------
+App_Data/

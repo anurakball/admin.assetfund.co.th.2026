@@ -9,8 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 dotnet build                       # build
-dotnet run                         # run (HTTP  http://localhost:5140)
-dotnet run --launch-profile https  # run (HTTPS https://localhost:7140)
+dotnet run                         # run (HTTP  http://localhost:5300)
+dotnet run --launch-profile https  # run (HTTPS https://localhost:7300)
+dotnet publish core_admin.csproj -c Release -o publish   # ของขึ้นเซิร์ฟเวอร์ (ดูหัวข้อ Deploy / Publish)
 ```
 
 No test project exists in this solution.
@@ -151,18 +152,27 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 
 หลังบ้านเดิมคือ ASP WebForms ที่ `http://localhost:8099/assetplus/backoffice/`
 (ซอร์สอยู่ที่ `D:\Project\assetfund.co.th.old\assetplus\backoffice`)
-เมนู 11 ตัวถูกสร้างขึ้นใหม่ในระบบนี้ โดย **ใช้ตารางเดิมร่วมกัน ห้ามแก้โครงสร้างตาราง**
+เมนู 20 ตัวถูกสร้างขึ้นใหม่ในระบบนี้ โดย **ใช้ตารางเดิมร่วมกัน ห้ามแก้โครงสร้างตาราง**
 
 | กลุ่มเมนู | เมนู | Module | ตารางเดิม | โฟลเดอร์ต้นทาง |
 |---|---|---|---|---|
 | หน้าหลัก | Get Other Indices | `ApOtherIndices` | `tb_home_other_indices` | mod_tb_home_other_indices |
 | ข้อมูลกองทุน | ประเภทกองทุนรวม | `ApFundCat` | `tb_fund_cat` | mod_tb_fund_cat |
+| └ ↳ *(drill-down)* | รายชื่อกองทุน | `ApFund` | `tb_fund` | mod_tb_fund + mod_main_fund |
+| └ ↳ *(drill-down)* | เอกสารกองทุน | `ApFundDoc` | `tb_fund_doc` | mod_tb_fund_doc + mod_main_fund_doc |
 | ข้อมูลกองทุน | Get Fund Fact Sheet | `ApFundFactSheet` | `tb_fund_fundfact` | mod_tb_fund_fundfact |
 | ข้อมูลกองทุน | Get NAV | `ApFundNav` | `tb_fund_nav` | mod_tb_fund_nav |
 | ข้อมูลกองทุน | Delete NAV | `ApFundNavDelete` | `tb_fund_nav` | mod_tb_fund_nav_del |
 | ข้อมูลกองทุน | Get Performance | `ApFundPerformance` | `tb_fund_performance` | mod_tb_fund_performance |
+| กองทุนส่วนบุคคล | รู้จักกองทุนส่วนบุคคล | `ApPrivate` | `tb_fund_private` | mod_tb_fund_private |
+| กองทุนส่วนบุคคล | ขั้นตอนการลงทุน | `ApPrivateProcess` | `tb_fund_private_investment_process` | mod_tb_fund_private_investment_process |
+| กองทุนส่วนบุคคล | นโยบายการลงทุน | `ApPrivatePolicy` | `tb_fund_private_investment_policy` | mod_tb_fund_private_investment_policy |
+| กองทุนส่วนบุคคล | คำถามที่พบบ่อย | `ApPrivateQanda` | `tb_fund_private_investment_qanda` | mod_tb_fund_private_investment_qanda |
+| กองทุนส่วนบุคคล | ติดต่อเรา | `ApPrivateContact` | `tb_fund_private_contact_us` | mod_tb_fund_private_contact_us |
+| กองทุนส่วนบุคคล | ติดต่อกองทุนส่วนบุคคล | `ApPrivateInterested` | `tb_fund_private_interested` | mod_tb_fund_private_interested |
 | ปฏิทินกองทุน | หมวดหมู่ปฏิทิน | `ApCalendarCat` | `tb_calendar_category` | mod_tb_calendar_category |
 | ปฏิทินกองทุน | ปฏิทินกองทุน | `ApCalendar` | `tb_calendar` | mod_tb_calendar |
+| กองทุนสำรองเลี้ยงชีพ | เกี่ยวกับกองทุนสำรองฯ | `ApProv` | `tb_fund_prov` | mod_tb_fund_prov |
 | กองทุนสำรองเลี้ยงชีพ | Factsheet (Group) | `ApProvSheetCat` | `tb_fund_prov_sheet_cat` | mod_tb_fund_prov_sheet_cat |
 | กองทุนสำรองเลี้ยงชีพ | Factsheet | `ApProvSheet` | `tb_fund_prov_sheet` | mod_tb_fund_prov_sheet |
 | กองทุนสำรองเลี้ยงชีพ | ข้อมูลอื่นๆ | `ApProvOther` | `tb_fund_prov_other` | mod_tb_fund_prov_other |
@@ -190,10 +200,15 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 
 ทั้งหมดอยู่ใต้ `Areas/Admin/` — `Controllers/AdminLegacyController.cs` คือเครื่องยนต์กลาง
 (Index/Create/Edit/Delete/Status/Approve/Move) ของตาราง `tb_*` · `AssetPlusLegacyControllers.cs` = เมนู CRUD 6 ตัว
-· `AssetPlusImportControllers.cs` = เมนู "Get ..." 4 ตัว + Delete NAV · `Helpers/AssetPlusWsClient.cs` = ตัวเรียก SOAP
+· `AssetPlusImportControllers.cs` = เมนู "Get ..." 4 ตัว + Delete NAV
+· `AssetPlusFundControllers.cs` = รายชื่อกองทุน + เอกสารกองทุน (drill-down)
+· `AssetPlusPrivateControllers.cs` = กลุ่มกองทุนส่วนบุคคล + เกี่ยวกับกองทุนสำรองฯ
+· `Controllers/WsScheduleController.cs` = endpoint ให้ scheduler เรียก (พอร์ตจาก ws_schedule/*.aspx)
+· `Helpers/AssetPlusImporter.cs` = ตรรกะแปลง XML → ตารางเดิม (ใช้ร่วมกันทั้งเมนู "Get ..." และ ws_schedule)
+· `Helpers/AssetPlusWsClient.cs` = ตัวเรียก SOAP
 `ASPWS.asmx` · `Views/Ap*/` = ฟอร์มของแต่ละเมนู
 
-**`ModuleConfig` ของทั้ง 11 เมนูอยู่ที่ `Areas/Admin/Helpers/AdminMenuAssetPlus.cs`** (`AssetPlusLegacyModules()`)
+**`ModuleConfig` ของทั้ง 20 เมนูอยู่ที่ `Areas/Admin/Helpers/AdminMenuAssetPlus.cs`** (`AssetPlusLegacyModules()`)
 ซึ่ง `AdminMenu.AllModule()` ต่อท้ายด้วย `.Concat(...)` — เพิ่มเมนูใหม่ให้แก้ที่ไฟล์นั้น
 
 ### พฤติกรรมที่คัดลอกมาจากระบบเดิม
@@ -206,6 +221,11 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 - **อัปโหลดไฟล์** (`img1` / `en_img1` ของ Factsheet / ข้อมูลอื่นๆ) เก็บเป็น **ชื่อไฟล์เปล่า**
   รูปแบบเดิม `<table>_<rand 0-999>_<unix>_<field>.<ext>` และเขียนไฟล์ลงโฟลเดอร์ upload ของเว็บเดิม
   ตั้งค่าที่ `appsettings → LegacyUpload:Path` และ `LegacyUpload:Url`
+- **อัปโหลดไฟล์ของ `ApFundDoc` ใช้คนละโฟลเดอร์และคนละกฎการตั้งชื่อ**
+  เก็บที่ `upload_otherdocs` (ตั้งค่าที่ `LegacyUploadDoc:Path` / `LegacyUploadDoc:Url`)
+  ชื่อไฟล์ถูกกำหนดตายตัวเป็น `<fundcode>_<slug>[_en].<ext>` — `slug` มาจาก `file_id` (1–18)
+  หรือจากช่อง "ชื่อไฟล์" (`file_n`) ถ้าเป็นเอกสารที่ผู้ใช้เพิ่มเอง (`file_id = 0`)
+  **ห้ามแก้กฎนี้** เพราะเว็บเดิมอ้างไฟล์ด้วยชื่อดังกล่าวโดยตรง
 - **เมนู "Get ..."** : เลือกวันที่ → เรียก web service → แปลง XML → เขียนลงตารางเดิม
   แถวเดิมของคีย์เดียวกันถูกตั้ง `Flag = 0` แล้ว insert แถวใหม่ `Flag = 1`, `status/pb_status/show_front = 1` (เผยแพร่ทันที)
   - endpoint : `appsettings → AssetPlusWS:URL` (ค่าเดิมจาก `assetplus/web.config` = `http://167.179.243.42:53556/ws/ASPWS.asmx`)
@@ -214,6 +234,83 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
     โครงสร้างไฟล์เดียวกับที่ระบบเดิมเซฟไว้ใน `mod_*/xml_file/`
   - Fund Fact Sheet map แบบ generic : element ใน XML ที่ชื่อ **ตรงกับคอลัมน์จริง** จะถูกเขียนลงคอลัมน์นั้น
     (ตาราง `tb_fund_fundfact` มี ~270 คอลัมน์ — วิธีนี้รองรับ element ใหม่โดยไม่ต้องแก้โค้ด)
+  - **ตรรกะการนำเข้าจริงอยู่ที่ `Areas/Admin/Helpers/AssetPlusImporter.cs`** ไม่ได้อยู่ใน controller
+    เพราะใช้ร่วมกับ `ws_schedule` (ดูหัวข้อถัดไป) — แก้ที่เดียว มีผลทั้ง "กดเอง" และ "ตัวจับเวลาเรียก"
+
+### เมนูลูกแบบ drill-down (รายชื่อกองทุน / เอกสารกองทุน)
+
+ทั้งสองเมนูนี้ **ไม่อยู่ในเมนูด้านซ้าย** (ตรงกับหลังบ้านเดิม) เข้าถึงผ่านปุ่มในหน้ารายการของเมนูแม่:
+
+```
+ประเภทกองทุนรวม (ApFundCat)
+  └─[จัดการกองทุน]→ รายชื่อกองทุน (ApFund)
+        └─[จัดการไฟล์]→ เอกสารกองทุน (ApFundDoc)
+```
+
+- `ApFund` ผูกกับหมวดด้วย `cat_id` (= `tb_fund_cat.id`) · `ApFundDoc` ผูกกับกองทุนด้วย **`fundcode`** (ไม่ใช่ id)
+  ระบบเดิมเก็บ `fundcode` ไว้ทั้งใน `tb_fund_doc.cat_id` และ `tb_fund_doc.fundcode` — ระบบใหม่ทำตาม
+- **เพิ่มกองทุนใหม่ → สร้างแถวเอกสารมาตรฐาน 18 รายการ (`file_id` 1–18) ให้อัตโนมัติ**
+  แก้ไขกองทุนที่ยังไม่มีแถวเหล่านี้ก็สร้างย้อนหลังให้ (ตรงกับ mod_main_fund/add.aspx + edit.aspx)
+- **เปลี่ยน `fundcode` → ตามไปแก้ทุกแถวใน `tb_fund_doc`** (`cat_id` / `fundcode` / `pb_*`)
+  **ลบกองทุน → ลบเอกสารของ fundcode นั้นทิ้งด้วย**
+- เอกสารมาตรฐาน 18 รายการ **ลบไม่ได้** (ซ่อน checkbox + ปุ่มลบ และกันซ้ำที่ฝั่ง server)
+  ลบได้เฉพาะเอกสารที่ผู้ใช้เพิ่มเอง (`file_id = 0`)
+- ชื่อเอกสารของแถวมาตรฐานมาจากตารางคงที่ `ApFundDocController.FixedDocNames` (ไม่ได้เก็บใน DB)
+
+### ws_schedule — ตัวจับเวลาดึงข้อมูลอัตโนมัติ
+
+พอร์ตมาจาก `backoffice/ws_schedule/*.aspx` ของระบบเดิม · โค้ดอยู่ที่ `Areas/Admin/Controllers/WsScheduleController.cs`
+**ไม่ต้องล็อกอินหลังบ้าน** (scheduler เรียกเอง) — URL คงรูปเดิมไว้ทั้งชุด ย้ายมาโดยแก้แค่ชื่อโฮสต์:
+
+| ระบบเดิม | ระบบใหม่ (รับทั้งมีและไม่มี `.aspx`, ทั้ง GET และ POST) |
+|---|---|
+| `…/ws_schedule/ws_get_nav.aspx` | `https://<host>/ws_schedule/ws_get_nav` |
+| `…/ws_schedule/ws_get_other_indices.aspx` | `https://<host>/ws_schedule/ws_get_other_indices` |
+| `…/ws_schedule/ws_get_performance.aspx` | `https://<host>/ws_schedule/ws_get_performance` |
+| `…/ws_schedule/ws_get_fundfact.aspx` | `https://<host>/ws_schedule/ws_get_fundfact` |
+| `…/ws_schedule/test.aspx` | `https://<host>/ws_schedule/test` (หน้าตรวจสถานะ + ผังการตั้งค่า) |
+
+**พารามิเตอร์ที่ส่งให้ web service เหมือนระบบเดิมทุกตัว** (ห้ามเปลี่ยน — ฝั่ง ASPWS ตรวจชื่อพารามิเตอร์):
+
+| operation | พารามิเตอร์ | ค่าที่ส่ง |
+|---|---|---|
+| `NAVAnnounce` | *(ไม่มี)* | — |
+| `MartketOtherIndices` | `date` | วันนี้ `dd/MM/yyyy` |
+| `FundReturnPerformance` | `date` | วันนี้ `dd/MM/yyyy` |
+| `FundFactSheet` | `fundDate` | วันนี้ `dd/MM/yyyy` |
+
+⚠ **วันที่ต้องเป็น ค.ศ.** — culture ของแอปเป็น th-TH (ปฏิทินพุทธ) ถ้าใช้ `ToString("dd/MM/yyyy")` เฉย ๆ
+จะได้ปี 2569 แล้ว web service ไม่รู้จัก · ทั้ง `WsScheduleController` และ `AssetPlusImporter.DateIn()`
+จึงบังคับ `InvariantCulture` ไว้ (คอลัมน์ `*DateIn` / `*DateFormat` ในตารางเดิมเก็บ ค.ศ. ทั้งหมด)
+
+พารามิเตอร์เสริมของระบบใหม่ (ไม่กระทบการทำงานเดิม): `?date=dd/MM/yyyy` (ดึงย้อนหลัง) ·
+`?format=json` (ให้ scheduler อ่านผลง่าย) · `?key=…` (กันคนนอกยิง ตั้งที่ `WsSchedule:Key` — ไม่ตั้ง = เปิดเหมือนเดิม)
+
+ตั้งค่าเพิ่มที่ `appsettings`: `WsSchedule:XmlPath` (โฟลเดอร์เก็บ XML ที่ดึงมา — ค่าปกติ `App_Data/ws_schedule`
+**ตั้งใจไม่ให้อยู่ใต้ `wwwroot`** เพราะระบบเดิมเก็บไว้ในที่ที่โหลดจากเว็บได้) และ `WsSchedule:Key`
+
+ผลการทำงานทุกครั้งถูกบันทึกลง `tb_admin_log` (`action_table = 'ws_schedule'`, `user_id = 'ws_auto'`)
+เมนู Log ของหลังบ้านเดิมจึงเห็นด้วย
+⚠ `tb_admin_log.action_info` เป็นชนิด `text` (codepage 874) — **ห้ามใส่อักขระนอกโค้ดเพจไทย** (เช่น `·`) จะกลายเป็น `?`
+
+**ตารางที่เขียน** (ตรงกับระบบเดิมทุกตัว):
+
+| endpoint | ตารางหลัก | ตารางอื่น |
+|---|---|---|
+| ws_get_other_indices | `tb_home_other_indices` | — |
+| ws_get_nav | `tb_fund_nav` | — |
+| ws_get_performance | `tb_fund_performance` | `tb_fund_performance_hd` (แถว `id = 1` = หัวตาราง) |
+| ws_get_fundfact | `tb_fund_fundfact` | ตารางลูก 11 ตัว `tb_fund_fundfact_*` |
+
+กฎการเขียนที่ต้องรักษาไว้ (front-end เดิมอ่านตามนี้):
+- แถวใหม่ `Flag = 1` · แถวเดิมของคีย์เดียวกันถูกตั้ง `Flag = 0` (ไม่ลบทิ้ง เก็บเป็นประวัติ)
+- `status = 1, pb_status = 1, show_front = 1` → เผยแพร่ทันทีโดยไม่ต้องรออนุมัติ
+- `sort` = `MAX(sort) + 10` ไล่ขึ้นทีละแถว · `last_user` / `pb_last_user` = `ws_auto`
+- ตารางลูกของ fundfact ใช้ **ลบด้วย fundcode แล้ว insert ใหม่** (ไม่ใช่ Flag)
+
+**`FundCodeMark` ของ `tb_fund_performance`** — แถวที่ `NAVPerUnit` + `InceptionDateTH` + `InceptionDateEN`
+ว่างครบสามช่องคือแถว "เกณฑ์มาตรฐาน" ต้องยืมรหัสกองทุนที่อยู่เหนือมัน แล้วล้างตัวจำ
+(ลอกมาทั้งท่อนรวมถึงกรณี benchmark ติดกัน 2 แถวที่แถวหลังจะได้ค่าว่าง — อย่า "แก้ให้ดีขึ้น")
 
 ### ข้อควรระวัง
 
@@ -223,6 +320,14 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
   `LegacyParentField = "datatype"` ด้วย (หลังบ้านเดิมไม่ได้กันไว้ ระบบใหม่กันเพิ่มเพื่อไม่ให้เกิด orphan)
 - **สิทธิ์เมนู** อยู่ใน `2026_web_admin_module` — เพิ่มเมนูใหม่ต้อง insert สิทธิ์ให้ `access_id` ที่ต้องการ
   ไม่งั้นเมนูจะไม่ขึ้นและเปิดหน้าไม่ได้
+- **`pb_status` ของตารางเดิมไม่ได้เป็น 0/1 เสมอ** — `tb_fund_doc` มี ~1,500 แถวที่ค่าเป็น 10/20/30…
+  (หลังบ้านเดิม insert ค่า `sort` ลงคอลัมน์นี้ผิด) หลังบ้านเดิมถือว่า "ทุกค่าที่ไม่ใช่ 1 = ยังไม่อนุมัติ"
+  หน้า list ของระบบใหม่จึงขึ้นปุ่ม Approve ให้ทุกแถวที่ `pb_status <> 1` เมื่อ `LegacyTable = true`
+- **คอลัมน์ `sort` ของตารางเดิมเป็น NULL ได้** (`tb_fund_doc` 28 แถว) — โค้ดที่คำนวณเลขลำดับในหน้า list
+  ต้องกัน string ว่างเสมอ
+- **ค้นหาด้วยช่วงวันที่ (`EnableDateSearch`) รับค่าเป็น ค.ศ.** — ค่าใน session เป็น `yyyy-MM-dd`
+  ต้องอ่านด้วย `InvariantCulture` (culture ของแอปเป็น th-TH ปฏิทินพุทธ ถ้าใช้ culture ปัจจุบันจะเพี้ยน 543 ปี)
+  ⚠ ต่างจาก `LegacyFields()` ที่รับวันที่จาก**ฟอร์ม**เป็น พ.ศ. และต้องใช้ culture ปัจจุบัน
 
 ### Authentication & Authorization
 
@@ -265,6 +370,55 @@ Session-based auth (no ASP.NET Identity). Session keys: `admin_login`, `admin_us
 Razor + jQuery + CKEditor + elFinder · ไม่มี npm/bundler (lib commit ตรง ๆ ใน `wwwroot/lib/`)
 UI ที่ใช้ซ้ำ (breadcrumb, pagination, ปุ่ม action) เป็น view component ที่ `Areas/Admin/Views/ViewComponents/`
 
+## Deploy / Publish
+
+```bash
+dotnet publish core_admin.csproj -c Release -o publish   # → โฟลเดอร์ publish/ (ของที่เอาขึ้นเซิร์ฟเวอร์)
+```
+
+หรือกด Publish ใน Visual Studio ด้วย **`Properties/PublishProfiles/FolderProfile.pubxml`**
+(profile เดียวที่มี — ปลายทาง `publish\`, `DeleteExistingFiles=true`)
+
+> ⚠ **อย่าเก็บไฟล์อื่นไว้ใน `publish/`** เพราะถูกล้างทุกครั้งที่ publish · โฟลเดอร์นี้ gitignore แล้ว
+> ⚠ ระบุ `core_admin.csproj` ให้ชัดเจน — ในโฟลเดอร์นี้มี `core_admin.sln` อีกตัว (ซ้ำกับที่ repo root
+> แต่คนละ GUID) ถ้าไม่ระบุ `dotnet` จะเลือก .sln ตัวใน
+
+### สิ่งที่ publish แล้ว "ไปด้วย" และ "ไม่ไป"
+
+กฎอยู่ที่ `<Content Update .../>` ใน `core_admin.csproj` — **แก้ที่นั่นที่เดียว** และมีคอมเมนต์กำกับทุกข้อ
+
+| ไป | ไม่ไป (ตั้งใจ) |
+|---|---|
+| assembly + `wwwroot/` (css/js/โลโก้/lib) | `appsettings*.json` และ `.json` อื่นที่ root |
+| `Storage/` (เทมเพลตอีเมล/ฟอนต์ ที่โค้ดอ่านตอนรัน) | `wwwroot/Files/`, `wwwroot/uploads/`, `wwwroot/images/bg/` (ของที่ผู้ใช้อัปโหลด) |
+| `web.config` (pipeline เติม handler ให้เอง) | `wwwroot/scss/` (ซอร์สของ css), `Logs/`, `App_Data/`, `docs/`, `.claude/` |
+
+- **`wwwroot/` ต้องไปด้วย** เพราะธีม/โลโก้ของ Asset Plus อยู่ในนั้น (`?v=ap2026` — ดูหัวข้อ Branding)
+  แต่ 3 โฟลเดอร์อัปโหลดถูกกันไว้ ไม่งั้น deploy จะเอาของบนเครื่อง dev ไปทับไฟล์จริงบนเซิร์ฟเวอร์
+  **รายการนี้ต้องตรงกับ `.gitignore`** — แก้ที่ไหนต้องตามไปแก้อีกที่
+- `Microsoft.VisualStudio.Web.CodeGeneration.Design` ตั้ง `PrivateAssets="all"` ไว้ (มันเป็นแค่ตัว scaffold)
+  ห้ามถอดออก ไม่งั้น Roslyn Workspaces/Features + MSBuild + NuGet.* + EntityFrameworkCore
+  จะกลับมาอยู่ใน publish อีก ~60 MB ทั้งที่ไม่มีโค้ดไหนเรียก
+- `DefaultItemExcludes` กัน `publish/` + `node_modules/` ไม่ให้ถูก glob กลับเข้าไปใน publish รอบถัดไป
+  (Web SDK กวาด `**/*.json` / `**/*.config` เป็น Content เอง — bin/obj มันกันให้แล้ว แต่ `publish/` ไม่)
+
+### ต้องตั้งบนเซิร์ฟเวอร์เอง (ไม่ได้ไปกับ publish)
+
+1. **`appsettings.json`** — ไฟล์ในรีโปเก็บแต่โครง ช่องรหัสผ่านเว้นว่างไว้หมด **ค่าจริงอยู่บนเซิร์ฟเวอร์เท่านั้น**
+   ต้องมีไฟล์นี้ ไม่งั้นแอปต่อ DB ไม่ได้ · คีย์ที่ต้องกรอก:
+   `DBConnection` · `MySQLConnection` · `AppKey` · `API:*` · `MailSettings:*` · `RootURL` / `FrontURL` ·
+   `LegacyUpload:Path` / `:Url` · `LegacyUploadDoc:Path` / `:Url` · `WsSchedule:XmlPath` / `:Key` ·
+   `AssetPlusWS:URL` · `LINEAPI:*`
+2. **`ASPNETCORE_ENVIRONMENT` ห้ามเป็น `Development`** — ไม่งั้น Serilog เปิด console sink,
+   หน้า error กลายเป็น developer exception page และถ้า `EnableSqlDebugLog` เป็น `true` ด้วย
+   `DBHelper` จะพ่น SQL ทุกคำสั่งออก log (ต้องเข้าเงื่อนทั้งสองถึงจะพ่น)
+3. **สิทธิ์เขียนของ app pool** : `Logs/` (Serilog), `App_Data/ws_schedule/` (XML ที่ ws_schedule ดึงมา),
+   `wwwroot/Files/` (elFinder) และโฟลเดอร์ตาม `LegacyUpload:Path` / `LegacyUploadDoc:Path` (อยู่ในเว็บเดิม)
+4. **`web.config`** ตั้ง `maxAllowedContentLength` = 80 MB ให้ตรงกับ `MaxRequestBodySize` ใน `Program.cs`
+   (ค่า default ของ IIS คือ 30 MB จะตัดไฟล์ทิ้งก่อนถึงเพดาน 50 MB ของ elFinder)
+5. **ws_schedule** ต้องตั้ง scheduler ยิงมาที่ `https://<host>/ws_schedule/...` เอง (ดูหัวข้อ ws_schedule)
+   และควรตั้ง `WsSchedule:Key` ด้วย ไม่งั้นใครก็ยิงได้
+
 ## Database Connections (Development)
 
 ```
@@ -290,10 +444,12 @@ MySQL:      Server=localhost; Database=sam_npa;        UserID=root; Password=(�
 
 ## รันและทดสอบเว็บไซต์
 
-- ปกติเซิร์ฟเวอร์รันค้างอยู่แล้วที่ `https://localhost:7140/` — **ไม่ต้อง `dotnet run` ใหม่ถ้าเข้าได้**
-- ถ้าเข้าไม่ได้ → `dotnet run --launch-profile https` แล้ว **รอจนพอร์ต 7140 listen** (ใช้เวลาสักครู่) ค่อยทดสอบ
+- ปกติเซิร์ฟเวอร์รันค้างอยู่แล้วที่ `https://localhost:7300/` — **ไม่ต้อง `dotnet run` ใหม่ถ้าเข้าได้**
+- ถ้าเข้าไม่ได้ → `dotnet run --launch-profile https` แล้ว **รอจนพอร์ต 7300 listen** (ใช้เวลาสักครู่) ค่อยทดสอบ
+- ⚠ **พอร์ต 7140/5140 ไม่ใช่ของโปรเจกต์นี้แล้ว** (ย้ายมา 7300/5300 เมื่อ 14 ก.ย. 2569) — admin อีก 4 โปรเจกต์บนเครื่องนี้
+  (admin.egth, admin.sam.or.th, admin.sm, adminweb.thaicreditbank.com) ยังใช้ 7140 อยู่ ถ้าเจออะไรรันที่ 7140 **อย่าคิดว่าเป็นตัวนี้**
 - ทดสอบด้วย **Playwright** และ **ต้อง login ก่อนเสมอ** ด้วย `user` / `P@ssw0rd`
-- ลำดับการเข้าหลังบ้าน: `https://localhost:7140/` → redirect ไป `/Admin/User/Login?webID=&targetUrl=/Admin`
+- ลำดับการเข้าหลังบ้าน: `https://localhost:7300/` → redirect ไป `/Admin/User/Login?webID=&targetUrl=/Admin`
   → กรอก user/pass โดยปล่อย dropdown ไว้ที่ **เว็บไซต์หลัก** (webID = 0) → `/Admin/User/Dashboard`
   → กดปุ่ม **Admin Panel** → `/Admin/User/LastActivity` คือหน้าหลังบ้าน
 - เก็บ screenshot ไว้ใน `.playwright-mcp/` เสมอ (git ignore แล้ว เป็นไฟล์ชั่วคราว ลบทิ้งได้)
@@ -302,11 +458,11 @@ MySQL:      Server=localhost; Database=sam_npa;        UserID=root; Password=(�
 `dotnet run` ที่สั่งผ่าน background task ของ Claude Code จะ**ถูก kill เมื่อ session จบ** ถ้าอยากให้รันค้าง ให้ spawn แบบหลุด job object ด้วย WMI:
 
 ```powershell
-$log = "$env:TEMP\core_admin-7140.log"
+$log = "$env:TEMP\core_admin-7300.log"
 $cmd = 'cmd /c "dotnet run --launch-profile https > "' + $log + '" 2>&1"'
 Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=$cmd; CurrentDirectory="d:\Project\admin.assetfund.co.th.2026\core_admin"}
 ```
-หยุดด้วย `Get-NetTCPConnection -LocalPort 7140 | Select -Expand OwningProcess | Stop-Process -Force` (หรือรันจาก terminal แยกเองก็ได้)
+หยุดด้วย `Get-NetTCPConnection -LocalPort 7300 | Select -Expand OwningProcess | Stop-Process -Force` (หรือรันจาก terminal แยกเองก็ได้)
 
 ### กลไก login (`Areas/Admin/Controllers/UserController.cs`)
 
@@ -335,8 +491,8 @@ Front-end คือ**คนละแอป คนละโปรเจกต์*
 
 | แอป | โปรเจกต์ | URL (dev) |
 |---|---|---|
-| Admin (back-end) — repo นี้ | `d:\Project\admin.assetfund.co.th.2026\core_admin` | https://localhost:7140 |
-| Public site (front-end) | `d:\Project\assetfund.co.th.2026` | https://localhost:7301 |
+| Admin (back-end) — repo นี้ | `d:\Project\admin.assetfund.co.th.2026\core_admin` | https://localhost:7300 |
+| Public site (front-end) | `d:\Project\assetfund.co.th.2026` | https://localhost:7310 |
 
 > ⚠️ **ยังไม่ได้ต่อกัน** — front-end ตัวใหม่ยังอยู่ระหว่างสร้าง ทุก service ยังเป็น `Mock*Service.cs` และ `appsettings.json` ยังไม่มี connection string
 > ดังนั้น **ข้อมูลที่แก้ผ่าน admin จะยังไม่ปรากฏบน front-end** และระบบ Preview ก็ยังใช้ไม่ได้
@@ -348,7 +504,7 @@ Front-end คือ**คนละแอป คนละโปรเจกต์*
 
 **ข้อตกลงระหว่างสองแอปที่ต้องรักษาไว้** (เขียนไว้ทั้งสองฝั่ง — แก้แล้วต้องตามไปแก้อีกฝั่ง):
 
-- **รูปในเนื้อหา CMS ต้องใช้ URL แบบสัมบูรณ์ชี้มาที่โดเมน admin** (`https://localhost:7140/Files/...` หรือ `/assets/...`) เพราะไฟล์อัปโหลด (elFinder) เก็บที่ฝั่ง admin และสองแอปมี `wwwroot/Files` แยกกัน — ถ้าใช้ path สัมพัทธ์ รูปจะ 404 บน front-end (ปุ่มแทรกรูปของ elFinder ใส่ URL สัมบูรณ์ให้อัตโนมัติแล้ว)
+- **รูปในเนื้อหา CMS ต้องใช้ URL แบบสัมบูรณ์ชี้มาที่โดเมน admin** (`https://localhost:7300/Files/...` หรือ `/assets/...`) เพราะไฟล์อัปโหลด (elFinder) เก็บที่ฝั่ง admin และสองแอปมี `wwwroot/Files` แยกกัน — ถ้าใช้ path สัมพัทธ์ รูปจะ 404 บน front-end (ปุ่มแทรกรูปของ elFinder ใส่ URL สัมบูรณ์ให้อัตโนมัติแล้ว)
 - **ปุ่ม [Insert E-Form]** ในตัวแก้ไขเนื้อหา แทรกเป็น symbol tag `{{{E-Form:<หัวข้อ>:<id>}}}` — front-end ต้องมี parser มารับ ไม่งั้นจะแสดงเป็นข้อความดิบ (ยังไม่มี)
 - **ห้ามใช้ชื่อ session cookie ซ้ำกัน** — cookie แยกตาม host เท่านั้น ไม่แยก port และทั้งสองแอปอยู่บน `localhost` เดียวกัน ถ้าชื่อชนกัน (ค่า default `.AspNetCore.Session`) การเข้า front-end จะเขียนทับ cookie ของ admin ทำให้ admin หลุด login
   → admin ตั้งเป็น `AssetPlus.Admin.Session` ไว้แล้วใน `Program.cs` **front-end ต้องใช้ชื่ออื่น**

@@ -14,8 +14,8 @@
     "Database": "asset_plus_uat"
   },
   "AppKey": "",
-  "RootURL": "https://localhost:7140",
-  "FrontURL": "https://localhost:7169",
+  "RootURL": "https://localhost:7300",
+  "FrontURL": "https://localhost:7310",
   "API": {
     "URL": "https://localhost:7144/api",
     "Username": "admin",
@@ -40,6 +40,22 @@
     "token_api_username": "LINEOA",
     "token_api_password": "",
     "token_life_mins": "30"
+  },
+  "AssetPlusWS": {
+    "URL": "http://167.179.243.42:53556/ws/ASPWS.asmx",
+    "TimeoutSeconds": 60
+  },
+  "WsSchedule": {
+    "XmlPath": "",
+    "Key": ""
+  },
+  "LegacyUpload": {
+    "Path": "",
+    "Url": ""
+  },
+  "LegacyUploadDoc": {
+    "Path": "",
+    "Url": ""
   },
   "MySQLConnection": {
     "Server": "localhost",

@@ -1,0 +1,167 @@
+﻿@using Microsoft.AspNetCore.Http
+@using thaicredit_hr_admin.Areas.Admin.Helpers
+@*
+    ข้อมูลกองทุน / ประเภทกองทุนรวม / รายชื่อกองทุน — เพิ่มกองทุน
+    ระบบเดิม : mod_tb_fund/add.aspx → mod_main_fund/add.aspx
+
+    หมายเหตุ : บันทึกแล้วระบบจะสร้างแถวเอกสารมาตรฐาน 18 รายการใน tb_fund_doc ให้อัตโนมัติ
+               (ทำที่ ApFundController.AfterLegacyCreate เหมือนระบบเดิม)
+*@
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var mod = (Module)ViewBag.Module;
+    var mod_config = mod.Config;
+    var _utility = (Utility)ViewBag._utility;
+    var _admin = (AdminHelpers)ViewBag._admin;
+    var _session = (ISession)ViewBag._session;
+    string _cat_id = ViewBag.CurrentCatId + "";
+}
+
+@section NavbarBack{
+    @await Component.InvokeAsync("AdminNavbarBack", new { linkBack = string.Format("/Admin/{0}", mod.Name) })
+}
+
+@await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
+
+<div class="form-wrapper">
+    <form method="post" id="fm_cms" enctype="multipart/form-data" onsubmit="return sConfirmCustom(this);">
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputSelectDB("ประเภทกองทุนรวม", "cat_id", _cat_id,
+                          table_name: "tb_fund_cat", value_field: "id", text_field: "title",
+                          order_by: "sort", sort: "asc"))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("Fund Code", "fundcode", ""))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อกองทุน <span class='fi fi-th'></span>", "title", "", "-- หากเว้นว่างไว้ จะไม่แสดงในฝั่งภาษาไทย --"))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("ชื่อกองทุน <span class='fi fi-us'></span>", "en_title", "", "-- หากเว้นว่างไว้ จะไม่แสดงในฝั่งภาษาอังกฤษ --"))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("สกุลเงิน <span class='fi fi-th'></span>", "th_currencycode", "", "", 10))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("สกุลเงิน <span class='fi fi-us'></span>", "en_currencycode", "", "", 10))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Brief <span class='fi fi-th'></span>", "brief", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Brief <span class='fi fi-us'></span>", "en_brief", ""))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Description <span class='fi fi-th'></span>", "title_info", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputTextArea("Description <span class='fi fi-us'></span>", "en_title_info", ""))
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label for="id_img1" class="form-label">รูปภาพ <span class='fi fi-th'></span> <small class="text-muted">(150 x 111)</small></label>
+                    <input type="file" class="form-control" id="id_img1" name="img1" accept="image/*">
+                    <input type="hidden" name="img1_old" value="">
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label for="id_en_img1" class="form-label">รูปภาพ <span class='fi fi-us'></span> <small class="text-muted">(150 x 111)</small></label>
+                    <input type="file" class="form-control" id="id_en_img1" name="en_img1" accept="image/*">
+                    <input type="hidden" name="en_img1_old" value="">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                <div class="field">
+                    <label for="id_morning_star" class="form-label">Morning Star</label>
+                    <select class="form-select" id="id_morning_star" name="morning_star">
+                        <option value="0">เลือก</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        <h6 class="mb-3">Template</h6>
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="field">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="template" id="id_template_1" value="1" checked>
+                        <label class="form-check-label" for="id_template_1">Template 1 , 2 ( ประเภทตราสารทุน ตราสารหนี้ )</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="template" id="id_template_2" value="2">
+                        <label class="form-check-label" for="id_template_2">Template 3 (ประเภทกองทุนเปิด)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="template" id="id_template_3" value="3">
+                        <label class="form-check-label" for="id_template_3">Template 4 (ประเภทกลุ่ม Star)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        <h6 class="mb-3">SEO</h6>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("SEO Title <span class='fi fi-th'></span>", "seo_title", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("SEO Title <span class='fi fi-us'></span>", "seo_en_title", ""))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("SEO Keywords <span class='fi fi-th'></span>", "seo_keywords", "", "", 2000))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("SEO Keywords <span class='fi fi-us'></span>", "seo_en_keywords", "", "", 2000))
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("SEO Description <span class='fi fi-th'></span>", "seo_description", ""))
+            </div>
+            <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("SEO Description <span class='fi fi-us'></span>", "seo_en_description", ""))
+            </div>
+        </div>
+
+        <br />
+        @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
+    </form>
+</div>
+
+<br /><br /><br />
+
+@section Scripts{
+<link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
+}

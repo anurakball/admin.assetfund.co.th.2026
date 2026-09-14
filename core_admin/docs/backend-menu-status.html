@@ -34,9 +34,9 @@
 <div class="wrap">
 
   <h1>สถานะเมนูด้านซ้าย — ASSET PLUS Admin</h1>
-  <p class="sub">รายงานแบบ static · อัปเดตล่าสุด 30/08/2026 00:02 · ข้อมูลจาก <code>Areas/Admin/Helpers/AdminMenu.cs</code> (เมธอด <code>Menu()</code>)</p>
+  <p class="sub">รายงานแบบ static · อัปเดตล่าสุด 01/09/2026 · ข้อมูลจาก <code>Areas/Admin/Helpers/AdminMenu.cs</code> (เมธอด <code>Menu()</code>)</p>
 
-  <h2>1. เมนูที่เปิดใช้งานอยู่ <span class="n">(19 เมนู)</span></h2>
+  <h2>1. เมนูที่เปิดใช้งานอยู่ <span class="n">(26 เมนู)</span></h2>
   <p class="note">เมนูที่แสดงในแถบซ้ายของระบบตอนนี้</p>
   <table>
     <thead><tr><th>กลุ่มเมนู</th><th>ชื่อเมนู</th><th>Module / Link</th></tr></thead>
@@ -51,15 +51,32 @@
       <tr><td class="grp">ข้อมูลกองทุน</td><td>Get NAV</td><td class="mod">ApFundNav</td></tr>
       <tr><td class="grp">ข้อมูลกองทุน</td><td>Delete NAV</td><td class="mod">ApFundNavDelete</td></tr>
       <tr><td class="grp">ข้อมูลกองทุน</td><td>Get Performance</td><td class="mod">ApFundPerformance</td></tr>
+      <tr class="newgrp"><td class="grp">กองทุนส่วนบุคคล</td><td>รู้จักกองทุนส่วนบุคคล</td><td class="mod">ApPrivate</td></tr>
+      <tr><td class="grp">กองทุนส่วนบุคคล</td><td>ขั้นตอนการลงทุน</td><td class="mod">ApPrivateProcess</td></tr>
+      <tr><td class="grp">กองทุนส่วนบุคคล</td><td>นโยบายการลงทุน</td><td class="mod">ApPrivatePolicy</td></tr>
+      <tr><td class="grp">กองทุนส่วนบุคคล</td><td>คำถามที่พบบ่อย</td><td class="mod">ApPrivateQanda</td></tr>
+      <tr><td class="grp">กองทุนส่วนบุคคล</td><td>ติดต่อเรา</td><td class="mod">ApPrivateContact</td></tr>
+      <tr><td class="grp">กองทุนส่วนบุคคล</td><td>ติดต่อกองทุนส่วนบุคคล</td><td class="mod">ApPrivateInterested</td></tr>
       <tr class="newgrp"><td class="grp">ปฏิทินกองทุน</td><td>หมวดหมู่ปฏิทิน</td><td class="mod">ApCalendarCat</td></tr>
       <tr><td class="grp">ปฏิทินกองทุน</td><td>ปฏิทินกองทุน</td><td class="mod">ApCalendar</td></tr>
-      <tr class="newgrp"><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>Factsheet (Group)</td><td class="mod">ApProvSheetCat</td></tr>
+      <tr class="newgrp"><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>เกี่ยวกับกองทุนสำรองเลี้ยงชีพ</td><td class="mod">ApProv</td></tr>
+      <tr><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>Factsheet (Group)</td><td class="mod">ApProvSheetCat</td></tr>
       <tr><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>Factsheet</td><td class="mod">ApProvSheet</td></tr>
       <tr><td class="grp">กองทุนสำรองเลี้ยงชีพ</td><td>ข้อมูลอื่นๆ</td><td class="mod">ApProvOther</td></tr>
       <tr class="newgrp"><td class="grp">ผู้ดูแลระบบ</td><td>สิทธิ์การใช้</td><td class="mod">AdminAccess</td></tr>
       <tr><td class="grp">ผู้ดูแลระบบ</td><td>ผู้ดูแลระบบ</td><td class="mod">AdminUser</td></tr>
       <tr><td class="grp">ผู้ดูแลระบบ</td><td>Admin Logs</td><td class="mod">AdminLog</td></tr>
       <tr><td class="grp">ผู้ดูแลระบบ</td><td>ผู้ใช้ที่ไม่เข้าใช้งาน</td><td class="mod">AdminUserNotLogin</td></tr>
+    </tbody>
+  </table>
+
+  <h2>1.1 เมนูลูกแบบ drill-down <span class="n">(2 เมนู)</span></h2>
+  <p class="note">ไม่อยู่ในเมนูด้านซ้าย (ตรงกับหลังบ้านเดิม) — เข้าถึงจากปุ่มในหน้ารายการของเมนูแม่</p>
+  <table>
+    <thead><tr><th>เข้าจาก</th><th>ชื่อเมนู</th><th>Module / Link</th></tr></thead>
+    <tbody>
+      <tr class="newgrp"><td class="grp">ประเภทกองทุนรวม → [จัดการกองทุน]</td><td>รายชื่อกองทุน</td><td class="mod">ApFund</td></tr>
+      <tr><td class="grp">รายชื่อกองทุน → [จัดการไฟล์]</td><td>เอกสารกองทุน</td><td class="mod">ApFundDoc</td></tr>
     </tbody>
   </table>
 

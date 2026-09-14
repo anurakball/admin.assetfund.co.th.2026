@@ -1330,7 +1330,7 @@ function previewModal(url, lang, size) {
 }
 
 // ───── พรีวิวหน้าเว็บฝั่ง front-end (ปุ่ม [Preview] ของรายการที่รออนุมัติในหน้า list) ─────
-// baseUrl = URL ของหน้าพรีวิวฝั่ง front-end เช่น https://localhost:7169/_preview/announce-pro/47
+// baseUrl = URL ของหน้าพรีวิวฝั่ง front-end เช่น https://localhost:7310/_preview/announce-pro/47
 // เปิด modal เต็มจอแล้วโหลด URL ลง iframe (ค่าเริ่มต้นภาษาไทย, สลับได้จากปุ่มบน header)
 function openFrontPreview(baseUrl) {
     var $modal = $("#frontPreviewModal");

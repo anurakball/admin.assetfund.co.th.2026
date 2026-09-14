@@ -65,7 +65,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     ? "แจ้งผลการตรวจสอบเอกสารประกอบการสมัครเป็นตัวแทนขายทรัพย์ (Agent)"
                     : string.Format("แจ้งผลการตรวจสอบเอกสารประกอบการสมัครเป็นตัวแทนขายทรัพย์ (Agent) - {0}", fullName);
                 // ลิงก์ให้ผู้สมัคร login แล้วเด้งไปหน้าจัดการเอกสาร (apply-agent step3) ทันที
-                // โดเมนมาจาก config "FrontURL" (dev = https://localhost:7169, production = https://www.assetfund.co.th)
+                // โดเมนมาจาก config "FrontURL" (dev = https://localhost:7310, production = https://www.assetfund.co.th)
                 string manageDocUrl = _utility.frontURL("/th/login?returnUrl=%2Fth%2Fapply-agent%2Fstep3");
 
                 ViewBag.PrefillBody = BuildDocumentStatusBody(fullName, files, manageDocUrl);
