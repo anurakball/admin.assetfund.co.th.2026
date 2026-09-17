@@ -3,7 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > ⏩ **งาน CMS (เพิ่มเมนูซ้าย → DB → front-end → Preview) — session ใหม่อ่าน `docs/CMS-MENU-HANDOFF.md` ก่อน**
-> เป็นเอกสารส่งต่องานฉบับเต็ม (เขียนใหม่ทั้งไฟล์ 17 ก.ย. 2569 บ่าย): สถานะ 6 เมนู CMS + งาน Login/reCAPTCHA/Dashboard, ความต้องการผู้ใช้ทั้งหมด, ไทม์ไลน์, **สูตรทำเมนูครบวงจร**, **เทคนิค Playwright พร้อมโค้ด**, กับดัก, ไฟล์ค้าง commit, **แผนงานต่อไป**, งานตอน deploy · สคริปต์ DB ถาวรอยู่ `docs/sql/`
+> เป็นเอกสารส่งต่องานฉบับเต็ม (อัปเดตล่าสุด 18 ก.ย. 2569 — **§14 = งานล่าสุด: page builder หน้าแรก `CMSPage` + ข้อมูล Widget, ผลทดสอบ 7 เมนู, เหตุการณ์กู้ไฟล์ `AdminMenu.cs`**): สถานะ 7 เมนู CMS + งาน Login/reCAPTCHA/Dashboard, ความต้องการผู้ใช้ทั้งหมด, ไทม์ไลน์, **สูตรทำเมนูครบวงจร**, **เทคนิค Playwright พร้อมโค้ด**, กับดัก, ไฟล์ค้าง commit, **แผนงานต่อไป**, งานตอน deploy · สคริปต์ DB ถาวรอยู่ `docs/sql/`
+> ⚠ **ห้าม `git checkout --` / `git restore` / `git stash` ใน repo นี้** — มีงานค้าง commit ข้าม session (เคยทำหายแล้วต้องกู้จาก transcript 18 ก.ย. 2569)
 > จากนั้นค่อยอ่านหัวข้อ "Playbook: ทำ 1 เมนู CMS ให้ครบวงจร" ในไฟล์นี้
 
 > 📁 **ทุก path ในเอกสารนี้สัมพัทธ์กับโฟลเดอร์ที่ไฟล์นี้อยู่ (`core_admin/`)** — ที่เดียวกับ `.csproj` และโค้ดทั้งหมด
@@ -33,6 +34,27 @@ dotnet publish core_admin.csproj -c Release -o publish   # ของขึ้น
 ```
 
 No test project exists in this solution.
+
+## Git — ขั้นตอนสุดท้ายของทุกงานคือ commit + push ⚠ (ผู้ใช้สั่ง 17 ก.ย. 2569)
+
+**ทำงานเสร็จ (build ผ่าน + ทดสอบใน browser แล้ว) ให้ `git commit` แล้ว `git push` ทันที ทุกโปรเจกต์ที่มีไฟล์ถูกแก้ในงานนั้น** — ไม่ต้องรอถาม
+(กฎนี้แทนกฎเดิม "admin ไม่ commit จนกว่าผู้ใช้สั่ง" — ผู้ใช้ยกเลิกแล้ว)
+
+| โปรเจกต์ | โฟลเดอร์ที่รัน git (= repo root) | ปลายทาง push (branch `master`) |
+|---|---|---|
+| admin (repo นี้) | `D:\Project\admin.assetfund.co.th.2026` (แม่ของ `core_admin/`) | `https://github.com/anurakball/admin.assetfund.co.th.2026.git` |
+| front-end | `D:\Project\assetfund.co.th.2026` | `https://github.com/anurakball/assetfund.co.th.2026.git` |
+
+- ทั้งสอง repo **ไม่มี remote ชื่อ `origin`** (ผู้ใช้ push ผ่าน TortoiseGit แบบ "Arbitrary URL") → push ด้วย URL ตรง ๆ:
+  ```bash
+  git push https://github.com/anurakball/admin.assetfund.co.th.2026.git master   # ใน D:\Project\admin.assetfund.co.th.2026
+  git push https://github.com/anurakball/assetfund.co.th.2026.git master         # ใน D:\Project\assetfund.co.th.2026
+  ```
+  (ถ้าอยากพิมพ์สั้นลง ตั้ง `git remote add origin <URL>` ได้ — ยังไม่ได้ตั้งเพราะผู้ใช้ไม่ได้สั่ง)
+- 1 งาน = 1 commit ข้อความบอกว่าแก้อะไร (ไม่ใช่ `...`) ลงท้าย `Co-Authored-By:` ตาม system reminder ของ session นั้น
+- แก้แค่ฝั่งเดียวก็ commit + push แค่ฝั่งนั้น · **push ไม่ผ่าน (credential/เน็ต) ให้แจ้งผู้ใช้ทันที** อย่าเงียบ · ห้าม `--force`
+- ยังคง **ห้าม `git checkout --` / `git restore` / `git stash`** ใน repo admin (เคยทำงานหาย — ดู handoff §8)
+- `wwwroot/Files/` และ `docs/*` (ยกเว้น `CMS-MENU-HANDOFF.md`, `preview-spec.md`, `sql/*.sql`) ถูก gitignore — รูปที่อัปโหลด/สร้างใหม่**ไม่ไปกับ push** ต้องอัปโหลดขึ้นเซิร์ฟเวอร์เอง
 
 ## Architecture
 
@@ -153,7 +175,7 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 
 ตั้งแต่ 2026-08-29 เมนูเดิมที่ยกมาจาก SAM **ถูกซ่อนไว้เกือบทั้งหมด** ที่เปิดอยู่คือกลุ่ม `ผู้ดูแลระบบ`,
 เมนู `tb_*` ที่พอร์ตจากหลังบ้านเดิมของ Asset Plus และเมนู SAM ที่ถูกเปิดคืนทีละตัว
-(ณ 18 ก.ย. 2569 กลุ่ม **"หน้าเว็บไซต์"** เปิด 7 เมนู: **จัดการเมนูเว็บไซต์ (CMSPage = page builder หน้าแรก)**, หน้า Intro Page, หน้า Pop-Up, ปรับแต่ง Header, ปรับแต่ง Footer, SEO & Code, Get Other Indices · กลุ่ม **"ข้อมูลหน้าแรก"** (ถัดจากหน้าเว็บไซต์) เปิด 1 เมนู: รูปสไลด์หน้าแรก — กลุ่ม "หน้าหลัก" ถูกยุบแล้ว · กลุ่ม **"Widget"** (ถัดจาก "ผู้ดูแลระบบ") เปิด 2 เมนู: กลุ่ม Widget, Widget ทั้งหมด (ข้อมูล widget ของ page builder)
+(ณ 17 ก.ย. 2569 บ่าย กลุ่ม **"หน้าเว็บไซต์"** เปิด 6 เมนู: หน้า Intro Page, หน้า Pop-Up, ปรับแต่ง Header, ปรับแต่ง Footer, SEO & Code, Get Other Indices · กลุ่ม **"ข้อมูลหน้าแรก"** (ถัดจากหน้าเว็บไซต์) เปิด 2 เมนู: **จัดการ Widget (CMSPage = page builder หน้าแรก — เมนูแรกของกลุ่ม ย้ายมาจาก "หน้าเว็บไซต์" และเปลี่ยนชื่อจาก "จัดการเมนูเว็บไซต์" ตามคำสั่งผู้ใช้)**, รูปสไลด์หน้าแรก — กลุ่ม "หน้าหลัก" ถูกยุบแล้ว · กลุ่ม **"Widget"** (ถัดจาก "ผู้ดูแลระบบ") เปิด 2 เมนู: กลุ่ม Widget, Widget ทั้งหมด (ข้อมูล widget ของ page builder)
 วิธีทำดู "Playbook: ทำ 1 เมนู CMS ให้ครบวงจร" ด้านล่าง)
 รายการจริงดูที่ `docs/backend-menu-status.html`
 
@@ -330,7 +352,7 @@ dotnet build core_admin.csproj -nologo -v q     # แล้ว spawn ตาม�
 - CLAUDE.md — เพิ่มแถวในตาราง "เมนูที่ทำตาม playbook แล้ว" (ท้าย playbook) พร้อม **สเปกที่ front-end ต้องทำตาม**:
   ตาราง/`module_id`, คอลัมน์ `pb_*` ที่ฟอร์มมี → แสดงตรงไหนบนหน้าเว็บ, เงื่อนไข gate (status = 1 หรือ > 0 ถ้ามีปักหมุด), ลำดับ, กฎพิเศษที่ผู้ใช้กำหนด
   — Phase B จะอ่านแถวนี้เป็นโจทย์
-- **ไม่ต้อง commit ฝั่ง admin เอง** (ผู้ใช้ไม่ได้ตั้งกฎไว้) แต่ต้องบอกในรายงานว่ามีไฟล์ค้าง commit อะไรบ้าง
+- **commit + push ฝั่ง admin ทันทีเมื่อจบงาน** (กฎใหม่ 17 ก.ย. 2569 — ดูหัวข้อ "Git" ต้นไฟล์) และบอกในรายงานว่า commit อะไร push ไปไหน
 
 ### 11. กับดักที่เจอจริง
 
@@ -352,7 +374,7 @@ dotnet build core_admin.csproj -nologo -v q     # แล้ว spawn ตาม�
 
 ### Phase B — front-end ดึงข้อมูลจาก DB + Preview (`d:\Project\assetfund.co.th.2026`)
 
-**อ่าน `d:\Project\assetfund.co.th.2026\CLAUDE.md` ก่อนเสมอ** — กฎของโปรเจกต์นั้น: แก้เสร็จ **ต้อง `git commit` ทันที** (push ไม่ได้ ยังไม่มี remote),
+**อ่าน `d:\Project\assetfund.co.th.2026\CLAUDE.md` ก่อนเสมอ** — กฎของโปรเจกต์นั้น: แก้เสร็จ **ต้อง `git commit` + `git push` ทันที** (push ด้วย URL ตรง — ดูหัวข้อ "Git" ต้นไฟล์นี้),
 ต้องทดสอบใน browser ครบ 7 ขั้น, **ห้ามแก้ `wwwroot/css/*.css` ตรง ๆ** (compile จาก `scss/` ด้วย Visual Studio เท่านั้น)
 โครงสร้างพื้นฐานของ Phase B (ทำไว้แล้วตอน `HomeImageSlide` — เมนูถัดไป**ไม่ต้องสร้างซ้ำ**):
 
@@ -446,7 +468,7 @@ dotnet build asset-fund.csproj -nologo -v q
 | Playwright tips | popup ประกาศเด้งหลังโหลด ~2 วิ และบัง click → ถอด `#announcementModal, .modal-backdrop` ออกจาก DOM ก่อนคลิก · ทดสอบ `_blank` ด้วย `a.click()` ใน `$eval` + `context.waitForEvent('page')` · Swiper loop จัด DOM ใหม่ อย่าเทียบลำดับจาก DOM ให้ดู `.swiper-slide-active` |
 
 **คืนข้อมูลทดสอบให้เป็นค่าจริงเสมอ** (ผ่าน UI หลังบ้านหรือ SQL) แล้ว query ยืนยัน ฉบับร่าง = `pb_*` ทุกแถว
-จากนั้น **`git add -A && git commit`** ใน front-end (กฎของโปรเจกต์นั้น — ข้อความ commit บอกว่าทำอะไร) และแจ้งว่า push ไม่ได้เพราะไม่มี remote
+จากนั้น **`git add -A && git commit` + `git push https://github.com/anurakball/assetfund.co.th.2026.git master`** ใน front-end (ข้อความ commit บอกว่าทำอะไร)
 
 ### Phase C — ทดสอบปลายทางร่วม 2 ฝั่ง + ส่งมอบ
 
@@ -464,7 +486,7 @@ dotnet build asset-fund.csproj -nologo -v q
 - **admin `CLAUDE.md`**: ตาราง "เมนูที่ทำตาม playbook แล้ว" → ใส่สถานะ "front-end ต่อแล้ว + Preview ใช้ได้" และชื่อ service · หัวข้อ "เว็บไซต์ front-end" → อัปเดตรายการเมนูที่ต่อแล้ว
 - **admin `docs/preview-spec.md`**: บรรทัดสถานะบนสุด (เมนูที่พรีวิวได้จริง)
 - **front-end `CLAUDE.md`**: ตาราง "สถานะปัจจุบัน" (เมนูที่ต่อ DB แล้ว) + รายชื่อไฟล์ที่แตกต่างจาก static web (`assetfund.co.th.html`) เพราะ copy ทับตรง ๆ ไม่ได้อีกแล้ว
-- รายงานผู้ใช้: สิ่งที่แก้ทั้ง 2 ฝั่ง, ผลทดสอบทุกข้อ (บอกตรง ๆ ถ้าข้ามข้อไหน), ไฟล์ค้าง commit ฝั่ง admin, สิ่งที่ยังไม่ทำ (เช่นเมนูตั้งค่าที่ยังไม่เปิด)
+- **commit + push ทั้ง 2 ฝั่งที่มีไฟล์แก้** (หัวข้อ "Git" ต้นไฟล์) แล้วรายงานผู้ใช้: สิ่งที่แก้ทั้ง 2 ฝั่ง, ผลทดสอบทุกข้อ (บอกตรง ๆ ถ้าข้ามข้อไหน), commit/push ที่ทำ, สิ่งที่ยังไม่ทำ (เช่นเมนูตั้งค่าที่ยังไม่เปิด)
 
 ### เมนูที่ทำตาม playbook แล้ว
 
@@ -476,7 +498,7 @@ dotnet build asset-fund.csproj -nologo -v q
 | หน้าเว็บไซต์ > SEO & Code | `HomeSEO` | `web_home_seo` / ไม่มี module_id (ตารางเดี่ยว, **แถวเดียว id 1**, `CanAdd/Delete/Status = false`) | title/description/keywords ของ Asset Plus · ช่องโค้ดฝัง (GA/Pixel/Other 1–3) ว่าง | **front-end ต่อแล้ว + Preview ใช้ได้** (17 ก.ย. 2569) — `Services/SqlSiteSeoService.cs` → `Views/Shared/_SeoHead.cshtml` + `_SeoBody.cshtml` ในทุก layout — ดูสเปกด้านล่าง |
 | หน้าเว็บไซต์ > ปรับแต่ง Header | `HomeHeader` | `web_home_header` / ไม่มี module_id (ตารางเดี่ยว, **แถวเดียว id 1**, `CanAdd/Delete/Status/Move = false`) | โลโก้ `Files/Site0/1/header/logo-dark.svg` (TH = EN) · Alt TH "บริษัทหลักทรัพย์จัดการกองทุน แอสเซท พลัส จำกัด" / EN "Asset Plus Fund Management" | **front-end ต่อแล้ว + Preview ใช้ได้** (17 ก.ย. 2569) — `Services/SqlSiteHeaderService.cs` → `Views/Shared/_PartialHeader.cshtml` + `_PartialHeaderSale.cshtml` — ดูสเปกด้านล่าง |
 | หน้าเว็บไซต์ > ปรับแต่ง Footer | `HomeFooter` | `web_home_footer` / ไม่มี module_id (ตารางเดี่ยว, **แถวเดียว id 1**, `CanAdd/Delete/Status/Move = false`) | โลโก้ `Files/Site0/1/footer/logo-light.svg`, ที่อยู่/โทร/อีเมล/โซเชียล/ปี/สโลแกน/แอป/copyright ของ Asset Plus (ยกจาก `_PartialFooter.cshtml` เดิม) · QR `Files/Site0/1/footer/icon-app.png` | **front-end ต่อแล้ว + Preview ใช้ได้** (17 ก.ย. 2569) — `Services/SqlSiteFooterService.cs` → `Views/Shared/_PartialFooter.cshtml` + `_PartialFooterSale.cshtml` — ดูสเปกด้านล่าง |
-| หน้าเว็บไซต์ > จัดการเมนูเว็บไซต์ | `CMSPage` | `web_cms_page` / ไม่มี module_id (**แถวเดียว id 1 = หน้าแรก `is_home = 1`**, `CanAdd/Delete/Status/Move = false`) + ข้อมูล widget ใน `web_widget_group` (3 กลุ่ม = DEFAULT/MODERN/CLASSIC) และ `web_widget` (18 = 6 section × 3 เวอร์ชัน, คอลัมน์ใหม่ `section_key`) | `box_layout = wg_28,wg_29,wg_30,wg_31,wg_32,wg_33` (Version 1 ทั้งหน้า) · รูป thumbnail `Files/Site0/1/widget_icons/assetplus/*.jpg` | **front-end ต่อแล้ว + Preview ใช้ได้** (18 ก.ย. 2569) — `Services/SqlHomeLayoutService.cs` → `Views/Home/Index.cshtml` วน partial ตามลำดับ — ดูสเปกด้านล่าง |
+| ข้อมูลหน้าแรก > จัดการ Widget (ย้ายจาก "หน้าเว็บไซต์" + เปลี่ยนชื่อจาก "จัดการเมนูเว็บไซต์" 17 ก.ย. 2569 — `TextBreadcrumb = ข้อมูลหน้าแรก/จัดการ Widget`) | `CMSPage` | `web_cms_page` / ไม่มี module_id (**แถวเดียว id 1 = หน้าแรก `is_home = 1`**, `CanAdd/Delete/Status/Move = false`) + ข้อมูล widget ใน `web_widget_group` (3 กลุ่ม = DEFAULT/MODERN/CLASSIC) และ `web_widget` (18 = 6 section × 3 เวอร์ชัน, คอลัมน์ใหม่ `section_key`) | `box_layout = wg_28,wg_29,wg_30,wg_31,wg_32,wg_33` (Version 1 ทั้งหน้า) · ไอคอน `Files/Site0/1/widget_icons/assetplus/icon-<SectionKey>.png` (6 ไฟล์ glyph ขาว ใช้ร่วมกัน 3 เวอร์ชัน) + `icon-group-{default,modern,classic}.png` (glyph น้ำเงิน #00295A) — สร้างด้วย ComfyUI 17 ก.ย. 2569 แทน screenshot · ชื่อ widget = ชื่อ section ไทยล้วน ("แบนเนอร์หน้าแรก") ชื่อกลุ่ม = `DEFAULT`/`MODERN`/`CLASSIC` (ผู้ใช้สั่งตัด "(Hero) — DEFAULT" / "(Version 1)" ออก 17 ก.ย. 2569) | **front-end ต่อแล้ว + Preview ใช้ได้** (18 ก.ย. 2569) — `Services/SqlHomeLayoutService.cs` → `Views/Home/Index.cshtml` วน partial ตามลำดับ — ดูสเปกด้านล่าง |
 
 > ⚠ **17 ก.ย. 2569 ผู้ใช้สั่งยุบกลุ่ม "หน้าหลัก"** — เมนู `HomeImageSlide` / `HomeIntroPage` / `ApOtherIndices` ย้ายไปอยู่ท้ายกลุ่ม **"หน้าเว็บไซต์"** (ลำดับตาม SAM: กลุ่ม "หน้าเว็บไซต์" ก่อน แล้วต่อด้วยกลุ่ม "ข้อมูลหน้าแรก") และแก้ `TextBreadcrumb` เป็น `หน้าเว็บไซต์/...` แล้ว
 > ชื่อ "หน้าหลัก >" ในตารางด้านบนคือชื่อกลุ่ม ณ วันที่ทำ — ปัจจุบันทุกเมนูอยู่ใต้ "หน้าเว็บไซต์"
@@ -550,12 +572,13 @@ dotnet build asset-fund.csproj -nologo -v q
 - ทดสอบใน view ใช้ `data-footer-*` attribute (`data-footer-logo`, `-address`, `-tel`, `-email`, `-social`, `-year`, `-tagline1/2`, `-app-title`, `-store`, `-qr`, `-copyright`)
 
 **`CMSPage` — page builder หน้าแรก (18 ก.ย. 2569) — สิ่งที่ front-end ทำตามอยู่** (`SqlHomeLayoutService.cs` + `Views/Home/Index.cshtml` — ยกกลไก "ตกแต่งเพจ" ของ SAM มาทั้งชุด แต่ทำให้ data-driven):
-- ผู้ใช้กำหนด: ตาราง `web_cms_page` **เหลือแถวเดียว id 1** (หน้าแรก) — เมนูซ้าย "จัดการเมนูเว็บไซต์" เปิด list ที่มี 1 แถว (ปุ่ม แก้ไข / Approve / Preview เท่านั้น) · `/Admin/CMSPage/Edit/1` เข้าแท็บ "ตกแต่งเพจ" ทันที (เงื่อนไข `is_home = 1` ของ SAM) · แถว SAM id 8–79 และข้อมูล widget ของ SAM ลบแล้ว (`docs/sql/2026-09-18-delete-sam-cms-widgets.sql`, สำรองไว้ `docs/backup-sam-widgets/` เฉพาะเครื่อง dev)
+- ผู้ใช้กำหนด: ตาราง `web_cms_page` **เหลือแถวเดียว id 1** (หน้าแรก) — เมนูซ้าย "จัดการ Widget" (ชื่อเดิม "จัดการเมนูเว็บไซต์") เปิด list ที่มี 1 แถว (ปุ่ม แก้ไข / Approve / Preview เท่านั้น) · `/Admin/CMSPage/Edit/1` เข้าแท็บ "ตกแต่งเพจ" ทันที (เงื่อนไข `is_home = 1` ของ SAM) · แถว SAM id 8–79 และข้อมูล widget ของ SAM ลบแล้ว (`docs/sql/2026-09-18-delete-sam-cms-widgets.sql`, สำรองไว้ `docs/backup-sam-widgets/` เฉพาะเครื่อง dev)
 - **builder**: พาเลตต์ซ้าย = accordion 3 กลุ่มจาก `web_widget_group` (DEFAULT = Version 1 / MODERN = Version 2 / CLASSIC = Version 3 ของ `/salepage`) → การ์ด widget จาก `web_widget` (`cat_id`) ลากด้วย SortableJS (clone) ลงแคนวาสขวา · ปุ่มต่อการ์ด: เลื่อนขึ้น/ลง (delegate ครั้งเดียว), ดินสอ "แก้ไขข้อมูล" (เฉพาะ widget ที่มี `mod_name` — hero → `/Admin/HomeImageSlide`), รีเฟรช, ลบ (คืนการ์ดให้พาเลตต์) · widget ที่อยู่บนแคนวาสถูกซ่อนจากพาเลตต์ (กันใส่ซ้ำ) · Save → `sortableMain.toArray()` → `box_layout = "wg_<web_widget.id>,…"` (ฉบับร่าง, `pb_status = 0`) → Approve → `pb_box_layout`
 - **ตัวอย่างในการ์ด** (`WidgetAjaxController.Index`): `web_widget.pb_info` = HTML `<section>` ทั้งก้อนที่ snapshot จาก `/salepage` (ข้อความ hardcode ตามที่ผู้ใช้ตกลง) · hero ใช้ `mod_name = HomeImageSlide` + บล็อก `|||REPEAT|||…|||/REPEAT|||` เติมสไลด์จริงจาก `web_core_item` module 1 · แท็บ builder โหลด **CSS/Swiper ของ front-end จาก `FrontURL`** (`css/vendor.min.css`, `css/main.min.css`, `vendors/swiper/*`) แทน `css_home` ของ SAM → front-end ต้องส่ง header CORS ให้ฟอนต์ (`Program.cs` ของ front-end อนุญาต origin = `AdminURL`) · path `/media/...` ใน HTML ถูก `RewriteFrontAssetUrl()` ชี้ไป FrontURL ตอนแสดงตัวอย่าง
 - **คอลัมน์ใหม่ `web_widget.section_key` / `pb_section_key`** (script `docs/sql/2026-09-18-web-widget-section-key.sql` — เซิร์ฟเวอร์จริงต้องรัน) = ชื่อ partial ฝั่ง front-end `Views/Home/Partials/_<key>.cshtml` (`Hero`, `NavPrices`, `FeaturedFunds`, `ExploreThemes`, `Insights`, `Distributors` + ท้าย `V2`/`V3`) · ฟอร์ม Widget มีช่อง "Section Key" และ "Mod Name" · front-end อ่าน `pb_box_layout` → แยก `wg_<id>` → `SELECT pb_section_key FROM web_widget WHERE id IN (…)` → เรนเดอร์ partial ตามลำดับ (SAM เทียบ `"wg_2"` แบบ hardcode ใน view — ไม่ทำตาม)
 - **กฎ front-end**: key ที่ไม่มี partial / id ที่ไม่มีในตาราง / token ที่ไม่ใช่ `wg_n` → ข้าม · key ซ้ำ → เอาตัวแรก · `pb_box_layout` ว่าง = หน้าแรกไม่มี section (ตั้งใจ) · **อ่านแถว id 1 ไม่ได้ (DB ล้ม) = ใช้ลำดับ Version 1** · เวอร์ชัน V2/V3 ใช้ข้อมูลชุดเดียวกับ V1 (ต่างแค่ markup) · `/salepage`, `/home/preview` ไม่ใช้ค่านี้ (เครื่องมือเทียบดีไซน์)
 - **Preview**: `PreviewMenu.cs` เปลี่ยน `CMSPage` จาก `cms` เป็น **`page`** → `/_preview/page/CMSPage/1` = หน้าแรกที่เรียงตาม `box_layout` ฉบับร่าง (SAM พรีวิวการจัดเรียงไม่ได้) · `?lang=en` เหมือน th (widget ไม่มีข้อความ 2 ภาษา) · popup ไม่เด้ง (กฎเดิม)
+- **ไอคอน widget** (17 ก.ย. 2569): การ์ดในพาเลตต์ builder พื้น**น้ำเงิน** (`creator.scss` `.list-group-item`) → ไอคอน widget เป็น glyph **ขาว**บนพื้นโปร่ง (แบบ `widget_icons/white/` ของ SAM) · หัว accordion กลุ่มตอนพับพื้น**ขาว** → ไอคอนกลุ่มเป็น glyph **น้ำเงิน** (แบบ `template1.jpg` ของ SAM) · หน้า list ของเมนู Widget แสดงรูปบนพื้น `#CCC` (`AdminCore/Index.cshtml`) · สร้างด้วย ComfyUI: prompt "black pictogram on white" → invert เป็น alpha → tint (สคริปต์ `docs/comfyui-icons.py`) · **ปุ่ม Back ในหน้า builder** ต้อง override `.btn-icon` เพราะ `main.min.css` ของ front-end ที่โหลดมามี class ชื่อเดียวกัน (ปุ่มไอคอน 2.75rem) — CSS อยู่ใน `Views/CMSPage/Edit.cshtml`
 - ข้อความในแต่ละ section (หัวข้อ/ปุ่ม) **ยัง hardcode ใน partial** (ผู้ใช้เลือก 18 ก.ย. 2569) — ถ้าจะให้แก้ได้ต้องเปิดเมนู `HomeSamText2–6` ทำฟอร์มใหม่แล้วผูก `mod_name` · รายการไดนามิก (NAV, กองทุนแนะนำ, ธีม, บทความ, ตัวแทนขาย) ยัง mock
 - แก้บั๊ก SAM ที่ยกมาด้วย: hidden `name="box_data2"` → `box_data`, หา id ด้วย `innerHTML.substring(36,39)` → `dataset.id`, SQL ต่อ id ตรง ๆ 2 จุด → parameter, ปุ่มเลื่อนขึ้น/ลง bind ซ้ำ, `= ANY(@box)` ของ PostgreSQL ใน `PreviewMenu.cs` → `IN (...)` · `WidgetAjaxController.Manage` เปลี่ยนจาก map id → โมดูล hardcode เป็นอ่าน `pb_mod_name`
 - ทดสอบ Playwright: หน้า builder **ห้ามใช้ `waitUntil: 'networkidle'`** (poll session ทุก 5 วิ) ใช้ `domcontentloaded` + รอการ์ดโหลด · ลากจากพาเลตต์ด้วย `dragTo()` ค้าง "waiting for scheduled navigations" → ใช้ synthetic `pointerdown/mousedown` + `DragEvent` (`dragstart/dragover/drop`) แทน (ดู handoff §7) · ลากบนแคนวาสใช้ `.my-handle` + `dragTo()` ได้ · ปุ่มเครื่องมือโผล่ตอน hover → `hover()` แล้ว `click({ force: true })`
@@ -987,7 +1010,7 @@ admin (core_admin) ──เขียน──▶ SQL Server asset_plus_uat ◀�
 ### ภาพรวม front-end (ตรวจเมื่อ 16 ก.ย. 2569)
 
 **จะแก้อะไรในโปรเจกต์ front-end ให้อ่าน `d:\Project\assetfund.co.th.2026\CLAUDE.md` ก่อนเสมอ** — กฎคนละชุดกับที่นี่:
-แก้เสร็จต้อง commit ทันที (ยังไม่มี remote), ต้องทดสอบใน browser ครบ 7 ขั้น,
+แก้เสร็จต้อง commit + push ทันที (URL ในหัวข้อ "Git" ต้นไฟล์), ต้องทดสอบใน browser ครบ 7 ขั้น,
 **ห้ามแก้ `wwwroot/css/*.css` ตรง ๆ** (compile จาก `scss/` ด้วย Web Compiler ของ Visual Studio เท่านั้น — เครื่องนี้ไม่มี sass/npm)
 
 | หัวข้อ | Front-end | ต่างจาก admin ตรงไหน |

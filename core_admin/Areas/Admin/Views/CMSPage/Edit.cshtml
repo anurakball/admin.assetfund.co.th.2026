@@ -43,6 +43,17 @@
     color: #fff !important;
 }
 
+/* ปุ่ม Back: main.min.css ของ front-end มี .btn-icon (ปุ่มไอคอนสี่เหลี่ยม 2.75rem/1.5rem) ชนกับ .btn-icon ของหลังบ้าน
+   ทำให้ลูกศรลอยขึ้นและไม่อยู่บรรทัดเดียวกับคำว่า Back → คืนค่าให้เหมือนปุ่ม Back ของหน้าอื่น (17 ก.ย. 2569) */
+#header_custom .btn .btn-icon {
+    width: auto !important;
+    height: auto !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    border-radius: 0 !important;
+    margin-right: 10px;
+}
+
 .swiper-notification {
     pointer-events: none;
 }

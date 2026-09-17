@@ -1,14 +1,14 @@
 -- อ้างอิงเท่านั้น (สร้างจาก scratchpad/gen_seed.py 18 ก.ย. 2569): ข้อมูล widget 3 กลุ่ม x 6 section ของ Asset Plus + box_layout ของหน้าแรก — บน dev รันแล้ว ห้ามรันซ้ำ (จะได้แถวซ้ำ)
--- Asset Plus home page widgets (18 ก.ย. 2569) — 3 groups (DEFAULT/MODERN/CLASSIC = Version 1/2/3 ของ /salepage) x 6 sections
+-- Asset Plus home page widgets (18 ก.ย. 2569 · ชื่อ+ไอคอนปรับ 17 ก.ย. 2569: ตัด (Version n)/(Key) — GROUP ออก, ไอคอนเป็น PNG glyph สร้างด้วย ComfyUI แทน screenshot) — 3 groups (DEFAULT/MODERN/CLASSIC = Version 1/2/3 ของ /salepage) x 6 sections
 -- info/pb_info = HTML ของ <section> จากหน้า /salepage (ตัวอย่างในหลังบ้าน) · hero ใช้ |||REPEAT||| กับ HomeImageSlide
 -- section_key = ชื่อ partial ฝั่ง front-end (Views/Home/Partials/_<key>.cshtml) — front-end อ่านคอลัมน์นี้เพื่อเรนเดอร์
 SET XACT_ABORT ON;
 BEGIN TRAN;
 DECLARE @g TABLE (n int, id bigint);
 DECLARE @gid bigint;
-INSERT INTO [2026_web_widget_group] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, title, img1, pb_title, pb_img1, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, N'DEFAULT (Version 1)', N'Files/Site0/1/widget_icons/assetplus/group-v1.jpg', N'DEFAULT (Version 1)', N'Files/Site0/1/widget_icons/assetplus/group-v1.jpg', 0);
+INSERT INTO [2026_web_widget_group] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, title, img1, pb_title, pb_img1, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, N'DEFAULT', N'Files/Site0/1/widget_icons/assetplus/icon-group-default.png', N'DEFAULT', N'Files/Site0/1/widget_icons/assetplus/icon-group-default.png', 0);
 SET @gid = SCOPE_IDENTITY(); INSERT INTO @g (n, id) VALUES (1, @gid);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, @gid, N'แบนเนอร์หน้าแรก (Hero) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/Hero.jpg', N'HomeImageSlide', N'<section class="section hero" aria-label="แบนเนอร์ไฮไลต์">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, @gid, N'แบนเนอร์หน้าแรก', N'Files/Site0/1/widget_icons/assetplus/icon-Hero.png', N'HomeImageSlide', N'<section class="section hero" aria-label="แบนเนอร์ไฮไลต์">
 <div class="container-fluid">
 <div class="swiper hero__slider js-hero-slider" id="heroSlider" data-initial-slide="0">
 <div class="swiper-wrapper">
@@ -26,7 +26,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 </div>
 </div>
 </div>
-</section>', N'Hero', CAST(@gid AS nvarchar(20)), N'แบนเนอร์หน้าแรก (Hero) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/Hero.jpg', N'HomeImageSlide', N'<section class="section hero" aria-label="แบนเนอร์ไฮไลต์">
+</section>', N'Hero', CAST(@gid AS nvarchar(20)), N'แบนเนอร์หน้าแรก', N'Files/Site0/1/widget_icons/assetplus/icon-Hero.png', N'HomeImageSlide', N'<section class="section hero" aria-label="แบนเนอร์ไฮไลต์">
 <div class="container-fluid">
 <div class="swiper hero__slider js-hero-slider" id="heroSlider" data-initial-slide="0">
 <div class="swiper-wrapper">
@@ -45,7 +45,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 </div>
 </div>
 </section>', N'Hero', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, @gid, N'มูลค่าหน่วยลงทุน (NAV) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/NavPrices.jpg', N'', N'<section class="section nav-prices">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, @gid, N'มูลค่าหน่วยลงทุน', N'Files/Site0/1/widget_icons/assetplus/icon-NavPrices.png', N'', N'<section class="section nav-prices">
     <div class="container">
         <div class="row g-4">
             <!-- ตาราง NAV ย่อ — 5 กองทุนล่าสุด -->
@@ -170,7 +170,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'NavPrices', CAST(@gid AS nvarchar(20)), N'มูลค่าหน่วยลงทุน (NAV) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/NavPrices.jpg', N'', N'<section class="section nav-prices">
+</section>', N'NavPrices', CAST(@gid AS nvarchar(20)), N'มูลค่าหน่วยลงทุน', N'Files/Site0/1/widget_icons/assetplus/icon-NavPrices.png', N'', N'<section class="section nav-prices">
     <div class="container">
         <div class="row g-4">
             <!-- ตาราง NAV ย่อ — 5 กองทุนล่าสุด -->
@@ -296,7 +296,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'NavPrices', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, @gid, N'กองทุนแนะนำประจำเดือน — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/FeaturedFunds.jpg', N'', N'<section class="section featured-funds">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, @gid, N'กองทุนแนะนำประจำเดือน', N'Files/Site0/1/widget_icons/assetplus/icon-FeaturedFunds.png', N'', N'<section class="section featured-funds">
     <div class="container">
         <div class="section-head">
             <h2 class="section-head__title">กองทุนแนะนำประจำเดือน</h2>
@@ -581,7 +581,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'FeaturedFunds', CAST(@gid AS nvarchar(20)), N'กองทุนแนะนำประจำเดือน — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/FeaturedFunds.jpg', N'', N'<section class="section featured-funds">
+</section>', N'FeaturedFunds', CAST(@gid AS nvarchar(20)), N'กองทุนแนะนำประจำเดือน', N'Files/Site0/1/widget_icons/assetplus/icon-FeaturedFunds.png', N'', N'<section class="section featured-funds">
     <div class="container">
         <div class="section-head">
             <h2 class="section-head__title">กองทุนแนะนำประจำเดือน</h2>
@@ -867,7 +867,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'FeaturedFunds', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 40, 1, 1, N'user', 1, @gid, N'เปิดมุมมองลงทุนตามเทรนด์ (Themes) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/ExploreThemes.jpg', N'', N'<section class="section">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 40, 1, 1, N'user', 1, @gid, N'เปิดมุมมองลงทุนตามเทรนด์', N'Files/Site0/1/widget_icons/assetplus/icon-ExploreThemes.png', N'', N'<section class="section">
     <div class="container-fluid">
         <div class="explore-themes">
             <div class="container">
@@ -944,7 +944,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'ExploreThemes', CAST(@gid AS nvarchar(20)), N'เปิดมุมมองลงทุนตามเทรนด์ (Themes) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/ExploreThemes.jpg', N'', N'<section class="section">
+</section>', N'ExploreThemes', CAST(@gid AS nvarchar(20)), N'เปิดมุมมองลงทุนตามเทรนด์', N'Files/Site0/1/widget_icons/assetplus/icon-ExploreThemes.png', N'', N'<section class="section">
     <div class="container-fluid">
         <div class="explore-themes">
             <div class="container">
@@ -1022,7 +1022,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'ExploreThemes', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 50, 1, 1, N'user', 1, @gid, N'บทความ / กิจกรรม / ข่าวประกาศ — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/Insights.jpg', N'', N'<section class="section insights" aria-label="บทความ ข่าวสาร และประกาศ">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 50, 1, 1, N'user', 1, @gid, N'บทความ / กิจกรรม / ข่าวประกาศ', N'Files/Site0/1/widget_icons/assetplus/icon-Insights.png', N'', N'<section class="section insights" aria-label="บทความ ข่าวสาร และประกาศ">
     <div class="container">
         <div class="card-deck card-deck--cards-1 card-deck--cards-md-2 card-deck--cards-lg-3">
             
@@ -1234,7 +1234,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 
         </div>
     </div>
-</section>', N'Insights', CAST(@gid AS nvarchar(20)), N'บทความ / กิจกรรม / ข่าวประกาศ — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/Insights.jpg', N'', N'<section class="section insights" aria-label="บทความ ข่าวสาร และประกาศ">
+</section>', N'Insights', CAST(@gid AS nvarchar(20)), N'บทความ / กิจกรรม / ข่าวประกาศ', N'Files/Site0/1/widget_icons/assetplus/icon-Insights.png', N'', N'<section class="section insights" aria-label="บทความ ข่าวสาร และประกาศ">
     <div class="container">
         <div class="card-deck card-deck--cards-1 card-deck--cards-md-2 card-deck--cards-lg-3">
             
@@ -1447,7 +1447,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'Insights', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 60, 1, 1, N'user', 1, @gid, N'ตัวแทนขาย (Distributors) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/Distributors.jpg', N'', N'<section class="section distributors">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 60, 1, 1, N'user', 1, @gid, N'ตัวแทนขาย', N'Files/Site0/1/widget_icons/assetplus/icon-Distributors.png', N'', N'<section class="section distributors">
     <div class="container-fluid">
         <div class="distributors__head">
             <h2 class="distributors__title">
@@ -1611,7 +1611,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </a>
         </div>
     </div>
-</section>', N'Distributors', CAST(@gid AS nvarchar(20)), N'ตัวแทนขาย (Distributors) — DEFAULT', N'Files/Site0/1/widget_icons/assetplus/Distributors.jpg', N'', N'<section class="section distributors">
+</section>', N'Distributors', CAST(@gid AS nvarchar(20)), N'ตัวแทนขาย', N'Files/Site0/1/widget_icons/assetplus/icon-Distributors.png', N'', N'<section class="section distributors">
     <div class="container-fluid">
         <div class="distributors__head">
             <h2 class="distributors__title">
@@ -1776,9 +1776,9 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'Distributors', 0);
-INSERT INTO [2026_web_widget_group] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, title, img1, pb_title, pb_img1, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, N'MODERN (Version 2)', N'Files/Site0/1/widget_icons/assetplus/group-v2.jpg', N'MODERN (Version 2)', N'Files/Site0/1/widget_icons/assetplus/group-v2.jpg', 0);
+INSERT INTO [2026_web_widget_group] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, title, img1, pb_title, pb_img1, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, N'MODERN', N'Files/Site0/1/widget_icons/assetplus/icon-group-modern.png', N'MODERN', N'Files/Site0/1/widget_icons/assetplus/icon-group-modern.png', 0);
 SET @gid = SCOPE_IDENTITY(); INSERT INTO @g (n, id) VALUES (2, @gid);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, @gid, N'แบนเนอร์หน้าแรก (Hero) — MODERN', N'Files/Site0/1/widget_icons/assetplus/HeroV2.jpg', N'HomeImageSlide', N'<section class="section hero hero--v2" aria-label="แบนเนอร์ไฮไลต์">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, @gid, N'แบนเนอร์หน้าแรก', N'Files/Site0/1/widget_icons/assetplus/icon-Hero.png', N'HomeImageSlide', N'<section class="section hero hero--v2" aria-label="แบนเนอร์ไฮไลต์">
 <div class="container-fluid">
 <div class="swiper hero__slider js-hero-slider">
 <div class="swiper-wrapper">
@@ -1790,7 +1790,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 </div>
 </div>
 </div>
-</section>', N'HeroV2', CAST(@gid AS nvarchar(20)), N'แบนเนอร์หน้าแรก (Hero) — MODERN', N'Files/Site0/1/widget_icons/assetplus/HeroV2.jpg', N'HomeImageSlide', N'<section class="section hero hero--v2" aria-label="แบนเนอร์ไฮไลต์">
+</section>', N'HeroV2', CAST(@gid AS nvarchar(20)), N'แบนเนอร์หน้าแรก', N'Files/Site0/1/widget_icons/assetplus/icon-Hero.png', N'HomeImageSlide', N'<section class="section hero hero--v2" aria-label="แบนเนอร์ไฮไลต์">
 <div class="container-fluid">
 <div class="swiper hero__slider js-hero-slider">
 <div class="swiper-wrapper">
@@ -1803,7 +1803,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 </div>
 </div>
 </section>', N'HeroV2', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, @gid, N'มูลค่าหน่วยลงทุน (NAV) — MODERN', N'Files/Site0/1/widget_icons/assetplus/NavPricesV2.jpg', N'', N'<section class="section nav-prices nav-prices--v2">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, @gid, N'มูลค่าหน่วยลงทุน', N'Files/Site0/1/widget_icons/assetplus/icon-NavPrices.png', N'', N'<section class="section nav-prices nav-prices--v2">
     <div class="container">
         <div class="row g-4">
             <!-- ตาราง NAV ย่อ — รูปแบบเดียวกับ v1 -->
@@ -1932,7 +1932,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'NavPricesV2', CAST(@gid AS nvarchar(20)), N'มูลค่าหน่วยลงทุน (NAV) — MODERN', N'Files/Site0/1/widget_icons/assetplus/NavPricesV2.jpg', N'', N'<section class="section nav-prices nav-prices--v2">
+</section>', N'NavPricesV2', CAST(@gid AS nvarchar(20)), N'มูลค่าหน่วยลงทุน', N'Files/Site0/1/widget_icons/assetplus/icon-NavPrices.png', N'', N'<section class="section nav-prices nav-prices--v2">
     <div class="container">
         <div class="row g-4">
             <!-- ตาราง NAV ย่อ — รูปแบบเดียวกับ v1 -->
@@ -2062,7 +2062,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'NavPricesV2', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, @gid, N'กองทุนแนะนำประจำเดือน — MODERN', N'Files/Site0/1/widget_icons/assetplus/FeaturedFundsV2.jpg', N'', N'<section class="section featured-funds featured-funds--v2">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, @gid, N'กองทุนแนะนำประจำเดือน', N'Files/Site0/1/widget_icons/assetplus/icon-FeaturedFunds.png', N'', N'<section class="section featured-funds featured-funds--v2">
     <div class="container">
         <div class="section-head">
             <h2 class="section-head__title">กองทุนแนะนำประจำเดือน</h2>
@@ -2263,7 +2263,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
                 </li>
         </ul>
     </div>
-</section>', N'FeaturedFundsV2', CAST(@gid AS nvarchar(20)), N'กองทุนแนะนำประจำเดือน — MODERN', N'Files/Site0/1/widget_icons/assetplus/FeaturedFundsV2.jpg', N'', N'<section class="section featured-funds featured-funds--v2">
+</section>', N'FeaturedFundsV2', CAST(@gid AS nvarchar(20)), N'กองทุนแนะนำประจำเดือน', N'Files/Site0/1/widget_icons/assetplus/icon-FeaturedFunds.png', N'', N'<section class="section featured-funds featured-funds--v2">
     <div class="container">
         <div class="section-head">
             <h2 class="section-head__title">กองทุนแนะนำประจำเดือน</h2>
@@ -2465,7 +2465,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </ul>
     </div>
 </section>', N'FeaturedFundsV2', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 40, 1, 1, N'user', 1, @gid, N'เปิดมุมมองลงทุนตามเทรนด์ (Themes) — MODERN', N'Files/Site0/1/widget_icons/assetplus/ExploreThemesV2.jpg', N'', N'<section class="section">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 40, 1, 1, N'user', 1, @gid, N'เปิดมุมมองลงทุนตามเทรนด์', N'Files/Site0/1/widget_icons/assetplus/icon-ExploreThemes.png', N'', N'<section class="section">
     <div class="container-fluid">
         <div class="explore-themes explore-themes--v2">
             <div class="container">
@@ -2542,7 +2542,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'ExploreThemesV2', CAST(@gid AS nvarchar(20)), N'เปิดมุมมองลงทุนตามเทรนด์ (Themes) — MODERN', N'Files/Site0/1/widget_icons/assetplus/ExploreThemesV2.jpg', N'', N'<section class="section">
+</section>', N'ExploreThemesV2', CAST(@gid AS nvarchar(20)), N'เปิดมุมมองลงทุนตามเทรนด์', N'Files/Site0/1/widget_icons/assetplus/icon-ExploreThemes.png', N'', N'<section class="section">
     <div class="container-fluid">
         <div class="explore-themes explore-themes--v2">
             <div class="container">
@@ -2620,7 +2620,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'ExploreThemesV2', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 50, 1, 1, N'user', 1, @gid, N'บทความ / กิจกรรม / ข่าวประกาศ — MODERN', N'Files/Site0/1/widget_icons/assetplus/InsightsV2.jpg', N'', N'<section class="section insights insights--v2">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 50, 1, 1, N'user', 1, @gid, N'บทความ / กิจกรรม / ข่าวประกาศ', N'Files/Site0/1/widget_icons/assetplus/icon-Insights.png', N'', N'<section class="section insights insights--v2">
     <div class="container">
         <h2 class="visually-hidden">บทความ ข่าวสาร และประกาศ</h2>
 
@@ -2835,7 +2835,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'InsightsV2', CAST(@gid AS nvarchar(20)), N'บทความ / กิจกรรม / ข่าวประกาศ — MODERN', N'Files/Site0/1/widget_icons/assetplus/InsightsV2.jpg', N'', N'<section class="section insights insights--v2">
+</section>', N'InsightsV2', CAST(@gid AS nvarchar(20)), N'บทความ / กิจกรรม / ข่าวประกาศ', N'Files/Site0/1/widget_icons/assetplus/icon-Insights.png', N'', N'<section class="section insights insights--v2">
     <div class="container">
         <h2 class="visually-hidden">บทความ ข่าวสาร และประกาศ</h2>
 
@@ -3051,7 +3051,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'InsightsV2', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 60, 1, 1, N'user', 1, @gid, N'ตัวแทนขาย (Distributors) — MODERN', N'Files/Site0/1/widget_icons/assetplus/DistributorsV2.jpg', N'', N'<section class="section distributors distributors--v2">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 60, 1, 1, N'user', 1, @gid, N'ตัวแทนขาย', N'Files/Site0/1/widget_icons/assetplus/icon-Distributors.png', N'', N'<section class="section distributors distributors--v2">
     <div class="container">
         <div class="distributors__head">
             <h2 class="distributors__title">
@@ -3383,7 +3383,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </a>
         </div>
     </div>
-</section>', N'DistributorsV2', CAST(@gid AS nvarchar(20)), N'ตัวแทนขาย (Distributors) — MODERN', N'Files/Site0/1/widget_icons/assetplus/DistributorsV2.jpg', N'', N'<section class="section distributors distributors--v2">
+</section>', N'DistributorsV2', CAST(@gid AS nvarchar(20)), N'ตัวแทนขาย', N'Files/Site0/1/widget_icons/assetplus/icon-Distributors.png', N'', N'<section class="section distributors distributors--v2">
     <div class="container">
         <div class="distributors__head">
             <h2 class="distributors__title">
@@ -3716,9 +3716,9 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'DistributorsV2', 0);
-INSERT INTO [2026_web_widget_group] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, title, img1, pb_title, pb_img1, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, N'CLASSIC (Version 3)', N'Files/Site0/1/widget_icons/assetplus/group-v3.jpg', N'CLASSIC (Version 3)', N'Files/Site0/1/widget_icons/assetplus/group-v3.jpg', 0);
+INSERT INTO [2026_web_widget_group] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, title, img1, pb_title, pb_img1, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, N'CLASSIC', N'Files/Site0/1/widget_icons/assetplus/icon-group-classic.png', N'CLASSIC', N'Files/Site0/1/widget_icons/assetplus/icon-group-classic.png', 0);
 SET @gid = SCOPE_IDENTITY(); INSERT INTO @g (n, id) VALUES (3, @gid);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, @gid, N'แบนเนอร์หน้าแรก (Hero) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/HeroV3.jpg', N'HomeImageSlide', N'<section class="section hero hero--v3" aria-label="แบนเนอร์ไฮไลต์">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 10, 1, 1, N'user', 1, @gid, N'แบนเนอร์หน้าแรก', N'Files/Site0/1/widget_icons/assetplus/icon-Hero.png', N'HomeImageSlide', N'<section class="section hero hero--v3" aria-label="แบนเนอร์ไฮไลต์">
 <div class="container-fluid">
 <div class="swiper hero__slider js-hero-slider" data-slides-per-view="1.08" data-space-between="16">
 <div class="swiper-wrapper">
@@ -3731,7 +3731,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 <button type="button" class="hero__mini-toggle js-hero-toggle" aria-pressed="false" aria-label="หยุดสไลด์ชั่วคราว"><i class="bi bi-play-fill" aria-hidden="true"></i></button>
 </div>
 </div>
-</section>', N'HeroV3', CAST(@gid AS nvarchar(20)), N'แบนเนอร์หน้าแรก (Hero) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/HeroV3.jpg', N'HomeImageSlide', N'<section class="section hero hero--v3" aria-label="แบนเนอร์ไฮไลต์">
+</section>', N'HeroV3', CAST(@gid AS nvarchar(20)), N'แบนเนอร์หน้าแรก', N'Files/Site0/1/widget_icons/assetplus/icon-Hero.png', N'HomeImageSlide', N'<section class="section hero hero--v3" aria-label="แบนเนอร์ไฮไลต์">
 <div class="container-fluid">
 <div class="swiper hero__slider js-hero-slider" data-slides-per-view="1.08" data-space-between="16">
 <div class="swiper-wrapper">
@@ -3745,7 +3745,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
 </div>
 </div>
 </section>', N'HeroV3', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, @gid, N'มูลค่าหน่วยลงทุน (NAV) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/NavPricesV3.jpg', N'', N'<section class="section nav-prices nav-prices--v3">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 20, 1, 1, N'user', 1, @gid, N'มูลค่าหน่วยลงทุน', N'Files/Site0/1/widget_icons/assetplus/icon-NavPrices.png', N'', N'<section class="section nav-prices nav-prices--v3">
     <div class="container">
         <div class="row g-4">
             <!-- ตาราง NAV ย่อ — รูปแบบเดียวกับ v1 -->
@@ -3874,7 +3874,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'NavPricesV3', CAST(@gid AS nvarchar(20)), N'มูลค่าหน่วยลงทุน (NAV) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/NavPricesV3.jpg', N'', N'<section class="section nav-prices nav-prices--v3">
+</section>', N'NavPricesV3', CAST(@gid AS nvarchar(20)), N'มูลค่าหน่วยลงทุน', N'Files/Site0/1/widget_icons/assetplus/icon-NavPrices.png', N'', N'<section class="section nav-prices nav-prices--v3">
     <div class="container">
         <div class="row g-4">
             <!-- ตาราง NAV ย่อ — รูปแบบเดียวกับ v1 -->
@@ -4004,7 +4004,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'NavPricesV3', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, @gid, N'กองทุนแนะนำประจำเดือน — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/FeaturedFundsV3.jpg', N'', N'<section class="section featured-funds featured-funds--v3">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 30, 1, 1, N'user', 1, @gid, N'กองทุนแนะนำประจำเดือน', N'Files/Site0/1/widget_icons/assetplus/icon-FeaturedFunds.png', N'', N'<section class="section featured-funds featured-funds--v3">
     <div class="container">
         <div class="section-head">
             <h2 class="section-head__title">กองทุนแนะนำประจำเดือน</h2>
@@ -4289,7 +4289,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'FeaturedFundsV3', CAST(@gid AS nvarchar(20)), N'กองทุนแนะนำประจำเดือน — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/FeaturedFundsV3.jpg', N'', N'<section class="section featured-funds featured-funds--v3">
+</section>', N'FeaturedFundsV3', CAST(@gid AS nvarchar(20)), N'กองทุนแนะนำประจำเดือน', N'Files/Site0/1/widget_icons/assetplus/icon-FeaturedFunds.png', N'', N'<section class="section featured-funds featured-funds--v3">
     <div class="container">
         <div class="section-head">
             <h2 class="section-head__title">กองทุนแนะนำประจำเดือน</h2>
@@ -4575,7 +4575,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'FeaturedFundsV3', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 40, 1, 1, N'user', 1, @gid, N'เปิดมุมมองลงทุนตามเทรนด์ (Themes) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/ExploreThemesV3.jpg', N'', N'<section class="section">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 40, 1, 1, N'user', 1, @gid, N'เปิดมุมมองลงทุนตามเทรนด์', N'Files/Site0/1/widget_icons/assetplus/icon-ExploreThemes.png', N'', N'<section class="section">
     <div class="container-fluid">
         <div class="explore-themes explore-themes--v3">
             <div class="container">
@@ -4658,7 +4658,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </div>
     </div>
-</section>', N'ExploreThemesV3', CAST(@gid AS nvarchar(20)), N'เปิดมุมมองลงทุนตามเทรนด์ (Themes) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/ExploreThemesV3.jpg', N'', N'<section class="section">
+</section>', N'ExploreThemesV3', CAST(@gid AS nvarchar(20)), N'เปิดมุมมองลงทุนตามเทรนด์', N'Files/Site0/1/widget_icons/assetplus/icon-ExploreThemes.png', N'', N'<section class="section">
     <div class="container-fluid">
         <div class="explore-themes explore-themes--v3">
             <div class="container">
@@ -4742,7 +4742,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </div>
     </div>
 </section>', N'ExploreThemesV3', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 50, 1, 1, N'user', 1, @gid, N'บทความ / กิจกรรม / ข่าวประกาศ — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/InsightsV3.jpg', N'', N'<section class="section insights insights--v3" aria-label="บทความ ข่าวสาร และประกาศ">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 50, 1, 1, N'user', 1, @gid, N'บทความ / กิจกรรม / ข่าวประกาศ', N'Files/Site0/1/widget_icons/assetplus/icon-Insights.png', N'', N'<section class="section insights insights--v3" aria-label="บทความ ข่าวสาร และประกาศ">
     <div class="container">
         <div class="card-deck card-deck--cards-1 card-deck--cards-md-2">
                 <section class="insight-col">
@@ -4965,7 +4965,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </div>
         </section>
     </div>
-</section>', N'InsightsV3', CAST(@gid AS nvarchar(20)), N'บทความ / กิจกรรม / ข่าวประกาศ — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/InsightsV3.jpg', N'', N'<section class="section insights insights--v3" aria-label="บทความ ข่าวสาร และประกาศ">
+</section>', N'InsightsV3', CAST(@gid AS nvarchar(20)), N'บทความ / กิจกรรม / ข่าวประกาศ', N'Files/Site0/1/widget_icons/assetplus/icon-Insights.png', N'', N'<section class="section insights insights--v3" aria-label="บทความ ข่าวสาร และประกาศ">
     <div class="container">
         <div class="card-deck card-deck--cards-1 card-deck--cards-md-2">
                 <section class="insight-col">
@@ -5189,7 +5189,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
         </section>
     </div>
 </section>', N'InsightsV3', 0);
-INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 60, 1, 1, N'user', 1, @gid, N'ตัวแทนขาย (Distributors) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/DistributorsV3.jpg', N'', N'<section class="section distributors distributors--v3">
+INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, sort, status, pb_status, approve_by, show_front, cat_id, title, img1, mod_name, info, section_key, pb_cat_id, pb_title, pb_img1, pb_mod_name, pb_info, pb_section_key, web_id) VALUES (SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET(), N'user', N'user', 60, 1, 1, N'user', 1, @gid, N'ตัวแทนขาย', N'Files/Site0/1/widget_icons/assetplus/icon-Distributors.png', N'', N'<section class="section distributors distributors--v3">
     <div class="container">
         <div class="distributors__head">
             <h2 class="distributors__title">
@@ -5355,7 +5355,7 @@ INSERT INTO [2026_web_widget] (created_at, updated_at, created_by, updated_by, s
             </a>
         </div>
     </div>
-</section>', N'DistributorsV3', CAST(@gid AS nvarchar(20)), N'ตัวแทนขาย (Distributors) — CLASSIC', N'Files/Site0/1/widget_icons/assetplus/DistributorsV3.jpg', N'', N'<section class="section distributors distributors--v3">
+</section>', N'DistributorsV3', CAST(@gid AS nvarchar(20)), N'ตัวแทนขาย', N'Files/Site0/1/widget_icons/assetplus/icon-Distributors.png', N'', N'<section class="section distributors distributors--v3">
     <div class="container">
         <div class="distributors__head">
             <h2 class="distributors__title">

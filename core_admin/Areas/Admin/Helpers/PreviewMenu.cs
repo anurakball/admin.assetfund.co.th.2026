@@ -97,7 +97,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
             // ── cms: แก้ตัวหน้า CMS เอง ──
             //{ "CMSPage",      "cms" },    // SAM: พรีวิวตัวหน้า CMS — Asset Plus เปลี่ยนเป็น page (ด้านล่าง) เพราะ CMSPage เหลือแถวเดียวคือหน้าแรก
-            { "CMSPage",        "page" },   // จัดการเมนูเว็บไซต์ = page builder หน้าแรก -> พรีวิวหน้าแรกด้วย box_layout ฉบับร่าง (18 ก.ย. 2569)
+            { "CMSPage",        "page" },   // จัดการ Widget = page builder หน้าแรก -> พรีวิวหน้าแรกด้วย box_layout ฉบับร่าง (18 ก.ย. 2569)
             { "CMSPageFooter1", "cms" },    // เมนู Footer กลุ่ม 1
             { "CMSPageFooter2", "cms" },    // เมนู Footer กลุ่ม 2
         };

@@ -18,8 +18,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 Icon = "fa-solid fa-globe",
                 SubMenu = new()
                 {
-                    //----- เปิดคืน 18 ก.ย. 2569 — Asset Plus ใช้เป็น "page builder" ของหน้าแรกอย่างเดียว (แถว id 1 แถวเดียว แก้ไข + อนุมัติ เท่านั้น)
-                    new() { Title = "จัดการเมนูเว็บไซต์", ModuleName = "CMSPage", Link = "CMSPage", Icon = "fa-solid fa-sitemap" },
+                    //----- "จัดการ Widget" (CMSPage — เดิมชื่อ "จัดการเมนูเว็บไซต์") ย้ายไปเป็นเมนูแรกของกลุ่ม "ข้อมูลหน้าแรก" ด้านล่างแล้ว (17 ก.ย. 2569) — อย่าเปิดซ้ำที่นี่
                     new() { Title = "หน้า Intro Page", ModuleName = "HomeIntroPage", Link = "HomeIntroPage", Icon = "fa-regular fa-window-restore" },
                     new() { Title = "หน้า Pop-Up", ModuleName = "HomePopUp", Link = "HomePopUp", Icon = "fa-solid fa-clone" },
                     new() { Title = "ปรับแต่ง Header", ModuleName = "HomeHeader", Link = "HomeHeader", Icon = "fa-solid fa-signature" },   // เดิม SAM ชื่อ "โลโก้ / Template" — Asset Plus เหลือโลโก้ + Alt Text 2 ภาษา (ไม่มี Template)
@@ -42,6 +41,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 Icon = "fa-solid fa-book-open",
                 SubMenu = new()
                 {
+                    //----- CMSPage ย้ายมาจากกลุ่ม "หน้าเว็บไซต์" (17 ก.ย. 2569 ผู้ใช้สั่ง ให้อยู่ลำดับแรก) · ชื่อเดิม "จัดการเมนูเว็บไซต์" ผู้ใช้สั่งเปลี่ยนเป็น "จัดการ Widget" 17 ก.ย. 2569 — page builder หน้าแรก (แถว id 1 แถวเดียว แก้ไข + อนุมัติ เท่านั้น)
+                    new() { Title = "จัดการ Widget", ModuleName = "CMSPage", Link = "CMSPage", Icon = "fa-solid fa-layer-group" },   // ไอคอนเดิม fa-sitemap (ของ SAM = เมนูเว็บไซต์) → layer-group = เรียงชั้น section ของหน้าแรก (17 ก.ย. 2569)
                     new() { Title = "รูปสไลด์หน้าแรก", ModuleName = "HomeImageSlide", Link = "HomeImageSlide", Icon = "fa-regular fa-images" },
                     //new(){Title = "ตั้งค่ารูปสไลด์",ModuleName = "HomeImageConf",Link = "HomeImageConf",Icon = "fa-solid fa-sliders"},
                     //new(){Title = "แอสเซท พลัส ใส่ใจ",ModuleName = "HomeSamText",Link = "HomeSamText",Icon = "fa-solid fa-list-ol"},
@@ -1035,7 +1036,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "CMSPage",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "จัดการเมนูเว็บไซต์",TextBreadcrumb = "หน้าเว็บไซต์/จัดการเมนูเว็บไซต์", Table = "web_cms_page",OrderBy = "sort",Sort = "asc", TableCate = "web_cms_page",TableCateField = "cat_id",TableCateOrderby = "title",TableCateSort = "asc",TableCateTitle = "title",TableCateLabel = "กลุ่ม",
+                        Text = "จัดการ Widget",TextBreadcrumb = "ข้อมูลหน้าแรก/จัดการ Widget", Table = "web_cms_page",OrderBy = "sort",Sort = "asc", TableCate = "web_cms_page",TableCateField = "cat_id",TableCateOrderby = "title",TableCateSort = "asc",TableCateTitle = "title",TableCateLabel = "กลุ่ม",
                         //----- Asset Plus (18 ก.ย. 2569): ตารางเหลือแถวเดียว id 1 = หน้าแรก (is_home = 1) ใช้เป็น page builder จัดเรียง widget เท่านั้น
                         //      จึงปิด เพิ่ม/ลบ/เปิดปิด/จัดเรียง เหลือ แก้ไข + อนุมัติ (ต้องตรงกับแถว can_* ใน 2026_web_admin_module)
                         CanAdd = false,CanEdit = true,CanDelete = false,CanMove = false,CanStatus = false,CanApprove = true, UseViewCreateFrom = "CMSPage",UseViewEditFrom = "CMSPage", IsCMSPage = true, FieldCMSPage = "parent_id", 
