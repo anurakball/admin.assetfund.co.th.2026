@@ -6,7 +6,7 @@
 > ถ้าขัดกับ `CLAUDE.md` ของโปรเจกต์ใด **ให้ยึดไฟล์นี้** แล้วไปแก้ `CLAUDE.md` ให้ตรง
 >
 > ลำดับอ่าน: **§0 → §1 → §2 → §14 (งานล่าสุด: page builder + Widget — อ่านให้จบ) → §10 (เช็คลิสต์เปิด session) → §12 (แผนงานต่อไป)** แล้วค่อยเปิดหัวข้ออื่นตามงานที่ได้รับ
-> รายละเอียดระดับคอลัมน์ของแต่ละเมนูอยู่ใน `core_admin/CLAUDE.md` หัวข้อ **"เมนูที่ทำตาม playbook แล้ว"** (ไฟล์นี้สรุป ไม่ copy ซ้ำทุกบรรทัด)
+> รายละเอียดระดับคอลัมน์ของแต่ละเมนูอยู่ใน **`core_admin/docs/cms-menu-playbook.md`** ท้ายไฟล์ หัวข้อ "เมนูที่ทำตาม playbook แล้ว" (ย้ายจาก CLAUDE.md 17 ก.ย. 2569 · ไฟล์นี้สรุป ไม่ copy ซ้ำทุกบรรทัด)
 
 ---
 
@@ -284,7 +284,7 @@ PERSONAL INFORMATION: View profile, Change Password, Last Activity
 
 ## 6. ขั้นตอนทำ 1 เมนูให้ครบวงจร (สูตรที่ใช้จริง)
 
-> ฉบับเต็ม 19 ขั้นอยู่ใน `core_admin/CLAUDE.md` หัวข้อ **"Playbook: ทำ 1 เมนู CMS ให้ครบวงจร"** — ส่วนนี้คือฉบับที่ปรับตามประสบการณ์ 6 เมนู
+> ฉบับเต็ม 19 ขั้น + สเปกรายเมนูอยู่ใน **`core_admin/docs/cms-menu-playbook.md`** (ย้ายออกจาก CLAUDE.md 17 ก.ย. 2569 เพื่อลดขนาดไฟล์ที่โหลดทุก session) — ส่วนนี้คือฉบับที่ปรับตามประสบการณ์ 6 เมนู
 > คำสั่งผู้ใช้แบบปกติ: *"เพิ่มเมนูหลังบ้าน `<กลุ่ม> >> <เมนู>` จนถึง front-end + Preview ครบ … ทดสอบละเอียดทั้ง 2 ฝั่ง … ปิดงานด้วยอัปเดต handoff, CLAUDE.md 2 ฝั่ง, commit front-end"*
 
 ### 6.0 ตัดสินใจก่อนเริ่ม
@@ -346,8 +346,8 @@ PERSONAL INFORMATION: View profile, Change Password, Last Activity
 
 15. แก้ไขผ่านหลังบ้าน → หน้าจริงยังเดิม → กด [Preview] ใน list → iframe เห็นค่าใหม่ → สลับ "อังกฤษ" → Esc ปิด → Approve → หน้าจริงเปลี่ยน → Status/Move → หน้าจริงตาม
 16. **คืนข้อมูลจริงผ่าน UI** (ลบแถว `[TEST-…]`, แก้ค่ากลับ + Approve) → query ยืนยัน ฉบับร่าง = `pb_*` ทุกแถว, `sort` ต่อเนื่อง
-17. เอกสาร: ไฟล์นี้ (§0, §3, §4, §5.5, §11, §12) · `core_admin/CLAUDE.md` (ตาราง "เมนูที่ทำตาม playbook แล้ว" + สเปกเมนู + หัวข้อ front-end) · `docs/backend-menu-status.html` (ย้ายแถว + ตัวเลข 2 หัวตาราง + วันที่) · `docs/preview-spec.md` (บรรทัดสถานะ) · front-end `CLAUDE.md` (ตาราง "สถานะปัจจุบัน" + รายชื่อไฟล์ที่ต่างจาก static web)
-18. **commit front-end** (`git add -A && git -c core.safecrlf=false commit -F -` ลงท้าย `Co-Authored-By:` ตาม system reminder) · **ไม่ commit admin** · รายงานผู้ใช้ตาม §2.3
+17. เอกสาร: ไฟล์นี้ (§0, §3, §4, §5.5, §11, §12) · `core_admin/CLAUDE.md` (ตาราง "เมนู CMS ที่ทำครบสายแล้ว" — สั้น) + `core_admin/docs/cms-menu-playbook.md` (สเปกรายเมนูฉบับเต็ม) · `docs/backend-menu-status.html` (ย้ายแถว + ตัวเลข 2 หัวตาราง + วันที่) · `docs/preview-spec.md` (บรรทัดสถานะ) · front-end `CLAUDE.md` (ตาราง "สถานะปัจจุบัน" + รายชื่อไฟล์ที่ต่างจาก static web)
+18. **commit + push ทุก repo ที่มีไฟล์แก้** (§2.1 ข้อ 7 — admin ด้วย, push ด้วย URL ตรง) ลงท้าย `Co-Authored-By:` ตาม system reminder · รายงานผู้ใช้ตาม §2.3
 
 ---
 
@@ -540,7 +540,7 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{Comman
 
 ## 10. เช็คลิสต์เปิด session ใหม่
 
-1. อ่านไฟล์นี้ให้จบ → `core_admin/CLAUDE.md` (Playbook + "เมนูที่ทำตาม playbook แล้ว" + "กลไก login") → `d:\Project\assetfund.co.th.2026\CLAUDE.md` ("สถานะปัจจุบัน" + "ระบบ Preview" + "วิธีต่อเมนูถัดไป")
+1. อ่านไฟล์นี้ให้จบ → `core_admin/CLAUDE.md` (โหลดอัตโนมัติ — กฎ/สถาปัตยกรรม/login) → `core_admin/docs/cms-menu-playbook.md` (Playbook 19 ขั้น + สเปกรายเมนู) เมื่อจะทำเมนู → `d:\Project\assetfund.co.th.2026\CLAUDE.md` ("สถานะปัจจุบัน" + "ระบบ Preview" + "วิธีต่อเมนูถัดไป")
 2. ตรวจเซิร์ฟเวอร์: `Get-NetTCPConnection -LocalPort 7300,7310,5310 -State Listen` + ดูชื่อ process (`Get-CimInstance Win32_Process -Filter "ProcessId=<pid>"`) — 5310 ที่เป็น `dotnet watch` คือของผู้ใช้ · ไม่มี 7300/7310 ให้ spawn ตาม §9.2 / §9.3
 3. `git status` ทั้ง 2 repo: admin ควรเห็นไฟล์ตาม §11 · front-end ต้องสะอาด (ล่าสุด `bc15ab1`)
 4. ตรวจ DB ตาม §9.1: ไม่มีแถว `[TEST…]`/`[DRAFT…]` · ทุกแถว `pb_status = 1` และฉบับร่าง = `pb_*` · intro/popup status 0 เป็นค่าที่ผู้ใช้ตั้ง (ไม่ต้องแก้) · `web_cms_page` 1 แถว, `web_widget` 18 แถว (id 28–45), `web_widget_group` 3 แถว (id 4/5/6), `widget2`/`group2` ว่าง

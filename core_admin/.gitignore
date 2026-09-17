@@ -79,6 +79,8 @@ docs/*
 !docs/preview-spec.md
 # ยกเว้น : เอกสารส่งต่องาน CMS (เพิ่มเมนูซ้าย + ต่อ front-end + preview) — session ใหม่อ่านไฟล์นี้ก่อน
 !docs/CMS-MENU-HANDOFF.md
+!docs/cms-menu-playbook.md
+!docs/legacy-backoffice.md
 # migration SQL ที่เซิร์ฟเวอร์จริงต้องรัน (คอลัมน์ที่เพิ่มเองสำหรับเมนู Asset Plus)
 !docs/sql/
 !docs/sql/*.sql
