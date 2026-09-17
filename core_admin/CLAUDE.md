@@ -287,6 +287,8 @@ Index / Create / Edit / Delete / Status / Approve / Move / Export มาจา�
 - ฟอร์ม 2 ภาษาใช้คู่ `x` / `en_x` · วันที่แสดงผลใช้ `issue_date_config` (1 = ตลอดเวลา, 2 = กำหนดช่วง) + `issue_date` / `expiry_date` เป็น **พ.ศ.**
 - validation ฝั่ง client อยู่ใน `sConfirmCustom(form)` ท้ายไฟล์ (เมนู slide บังคับ `title` **และ** `en_title` + ตรวจช่วงวันที่)
 - เมนูที่ยกจาก SAM เปลี่ยนแค่สี (`confirmButtonColor: '#00295A'`) และข้อความ — ไม่ต้องแก้โครง
+- ⚠ **ห้ามใส่ `<p class="cms-note">` (ย่อหน้าอธิบายเพิ่มเติมใต้ `<legend>`) ในฟอร์มหลังบ้านอีก** — ผู้ใช้สั่งตัดออกทั้งหมด 17 ก.ย. 2569 เพราะหน้าจอมีข้อความเยอะเกินไป (ลบจาก `HomeHeader/Edit.cshtml` + `HomeFooter/Edit.cshtml` แล้ว)
+  ที่ยังใช้ได้ตามปกติเหมือน back-end SAM: `<fieldset class="cms-section">` + `<legend>` จัดกลุ่มช่อง, คำใบ้สั้น ๆ ในป้ายชื่อช่องแบบ `<span style="font-weight: normal;color: orange;">(.svg, .webp, .png พื้นโปร่ง ตัวอักษรสีขาว)</span>`, placeholder, ธงภาษา `fi fi-th` / `fi fi-us` ฯลฯ — คำอธิบายที่ยาวกว่านั้นให้เขียนไว้ในเอกสาร (CLAUDE.md / handoff) ไม่ใช่บนหน้าจอ
 
 ### 6. Database — ตาราง, ข้อมูลตัวอย่าง, สิทธิ์
 

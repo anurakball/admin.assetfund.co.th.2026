@@ -25,8 +25,6 @@
 <style>
     .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
     .cms-section > legend { font-size:1.15rem; font-weight:700; color:#00295A; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
-    .cms-note { font-size:.9rem; color:#555; margin:-6px 0 16px; }
-    .cms-note code { color:#BC1320; }
     /* โลโก้ footer เป็นตัวอักษรสีขาว — thumbnail ต้องมีพื้นเข้มถึงจะมองเห็น */
     #id_img1_img_section .img-thumbnail, #id_en_img1_img_section .img-thumbnail { background:#00295A; padding:12px; max-height:140px; width:auto; }
     #id_app_qr_img_section .img-thumbnail { max-height:160px; width:auto; }
@@ -39,10 +37,6 @@
 
         <fieldset class="cms-section">
             <legend>โลโก้ท้ายเว็บ</legend>
-            <p class="cms-note">
-                โลโก้บนพื้นสีน้ำเงินของ footer (สูง 40px — ความกว้างตามอัตราส่วนรูป) และ<strong>ลิงก์ไปหน้าแรกเสมอ</strong>
-                · เว้นว่าง = ใช้โลโก้มาตรฐาน (ตัวอักษรขาว) · ภาษาอังกฤษว่าง = ใช้ค่าภาษาไทย
-            </p>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
                     @Html.Raw(_admin.InputFileManeger("โลโก้ <span class='fi fi-th'></span> <span style='font-weight: normal;color: orange;'>(.svg, .webp, .png พื้นโปร่ง ตัวอักษรสีขาว)</span>", "img1", V("img1")))
@@ -61,11 +55,6 @@
 
         <fieldset class="cms-section">
             <legend>ที่อยู่และช่องทางติดต่อ</legend>
-            <p class="cms-note">
-                ที่อยู่แสดงพร้อมไอคอนหมุด กดแล้วเปิดลิงก์แผนที่ (ถ้าไม่ระบุลิงก์จะเป็นข้อความเฉย ๆ)
-                · เบอร์โทรจะถูกทำเป็นลิงก์ <code>tel:</code> ให้เอง (พิมพ์แบบที่ต้องการให้แสดง เช่น <code>02 672 1111</code>)
-                · ช่องที่เว้นว่างจะไม่แสดงบนหน้าเว็บ
-            </p>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
                     @Html.Raw(_admin.InputTextArea("ที่อยู่ <span class='fi fi-th'></span>", "address", V("address"), 3))
@@ -87,7 +76,6 @@
 
         <fieldset class="cms-section">
             <legend>โซเชียลมีเดีย</legend>
-            <p class="cms-note">ใส่ URL เต็ม (ขึ้นต้น <code>https://</code>) · ช่องที่เว้นว่างจะซ่อนไอคอนนั้น · ทุกลิงก์เปิดแท็บใหม่</p>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
                     @Html.Raw(_admin.InputText("LINE URL", "sc_ln", V("sc_ln"), "https://line.me/...", 2000))
@@ -106,7 +94,6 @@
 
         <fieldset class="cms-section">
             <legend>ปีและสโลแกน (โซนขวาของ footer)</legend>
-            <p class="cms-note">เลขปีตัวใหญ่ + สโลแกน 2 บรรทัด (บรรทัดบนตัวใหญ่ / บรรทัดล่างตัวเล็ก) · เลขปีเว้นว่าง = ใช้ปี ค.ศ. ปัจจุบัน · ส่วนนี้ไม่แสดงบนหน้า Salepage</p>
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-3">
                     @Html.Raw(_admin.InputText("เลขปี", "promo_year", V("promo_year"), "2026", 20))
@@ -122,10 +109,6 @@
 
         <fieldset class="cms-section">
             <legend>ดาวน์โหลดแอปพลิเคชัน</legend>
-            <p class="cms-note">
-                ปุ่ม App Store / Google Play ใช้รูปมาตรฐานของเว็บ — ระบุ URL แล้วปุ่มจึงกดได้ (เว้นว่าง = แสดงรูปแต่ไม่ลิงก์)
-                · รูป QR เว้นว่าง = ไม่แสดง QR · หัวข้อภาษาอังกฤษว่าง = ใช้ภาษาไทย
-            </p>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
                     @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "app_title", V("app_title"), "ดาวน์โหลดแอป ASP FUND"))
