@@ -11,8 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > repo root คือโฟลเดอร์แม่ (`admin.assetfund.co.th.2026/`) มีแค่ `core_admin.sln` + ไฟล์ตั้งค่า git/IDE
 
 > 🗂 **กฎ (ผู้ใช้กำหนด): ไฟล์นี้โหลดอัตโนมัติเฉพาะโปรเจกต์ admin — โปรเจกต์ข้างเคียงมี CLAUDE.md ของตัวเองที่ไม่ได้โหลดเอง ต้องเปิดอ่านก่อนทำงาน**
-> - งานใดที่เกี่ยวข้องกับ `D:\Projectssetfund.co.th.2026` (front-end) → **อ่าน `D:\Projectssetfund.co.th.2026\CLAUDE.md` ด้วยเสมอ**
-> - งานใดที่เกี่ยวข้องกับ `D:\Projectssetfund.co.th.old` (เว็บเดิม / หลังบ้านเดิม) → **อ่าน `D:\Projectssetfund.co.th.old\CLAUDE.md` ด้วยเสมอ**
+> - งานใดที่เกี่ยวข้องกับ `D:\Project\assetfund.co.th.2026` (front-end) → **อ่าน `D:\Project\assetfund.co.th.2026\CLAUDE.md` ด้วยเสมอ**
+> - งานใดที่เกี่ยวข้องกับ `D:\Project\assetfund.co.th.old` (เว็บเดิม / หลังบ้านเดิม) → **อ่าน `D:\Project\assetfund.co.th.old\CLAUDE.md` ด้วยเสมอ**
 > (ไฟล์นี้ไม่ทำซ้ำเนื้อหาของสองไฟล์นั้น — ตารางด้านล่างบอกแค่ว่าแต่ละไฟล์มีอะไร)
 >
 > | โปรเจกต์ | CLAUDE.md | มีอะไรอยู่ในนั้น |
