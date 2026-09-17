@@ -19,25 +19,26 @@
     <link href="~/css/pages/login.min.css" rel="stylesheet" asp-append-version="true" />
 
     <style>
-        /* theme บังคับ appearance:none + background:none บน .form-control ทำให้ select ไม่มีลูกศร
-           และดูเหมือน textbox จึงวาดลูกศรเองที่มุมขวา */
-        .select-webid {
-            cursor: pointer;
-            padding-right: 40px !important;
-            background-color: #fff !important;
-            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23606d7c'%3E%3Cpath d='M1.65 4.15a.5.5 0 0 1 .7 0L8 9.79l5.65-5.64a.5.5 0 0 1 .7.71l-6 6a.5.5 0 0 1-.7 0l-6-6a.5.5 0 0 1 0-.71z'/%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 14px center !important;
-            background-size: 14px 14px !important;
+        /* กล่อง reCAPTCHA กว้างคงที่ 304px — จัดกลางฟอร์ม และย่อบนจอแคบไม่ให้ล้นแนวนอน */
+        .login-recaptcha {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 16px 0 4px;
         }
 
-            .select-webid:hover {
-                border-color: #b9c0c8;
-            }
+        .login-recaptcha__error {
+            margin-top: 6px;
+            color: #BC1320;
+            font-size: 14px;
+        }
 
-            .select-webid:focus {
-                outline: none;
+        @@media (max-width: 360px) {
+            .login-recaptcha .g-recaptcha {
+                transform: scale(0.88);
+                transform-origin: center top;
             }
+        }
 
         .input-group__icon .icon-input .bi {
             font-size: 18px;
@@ -51,8 +52,8 @@
     <div class="page-login-wrapper">
         <div class="img-bg">
             @{
-                var rnd = new Random();
-                int n = rnd.Next(0, 82);
+                //----- สุ่มพื้นหลังจาก wwwroot/images/bg/bg0.jpg – bg9.jpg (ถ้าเพิ่ม/ลดรูป ต้องแก้เลข 10 ให้ตรงจำนวนไฟล์)
+                int n = Random.Shared.Next(0, 10);
                 string bg = "bg"+n.ToString()+".jpg";
             }
             <img src="~/images/bg/@bg" />
@@ -66,7 +67,7 @@
         <div class="section-login">
             <div class="align-self-end bg-form">
                 <div class="form-wrapper">
-                    <form class="login-form" action="#" method="post">
+                    <form class="login-form" action="#" method="post" id="loginForm">
                         @Html.AntiForgeryToken()
                         <div class="head-form">
                             <img src="~/images/logo/logo-32.png" alt="icon logo" asp-append-version="true" />
@@ -89,25 +90,29 @@
                                 </span>
                             </div>
 
+                            @*
+                                เลือกเว็บไซต์ (web_id) : ซ่อน dropdown ไว้ตามที่ผู้ใช้สั่ง 17 ก.ย. 2569 — Asset Plus ใช้เว็บไซต์หลักอย่างเดียว
+                                ยังส่ง web_id = 0 ไปกับฟอร์มเหมือนเดิม (UserController.Login [HttpPost] อ่าน f["web_id"])
+                                เปิดคืน: เอา <select id="id_web_id"> เดิมจาก git history (หรือ Views ของ SAM) มาวางแทน hidden นี้
+                            *@
+                            <input type="hidden" id="id_web_id" name="web_id" value="0" />
+
                             @{
-                                //----- ไซต์ที่เลือกไว้ : จาก ?webID= (หรือ cookie ผ่าน AdminLogin) ไม่มีให้ default เป็นเว็บไซต์หลัก (0)
-                                string selectedWebID = (ViewBag.webID + "" != "") ? (ViewBag.webID + "") : "0";
+                                string recaptchaSiteKey = ViewBag.RecaptchaSiteKey + "";
                             }
-                            <div class="input-group input-group__icon">
-                                <span class="icon-input">
-                                    <i class="bi bi-globe2"></i>
-                                </span>
-                                <select class="form-control form-icon select-webid" id="id_web_id" name="web_id">
-                                    <option value="0" selected="@(selectedWebID == "0")">เว็บไซต์หลัก</option>
-                                    @if (ViewBag.AllMicrosite != null)
-                                    {
-                                        foreach (System.Data.DataRow data in (System.Data.DataRowCollection)ViewBag.AllMicrosite)
-                                        {
-                                            <option value="@data["id"]" selected="@(data["id"] + "" == selectedWebID)">@data["pb_title"]</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
+                            @if (recaptchaSiteKey != "")
+                            {
+                                @* Google reCAPTCHA v2 (I'm not a robot) — site key มาจาก appsettings → GoogleReCaptcha:SiteKey
+                                   ต้องติ๊กก่อนกด Log In (ตรวจซ้ำฝั่ง server ที่ Helpers/ReCaptcha.cs) *@
+                                <div class="login-recaptcha">
+                                    <div class="g-recaptcha" data-sitekey="@recaptchaSiteKey" data-callback="onRecaptchaDone" data-expired-callback="onRecaptchaExpired"></div>
+                                    <div class="login-recaptcha__error" id="recaptcha_error" style="display:none;">กรุณาติ๊กยืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ</div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-danger">ระบบยังไม่ได้ตั้งค่า reCAPTCHA (GoogleReCaptcha:SiteKey) จึงยังเข้าสู่ระบบไม่ได้ กรุณาติดต่อผู้ดูแลระบบ</div>
+                            }
 
                             @if (TempData["alert_message"] != null)
                             {
@@ -171,7 +176,23 @@
             $("#inp_miscrosite").change(function(){
             
             });
+
+            // ต้องติ๊ก reCAPTCHA ก่อนส่ง (server ตรวจซ้ำอีกชั้น — ข้อนี้แค่ไม่ให้ผู้ใช้เสียรอบ)
+            $("#loginForm").on("submit", function (e) {
+                if ($(".g-recaptcha").length === 0) return;
+                if (typeof grecaptcha === "undefined" || grecaptcha.getResponse() === "") {
+                    e.preventDefault();
+                    $("#recaptcha_error").show();
+                }
+            });
         });
+
+        function onRecaptchaDone() { $("#recaptcha_error").hide(); }
+        function onRecaptchaExpired() { $("#recaptcha_error").text("การยืนยันหมดอายุ กรุณาติ๊กใหม่อีกครั้ง").show(); }
     </script>
+    @if (ViewBag.RecaptchaSiteKey + "" != "")
+    {
+        <script src="https://www.google.com/recaptcha/api.js?hl=th" async defer></script>
+    }
 </body>
 </html>

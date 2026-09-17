@@ -90,13 +90,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             // ── page: ส่วนประกอบที่อยู่บนทุกหน้า / หน้าแรก (ตารางเดี่ยว web_home_*) ──
             { "HomeHeader",     "page" },   // โลโก้/แถบหัวเว็บ
             { "HomeFooter",     "page" },   // ท้ายเว็บ
-            { "HomeSEO",        "page" },   // SEO & Code
+            //{ "HomeSEO",      "page" },   // SEO & Code — ถอดปุ่ม Preview ออก 17 ก.ย. 2569 ตามที่ผู้ใช้สั่ง (front-end ถอดจาก PreviewMap.Pages ด้วย)
             { "HomePopUp",      "page" },   // ป๊อปอัพ
             { "HomeImageConf",  "page" },   // ตั้งค่าสไลด์หน้าแรก
             { "HomeIntroPage",  "page" },   // หน้า intro
 
             // ── cms: แก้ตัวหน้า CMS เอง ──
-            { "CMSPage",        "cms" },    // หน้าเว็บไซต์
+            //{ "CMSPage",      "cms" },    // SAM: พรีวิวตัวหน้า CMS — Asset Plus เปลี่ยนเป็น page (ด้านล่าง) เพราะ CMSPage เหลือแถวเดียวคือหน้าแรก
+            { "CMSPage",        "page" },   // จัดการเมนูเว็บไซต์ = page builder หน้าแรก -> พรีวิวหน้าแรกด้วย box_layout ฉบับร่าง (18 ก.ย. 2569)
             { "CMSPageFooter1", "cms" },    // เมนู Footer กลุ่ม 1
             { "CMSPageFooter2", "cms" },    // เมนู Footer กลุ่ม 2
         };
@@ -183,10 +184,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         // widget หน้าแรก (web_home_*, web_core_single) ทั้งหน้า -> พรีวิวแล้วไม่เห็นค่าที่แก้
                         // (คอลัมน์ is_home มีเฉพาะ web_cms_page)
                         string homeCond = t == "web_cms_page" ? " OR COALESCE(is_home,'') = '1'" : "";
+                        //----- T-SQL ไม่มี "= ANY(@array)" ของ PostgreSQL — สร้าง IN (@box0,@box1,…) แทน (แก้ 18 ก.ย. 2569)
+                        var boxPs = new Dictionary<string, object>();
+                        for (int i = 0; i < NoPreviewBoxData.Length; i++) boxPs["box" + i] = NoPreviewBoxData[i];
+                        string boxIn = string.Join(",", boxPs.Keys.Select(k => "@" + k));
                         Block(db, $@"SELECT id FROM {Db.T(t)}
                                      WHERE COALESCE(page_type,'') NOT IN ('3','4')
-                                        OR COALESCE(box_data,'') = ANY(@box){homeCond}",
-                              new() { { "box", NoPreviewBoxData } });
+                                        OR COALESCE(box_data,'') IN ({boxIn}){homeCond}",
+                              boxPs);
                         break;
 
                     // ลิงค์หน่วยงาน (กลุ่ม): Views/Contact/Organization.cshtml ข้ามกลุ่มที่ไม่มีลิงก์ทั้งกลุ่ม

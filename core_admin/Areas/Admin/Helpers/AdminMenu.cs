@@ -9,34 +9,40 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             var listMenu = new List<AdminMenuModel>();
 
             #region หน้าเว็บไซต์
-            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
-            //listMenu.Add(new()
-            //{
-                //Title = "หน้าเว็บไซต์",
-                //Icon = "fa-solid fa-house",
-                //SubMenu = new()
-                //{
-                    //new(){Title = "จัดการเมนูเว็บไซต์",ModuleName = "CMSPage",Link = "CMSPage",Icon = "fa-solid fa-sitemap"},
-                    //new(){Title = "หน้า Intro Page",ModuleName = "HomeIntroPage",Link = "HomeIntroPage",Icon = "fa-regular fa-window-restore"},
-                    //new(){Title = "หน้า Pop-Up",ModuleName = "HomePopUp",Link = "HomePopUp",Icon = "fa-solid fa-clone"},
-                    //new(){Title = "โลโก้ / Template",ModuleName = "HomeHeader",Link = "HomeHeader",Icon = "fa-solid fa-book-atlas"},
+            //----- กลุ่มนี้เปิดใช้แล้ว (16 ก.ย. 2569) — ลำดับเมนูย่อยยึดตาม back-end SAM: กลุ่ม "หน้าเว็บไซต์" ก่อน แล้วต่อด้วยกลุ่ม "ข้อมูลหน้าแรก"
+            //      (17 ก.ย. 2569 ผู้ใช้สั่งยุบกลุ่ม "หน้าหลัก" มารวมที่นี่ — รูปสไลด์หน้าแรก / Get Other Indices ต่อท้าย)
+            //      บรรทัดที่ยัง "//" คือเมนู SAM ที่ยังไม่ได้เปิดคืน — เปิดได้โดยลบ "//" ทีละบรรทัด (ทุกบรรทัดมี , ปิดท้ายแล้ว)
+            listMenu.Add(new()
+            {
+                Title = "หน้าเว็บไซต์",
+                Icon = "fa-solid fa-globe",
+                SubMenu = new()
+                {
+                    //----- เปิดคืน 18 ก.ย. 2569 — Asset Plus ใช้เป็น "page builder" ของหน้าแรกอย่างเดียว (แถว id 1 แถวเดียว แก้ไข + อนุมัติ เท่านั้น)
+                    new() { Title = "จัดการเมนูเว็บไซต์", ModuleName = "CMSPage", Link = "CMSPage", Icon = "fa-solid fa-sitemap" },
+                    new() { Title = "หน้า Intro Page", ModuleName = "HomeIntroPage", Link = "HomeIntroPage", Icon = "fa-regular fa-window-restore" },
+                    new() { Title = "หน้า Pop-Up", ModuleName = "HomePopUp", Link = "HomePopUp", Icon = "fa-solid fa-clone" },
+                    new() { Title = "ปรับแต่ง Header", ModuleName = "HomeHeader", Link = "HomeHeader", Icon = "fa-solid fa-signature" },   // เดิม SAM ชื่อ "โลโก้ / Template" — Asset Plus เหลือโลโก้ + Alt Text 2 ภาษา (ไม่มี Template)
                     //new(){Title = "จัดการเมนู Footer 1",ModuleName = "CMSPageFooter1",Link = "CMSPageFooter1",Icon = "fa-solid fa-sitemap"},
                     //new(){Title = "จัดการเมนู Footer 2",ModuleName = "CMSPageFooter2",Link = "CMSPageFooter2",Icon = "fa-solid fa-sitemap"},
-                    //new(){Title = "ปรับแต่ง Footer",ModuleName = "HomeFooter",Link = "HomeFooter",Icon = "fa-regular fa-copyright"},
-                    //new(){Title = "SEO & Code",ModuleName = "HomeSEO",Link = "HomeSEO",Icon = "fa-solid fa-sliders"},
-                //}
-            //});
+                    new() { Title = "ปรับแต่ง Footer", ModuleName = "HomeFooter", Link = "HomeFooter", Icon = "fa-regular fa-copyright" },   // Asset Plus: โลโก้/ที่อยู่/ติดต่อ/โซเชียล/ปี+สโลแกน/แอป/copyright (ไม่มีปุ่ม 3 ปุ่มของ SAM)
+                    new() { Title = "SEO & Code", ModuleName = "HomeSEO", Link = "HomeSEO", Icon = "fa-solid fa-sliders" },
+                    //----- "รูปสไลด์หน้าแรก" (HomeImageSlide) ย้ายไปกลุ่ม "ข้อมูลหน้าแรก" ด้านล่างแล้ว (17 ก.ย. 2569) — อย่าเปิดซ้ำที่นี่
+                    //----- ต่อไปนี้คือเมนู Asset Plus (tb_*) ที่ย้ายมาจากกลุ่ม "หน้าหลัก" เดิม
+                    new() { Title = "Get Other Indices", ModuleName = "ApOtherIndices", Link = "ApOtherIndices", Icon = "fa-solid fa-chart-line" },
+                }
+            });
             #endregion
 
             #region ข้อมูลหน้าแรก
-            //----- [ซ่อนจากเมนูด้านซ้าย] เปิดคืนได้โดยลบ "//" ออกจากบรรทัด listMenu.Add(...) ของกลุ่มนี้ พร้อมบรรทัดเมนูย่อยที่ต้องการ (ทีละเมนูได้) -----
-            //listMenu.Add(new()
-            //{
-                //Title = "ข้อมูลหน้าแรก",
-                //Icon = "fa-solid fa-book-open",
-                //SubMenu = new()
-                //{
-                    //new(){Title = "รูปสไลด์หน้าแรก",ModuleName = "HomeImageSlide",Link = "HomeImageSlide",Icon = "fa-regular fa-images"},
+            //----- เปิดใช้กลุ่มนี้แล้ว (17 ก.ย. 2569) อยู่ถัดจาก "หน้าเว็บไซต์" — เมนูย่อยที่ยัง "//" คือเมนู SAM ที่ยังไม่เปิด (เปิดทีละบรรทัดได้) -----
+            listMenu.Add(new()
+            {
+                Title = "ข้อมูลหน้าแรก",
+                Icon = "fa-solid fa-book-open",
+                SubMenu = new()
+                {
+                    new() { Title = "รูปสไลด์หน้าแรก", ModuleName = "HomeImageSlide", Link = "HomeImageSlide", Icon = "fa-regular fa-images" },
                     //new(){Title = "ตั้งค่ารูปสไลด์",ModuleName = "HomeImageConf",Link = "HomeImageConf",Icon = "fa-solid fa-sliders"},
                     //new(){Title = "แอสเซท พลัส ใส่ใจ",ModuleName = "HomeSamText",Link = "HomeSamText",Icon = "fa-solid fa-list-ol"},
                     //new(){Title = "ภาพรวมการบริหารหนี้",ModuleName = "HomeSamText2",Link = "HomeSamText2",Icon = "fa-regular fa-note-sticky"},
@@ -45,8 +51,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     //new(){Title = "คุณกำลังมองหาอะไร",ModuleName = "HomeSamText5",Link = "HomeSamText5",Icon = "fa-solid fa-magnifying-glass-location"},
                     //new(){Title = "บ้านเด่นทำเลดี",ModuleName = "HomeSamText6",Link = "HomeSamText6",Icon = "fa-solid fa-map-location-dot"},
                     //new(){Title = "วิสัยทัศน์",ModuleName = "HomeSamText7",Link = "HomeSamText7",Icon = "fa-solid fa-align-center"},
-                //}
-            //});
+                }
+            });
             #endregion
 
             #region เนื้อหาหน้าแรก
@@ -553,17 +559,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             //  ทำงานบนตารางเดิม tb_* โดยตรง — นิยามโมดูลอยู่ที่ Helpers/AdminMenuAssetPlus.cs
             //================================================================================
 
-            #region หน้าหลัก (Asset Plus)
-            listMenu.Add(new()
-            {
-                Title = "หน้าหลัก",
-                Icon = "fa-solid fa-house",
-                SubMenu = new()
-                {
-                    new() { Title = "Get Other Indices", ModuleName = "ApOtherIndices", Link = "ApOtherIndices", Icon = "fa-solid fa-chart-line" },
-                }
-            });
-            #endregion
+            //----- กลุ่ม "หน้าหลัก" ถูกยุบเมื่อ 17 ก.ย. 2569 — เมนูทั้งหมด (รูปสไลด์หน้าแรก / หน้า Intro Page / Get Other Indices)
+            //      ย้ายไปอยู่ในกลุ่ม "หน้าเว็บไซต์" ด้านบนแล้ว (คำสั่งผู้ใช้) — อย่าสร้างกลุ่มนี้กลับมา
 
             #region ข้อมูลกองทุน (Asset Plus)
             listMenu.Add(new()
@@ -645,7 +642,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
             #endregion
 
             #region Widget
-            /*
+            //----- เปิดกลุ่ม "Widget" 18 ก.ย. 2569 (ผู้ใช้สั่งให้อยู่ถัดจาก "ผู้ดูแลระบบ") — ข้อมูล widget ของ page builder หน้าแรก (CMSPage/Edit/1)
+            //      กลุ่ม = เวอร์ชันดีไซน์ (DEFAULT/MODERN/CLASSIC) · widget = 1 <section> ของหน้าแรก (section_key -> partial ฝั่ง front-end)
+            //      Widget2/WidgetGroup2 เป็นชุดของ microsite (SAM) — ไม่ใช้ ยังปิดไว้
             listMenu.Add(new()
             {
                 Title = "Widget",
@@ -656,6 +655,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     new() { Title = "Widget ทั้งหมด", ModuleName = "Widget", Link = "Widget", Icon = "bi bi-collection" }
                 }
             });
+            /*
             listMenu.Add(new()
             {
                 Title = "Widget2",
@@ -996,39 +996,30 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         public List<string> FieldUpdate_JobCMS  = new() { "t1", "en_t1", "issue_date_config", "issue_date", "expiry_date" };
         public List<string> FieldApprove_JobCMS = new() { "t1", "en_t1", "issue_date_config", "issue_date", "expiry_date" };
 
+        #region ----- HomeHeader (ปรับแต่ง Header) -----
+        // ฟิลด์ของเมนู "ปรับแต่ง Header" — Create/Update/Approve ชุดเดียวกัน (ทุกช่องต้องมีในฟอร์ม Views/HomeHeader/Edit.cshtml)
+        private static readonly List<string> Field_HomeHeader = new() { "title", "en_title", "img1", "en_img1" };
+        #endregion
+
         #region ----- HomeFooter (ปรับแต่ง Footer) -----
-        // ฟิลด์ของเมนู "ปรับแต่ง Footer" — Create/Update/Approve ใช้ชุดเดียวกันทั้งหมด
-        // (เดิมเขียนซ้ำ 3 ที่ ทำให้เพิ่มฟิลด์แล้วลืมแก้ครบได้ง่าย)
-        // ปุ่มท้ายเว็บ 3 ปุ่ม (footer__actions) ปุ่มละ 7 ฟิลด์:
-        //   btn{i}_text / en_btn{i}_text          ชื่อปุ่ม 2 ภาษา
-        //   btn{i}_url  / en_btn{i}_url           URL 2 ภาษา ('#xxx' = เปิด modal id xxx)
-        //   btn{i}_url_target                     _top / _blank
-        //   btn{i}_bg_color / btn{i}_text_color   สีพื้นหลัง / สีตัวอักษร (ว่าง = ใช้สีธีมเดิม)
-        // ทุกคอลัมน์มีคู่ pb_* ครบ (ดู Scripts/sql/2026-08-06-web-home-footer-buttons.sql)
-        private static readonly List<string> Field_HomeFooter = BuildHomeFooterFields();
-        private static List<string> BuildHomeFooterFields()
+        // ฟิลด์ของเมนู "ปรับแต่ง Footer" (Asset Plus) — Create/Update/Approve ใช้ชุดเดียวกัน · ทุกช่องต้องมีในฟอร์ม Views/HomeFooter/Edit.cshtml
+        // front-end (assetfund.co.th.2026 Views/Shared/_PartialFooter.cshtml + _PartialFooterSale.cshtml) อ่านคู่ pb_* ของฟิลด์เหล่านี้:
+        //   โซน footer__brand : title/en_title (alt โลโก้) · img1/en_img1 (โลโก้ — ว่าง = โลโก้มาตรฐาน) · address/en_address + address_url (ที่อยู่ + ลิงก์แผนที่)
+        //                        tel · email · sc_ln / sc_fb / sc_yt / sc_bd (LINE / Facebook / YouTube / Blockdit — ว่าง = ซ่อนไอคอน)
+        //   โซน footer__promo : promo_year (เลขปีตัวใหญ่) · tagline_1 / tagline_2 (สโลแกน 2 บรรทัด) · app_title/en_app_title · sc_as / sc_gp (ลิงก์ App Store / Google Play)
+        //                        app_qr (รูป QR) · cr/en_cr (copyright)
+        // ⚠ คอลัมน์ img1, en_img1, address, en_address, address_url, sc_bd, promo_year, tagline_1, tagline_2, app_title, en_app_title, app_qr (+คู่ pb_*)
+        //   เพิ่มเองใน DB นี้เมื่อ 17 ก.ย. 2569 (SAM ไม่มี) — เซิร์ฟเวอร์จริงต้อง ALTER TABLE ด้วย
+        // คอลัมน์ของ SAM ที่เลิกใช้และไม่อยู่ในฟอร์ม: sc_tw, sc_tt, info/en_info, btn{1..3}_* (ตั้งเป็น NULL ในข้อมูลแล้ว)
+        private static readonly List<string> Field_HomeFooter = new()
         {
-            var fields = new List<string>
-            {
-                "title", "en_title", "tel", "email",
-                "sc_fb", "sc_tw", "sc_ln", "sc_yt", "sc_tt", "sc_as", "sc_gp",
-                "cr", "en_cr",
-            };
-            for (int i = 1; i <= HomeFooterButtonCount; i++)
-            {
-                fields.Add($"btn{i}_text");
-                fields.Add($"en_btn{i}_text");
-                fields.Add($"btn{i}_url");
-                fields.Add($"en_btn{i}_url");
-                fields.Add($"btn{i}_url_target");
-                fields.Add($"btn{i}_bg_color");
-                fields.Add($"btn{i}_text_color");
-            }
-            return fields;
-        }
-        // จำนวนปุ่มท้ายเว็บ — ต้องตรงกับคอลัมน์ใน web_home_footer, ฟอร์ม HomeFooter/Edit.cshtml
-        // และ front-end (_PartialFooter.cshtml + layoutContentService.GetHomeFooter)
-        public const int HomeFooterButtonCount = 3;
+            "title", "en_title", "img1", "en_img1",
+            "address", "en_address", "address_url", "tel", "email",
+            "sc_ln", "sc_fb", "sc_yt", "sc_bd",
+            "promo_year", "tagline_1", "tagline_2",
+            "app_title", "en_app_title", "sc_as", "sc_gp", "app_qr",
+            "cr", "en_cr",
+        };
         #endregion
 
         public List<string> FieldApprove_CoreNews = new() { "cat_id", "title", "en_title", "date_news", "img1", "en_img1", "img2", "en_img2", "file1", "en_file1", "file2", "en_file2", "file3", "en_file3", "file4", "en_file4", "file5", "en_file5", "file6", "en_file6", "file1_title", "en_file1_title", "file2_title", "en_file2_title", "file3_title", "en_file3_title", "file4_title", "en_file4_title", "file5_title", "en_file5_title", "file6_title", "en_file6_title", "des", "en_des", "info", "en_info", "info2", "en_info2", "page_type", "url", "en_url", "url_target", "issue_date_config", "issue_date", "expiry_date","seo_url","en_seo_url" };
@@ -1044,7 +1035,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "CMSPage",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "จัดการเมนูเว็บไซต์",TextBreadcrumb = "หน้าเว้บไซต์/จัดการเมนูเว็บไซต์", Table = "web_cms_page",OrderBy = "sort",Sort = "asc", TableCate = "web_cms_page",TableCateField = "cat_id",TableCateOrderby = "title",TableCateSort = "asc",TableCateTitle = "title",TableCateLabel = "กลุ่ม", CanAdd = true,CanEdit = true,CanDelete = true,CanMove = true,CanStatus = true,CanApprove = true, UseViewCreateFrom = "CMSPage",UseViewEditFrom = "CMSPage", IsCMSPage = true, FieldCMSPage = "parent_id", 
+                        Text = "จัดการเมนูเว็บไซต์",TextBreadcrumb = "หน้าเว็บไซต์/จัดการเมนูเว็บไซต์", Table = "web_cms_page",OrderBy = "sort",Sort = "asc", TableCate = "web_cms_page",TableCateField = "cat_id",TableCateOrderby = "title",TableCateSort = "asc",TableCateTitle = "title",TableCateLabel = "กลุ่ม",
+                        //----- Asset Plus (18 ก.ย. 2569): ตารางเหลือแถวเดียว id 1 = หน้าแรก (is_home = 1) ใช้เป็น page builder จัดเรียง widget เท่านั้น
+                        //      จึงปิด เพิ่ม/ลบ/เปิดปิด/จัดเรียง เหลือ แก้ไข + อนุมัติ (ต้องตรงกับแถว can_* ใน 2026_web_admin_module)
+                        CanAdd = false,CanEdit = true,CanDelete = false,CanMove = false,CanStatus = false,CanApprove = true, UseViewCreateFrom = "CMSPage",UseViewEditFrom = "CMSPage", IsCMSPage = true, FieldCMSPage = "parent_id", 
                         FieldSearch = FieldSearch_Default,
                         ListData = new() { new("title", "หัวข้อ"), new("page_type", "ประเภท"), new("pb_status", "สถานะ"), new("updated_at", "วันที่แก้ไข") }, 
                         FieldCreate = new()
@@ -1086,7 +1080,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "HomePopUp",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "หน้า Pop-Up", TextBreadcrumb = "หน้าเว็บไซต์/หน้า Pop-Up", Table = "web_home_pop_up", OrderBy = "sort", Sort = "asc", CanAdd = true, CanEdit = true, CanDelete = true, CanMove = false, CanStatus = true, CanApprove = true, UseViewCreateFrom = "HomePopUp", UseViewEditFrom = "HomePopUp",
+                        Text = "หน้า Pop-Up", TextBreadcrumb = "หน้าเว็บไซต์/หน้า Pop-Up", Table = "web_home_pop_up", OrderBy = "sort", Sort = "asc", CanAdd = true, CanEdit = true, CanDelete = true, CanMove = true,   /* CanMove เปิด 17 ก.ย. 2569 — front-end แสดงหลายใบเป็นสไลด์เรียง sort ASC */ CanStatus = true, CanApprove = true, UseViewCreateFrom = "HomePopUp", UseViewEditFrom = "HomePopUp",
                         FieldSearch = FieldSearch_Default, ListData = ListData_DefaultImg,
                         FieldCreate = new()
                         {
@@ -1107,20 +1101,14 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "HomeHeader",
                     Config = new Module.ModuleConfig()
                     {
-                        Text = "โลโก้ / Template", TextBreadcrumb = "หน้าเว็บไซต์/โลโก้ / Template", Table = "web_home_header", OrderBy = "sort", Sort = "asc", CanAdd = false, CanEdit = true, CanDelete = false, CanMove = false, CanStatus = false, CanApprove = true, UseViewCreateFrom = "HomeHeader", UseViewEditFrom = "HomeHeader",
+                        // ปรับแต่ง Header (แถวเดียว id 1 ของ web_home_header) — โลโก้ 2 ภาษา (img1 / en_img1) + Alt Text 2 ภาษา (title / en_title)
+                        // ลิงก์โลโก้ front-end fix เป็นหน้าแรกเสมอ จึงไม่มีช่อง URL · this_type / des ของ SAM (เลือก Template / โทนสี) ไม่ใช้กับ Asset Plus
+                        // ⚠ en_img1 / pb_en_img1 เป็นคอลัมน์ที่เพิ่มเองใน DB นี้ (17 ก.ย. 2569) — เซิร์ฟเวอร์จริงต้อง ALTER TABLE ด้วย
+                        Text = "ปรับแต่ง Header", TextBreadcrumb = "หน้าเว็บไซต์/ปรับแต่ง Header", Table = "web_home_header", OrderBy = "sort", Sort = "asc", CanAdd = false, CanEdit = true, CanDelete = false, CanMove = false, CanStatus = false, CanApprove = true, UseViewCreateFrom = "HomeHeader", UseViewEditFrom = "HomeHeader",
                         FieldSearch = FieldSearch_Default, ListData = ListData_DefaultImg,
-                        FieldCreate = new()
-                        {
-                            "title","this_type","img1",
-                        },
-                        FieldUpdate = new()
-                        {
-                            "title","this_type","img1","des",
-                        },
-                        FieldApprove = new()
-                        {
-                            "title","this_type","img1","des",
-                        }
+                        FieldCreate = new(Field_HomeHeader),
+                        FieldUpdate = new(Field_HomeHeader),
+                        FieldApprove = new(Field_HomeHeader)
                     }
                 },
                 new Module()
@@ -5593,16 +5581,20 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         {
                             new ("title", "หัวข้อ"),
                             new ("img1", "ไอคอน"),
+                            new ("section_key", "Section Key"),
                             new ("pb_status", "สถานะ"),
                             new ("created_at", "วันที่สร้าง"),
                             new ("updated_at", "วันที่แก้ไข")
                         },
+                        //----- Asset Plus: section_key/pb_section_key เป็นคอลัมน์ที่เพิ่มเอง (docs/sql/2026-09-18-web-widget-section-key.sql)
+                        //      = ชื่อ partial ฝั่ง front-end (Views/Home/Partials/_<key>.cshtml) ที่ widget นี้แทน · mod_name = โมดูลข้อมูลที่ใช้เติม token ในตัวอย่าง
                         FieldApprove = new()
                         {
                             "cat_id",
                             "title",
                             "img1",
                             "mod_name",
+                            "section_key",
                             "info",
                         },
                         FieldCreate = new()
@@ -5611,6 +5603,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                             "title",
                             "img1",
                             "mod_name",
+                            "section_key",
                             "info",
                             "sort"
                         },
@@ -5620,6 +5613,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                             "title",
                             "img1",
                             "mod_name",
+                            "section_key",
                             "info",
                         }
                     }

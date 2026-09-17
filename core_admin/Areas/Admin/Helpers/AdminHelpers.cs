@@ -953,7 +953,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         if (!string.IsNullOrEmpty(Module.Config.TableCate) && !string.IsNullOrEmpty(Module.Config.TableCateField))
                         {
                             string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.TableCateField) ?? "";
-                            var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and module_id = '" + Module.Config.TableModuleID + "' and web_id = @web_id ", Module.Config.Table, Module.Config.TableCateField), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
+                            var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and module_id = '" + Module.Config.TableModuleID + "' and web_id = @web_id ", Db.T(Module.Config.Table), Module.Config.TableCateField), new() { { "cate_val", cate_val }, { "web_id", _currentWebID } });
                          
                             if (dtSort.Rows.Count > 0)
                             { 
@@ -962,7 +962,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                         }
                         else
                         {  
-                            var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where web_id = @web_id and module_id = '" + Module.Config.TableModuleID + "' ", Module.Config.Table), new Dictionary<string, object>() { { "web_id", _currentWebID } });
+                            var dtSort = _db.ExecuteQuery(string.Format("select max(sort)+10 as max_sort from {0} where web_id = @web_id and module_id = '" + Module.Config.TableModuleID + "' ", Db.T(Module.Config.Table)), new Dictionary<string, object>() { { "web_id", _currentWebID } });
                          
                             if (dtSort.Rows.Count > 0)
                             { 
@@ -1016,7 +1016,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 if (!string.IsNullOrEmpty(Module.Config.TableCate) && !string.IsNullOrEmpty(Module.Config.TableCateField))
                 {
                     string cate_val = _session.GetString("admin_" + Module.Name + "_search_" + Module.Config.TableCateField) ?? "";
-                    var allRows = _db.ExecuteQuery(string.Format("select id from {0} where module_id = '" + Module.Config.TableModuleID + "' and cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id order by sort asc", Module.Config.Table, Module.Config.TableCateField), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } }); 
+                    var allRows = _db.ExecuteQuery(string.Format("select id from {0} where module_id = '" + Module.Config.TableModuleID + "' and cast({1} as nvarchar(max)) = cast(@cate_val as nvarchar(max)) and web_id = @web_id order by sort asc", Db.T(Module.Config.Table), Module.Config.TableCateField), new Dictionary<string, object>() { { "cate_val", cate_val }, { "web_id", _currentWebID } }); 
                     if (allRows.Rows.Count > 0)
                     {
                         int sort = 10;
@@ -1029,7 +1029,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                 }
                 else
                 {
-                    var allRows = _db.ExecuteQuery(string.Format("select id from {0} where module_id = '" + Module.Config.TableModuleID + "' and web_id = @web_id order by sort asc", Module.Config.Table), new() { { "web_id", _currentWebID } });
+                    var allRows = _db.ExecuteQuery(string.Format("select id from {0} where module_id = '" + Module.Config.TableModuleID + "' and web_id = @web_id order by sort asc", Db.T(Module.Config.Table)), new() { { "web_id", _currentWebID } });
                     if (allRows.Rows.Count > 0)
                     {
                         int sort = 10;

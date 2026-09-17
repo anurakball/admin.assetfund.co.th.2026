@@ -121,6 +121,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             var appVersion = (infoVersion != null) ? infoVersion.InformationalVersion : "-";
             ViewBag.appVersion = appVersion;
 
+            // reCAPTCHA v2 — site key จาก appsettings (GoogleReCaptcha:SiteKey)
+            ViewBag.RecaptchaSiteKey = ReCaptcha.SiteKey(_config);
+
             //return View("~/Areas/Admin/Views/Login/Index.cshtml");
             return View("~/Views/Login/Index.cshtml");
         }
@@ -153,6 +156,31 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             {
                 webID = "0";
                 _requestWebID = Convert.ToInt32(webID);
+            }
+            #endregion
+
+            #region ----- Google reCAPTCHA v2 (หน้า Login + modal re-login ใช้ endpoint นี้ร่วมกัน จึงตรวจทั้งคู่) -----
+            // ตรวจก่อนแตะ username/password เสมอ — ไม่งั้นบอทใช้ endpoint นี้เดารหัสผ่านได้ (ดู Helpers/ReCaptcha.cs)
+            var captcha = ReCaptcha.Verify(_config, f[ReCaptcha.FormField], HttpContext.Connection.RemoteIpAddress?.ToString());
+            if (captcha != ReCaptcha.Result.Ok)
+            {
+                #region Logs Action
+                _admin.ActionLogs(
+                    admin_user_id: 0,
+                    admin_username: "",
+                    action: "login_fail_captcha",
+                    action_info: "เข้าสู่ระบบ ไม่สำเร็จ : reCAPTCHA " + captcha,
+                    action_url: Request.Host.Value + Request.Path.Value,
+                    action_table: "web_admin"
+                );
+                #endregion
+
+                if (f["relogin"] + "" == "1")
+                {
+                    return Content("captcha");   // modal re-login แสดงข้อความและรีเซ็ตกล่องเอง
+                }
+                TempData["alert_message"] = ReCaptcha.Message(captcha);
+                return RedirectToAction("Login", new { targetUrl = targetUrl });
             }
             #endregion
 

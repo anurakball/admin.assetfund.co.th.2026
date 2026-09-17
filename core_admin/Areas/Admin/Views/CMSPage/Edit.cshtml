@@ -11,6 +11,8 @@
     var row = (System.Data.DataRow)ViewBag.itemEdit;
     string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
     string wg_text = "";
+    //----- Asset Plus: ตัวอย่าง widget ในแท็บ "ตกแต่งเพจ" ใช้ CSS ของ front-end ตัวจริง (โหลดจาก FrontURL) แทน css_home ของ SAM
+    string frontUrl = (_utility.frontURL() + "").TrimEnd('/');
 }
 @section NavbarBack
 {
@@ -22,11 +24,12 @@
 <link rel="stylesheet" href="/lib/flag-icons-main/css/flag-icons.min.css" />
 
 
-<link href="/css_home/vendor.min.css" rel="stylesheet">
-<link href="/css_home/bootstrap-icons.min.css" rel="stylesheet">
+@* CSS ของ front-end Asset Plus (d:\Project\assetfund.co.th.2026\wwwroot) — ให้ตัวอย่างในการ์ด widget หน้าตาเหมือนหน้าเว็บจริง *@
+<link href="@frontUrl/css/vendor.min.css" rel="stylesheet">
+<link href="@frontUrl/css/bootstrap-icons.min.css" rel="stylesheet">
 <link href="/css_home/select2.min.css" rel="stylesheet">
-<link href="/css_home/main.min.css?v=ap2026" rel="stylesheet">
-<link href="/css_home/swiper-bundle.min.css" rel="stylesheet">
+<link href="@frontUrl/css/main.min.css" rel="stylesheet">
+<link href="@frontUrl/vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
 <style>
 /* ปุ่ม Back: css_home/main.min.css ทำให้พื้นหลังจางจนตัวอักษรอ่านยาก จึงบังคับให้พื้นเข้มเหมือนหน้าอื่น */
 #header_custom .btn--gray {
@@ -398,7 +401,9 @@ var sortableMain = null;
                                         string[] arr_get_id = arr_box[i].Split('_');
 
                                         @*----- web_id = 0 อ่าน web_widget, web_id != 0 (microsite) อ่าน web_widget2 (เลือกชุดโดย WidgetTable()); พาเลตต์คงที่ ไม่กรอง web_id *@
-                                        var Widget1 = ViewBag._db.ExecuteQuery(string.Format("select * from " + Db.T(_admin.WidgetTable()) + " where id = " + arr_get_id[1]));
+                                        int wgId = 0; int.TryParse(arr_get_id[1], out wgId);   //----- parameterized (18 ก.ย. 2569) — box_layout เป็นค่าจากฟอร์ม
+                                        var Widget1 = ViewBag._db.ExecuteQuery("select * from " + Db.T(_admin.WidgetTable()) + " where id = @id",
+                                            new Dictionary<string, object>() { { "id", wgId } });
 
                                         if(Widget1.Rows.Count > 0)
                                         {
@@ -408,7 +413,7 @@ var sortableMain = null;
                                                 <div class="list-group-item" id="gi_@arr_box[i]">
                                                     <div class="thumbnail hide">
                                                         <div class="image-thumbnail">
-                                                            <img src="/Files/Widget ICON/Image/icon-wg-picSlide.svg" alt="icon pic" draggable="false">
+                                                            <img src="/@Widget1.Rows[0]["pb_img1"]" alt="icon pic" draggable="false">
                                                         </div>
                                                         <p class="text-thumbnail"></p>
                                                     </div>
@@ -431,7 +436,8 @@ var sortableMain = null;
                                                             *@
                                                             @*----- ปุ่ม "แก้ไขข้อมูล" แสดงเฉพาะเว็บไซต์หลัก (web_id = 0)
                                                                     microsite (web_id != 0) แก้ไขเนื้อหาผ่านเมนู CMS ของตัวเองแทน *@
-                                                            @if (_admin._currentWebID == 0)
+                                                            @*----- Asset Plus: ดินสอมีเฉพาะ widget ที่ผูกโมดูลข้อมูล (mod_name) *@
+                                                            @if (_admin._currentWebID == 0 && (Widget1.Rows[0]["pb_mod_name"] + "").Trim() != "")
                                                             {
                                                             <div class="group--tools group--tools__manage"
                                                                             title="แก้ไขข้อมูล"
@@ -478,7 +484,7 @@ var sortableMain = null;
         @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
 
         <input type="hidden" name="box_layout" id="box_layout" />
-        <input type="hidden" name="box_data2" id="box_data" value="@row["box_data"]" />
+        <input type="hidden" name="box_data" id="box_data" value="@row["box_data"]" />
         <input type="hidden" name="box_data_sub" id="box_data_sub" value="@row["box_data_sub"]" />
          
     </form>
@@ -568,44 +574,33 @@ var sortableMain = null;
                     slickCarousel();
                     $('.slick-arrow').attr('disabled',true);
                     Refresh_Widget();
-                    var this_wg_id = evt.item.innerHTML.trim().substring(36, 39);
-
-                    var lastTwo = this_wg_id.slice(-2);
-                    if(lastTwo == '">')
-                    {
-                        this_wg_id = evt.item.innerHTML.trim().substring(36, 37);
-                    }
-                    else
-                    {
-                        var lastOne = this_wg_id.slice(-1);
-                        if(lastOne == '"')
-                        {
-                            this_wg_id = evt.item.innerHTML.trim().substring(36, 38);
-                        }
-                    } 
-
-                    document.getElementById('itemDrag_' + this_wg_id).style.display = 'none';
+                    //----- id ของ widget อ่านจาก data-id="wg_<id>" ของการ์ดที่ลากมา (เดิม SAM หั่น innerHTML.substring(36,39) — พังเมื่อ id > 999 หรือ markup เปลี่ยน)
+                    var this_wg_id = ((evt.item.dataset && evt.item.dataset.id) || '').split('_')[1] || '';
+                    //----- ซ่อนเฉพาะการ์ดในพาเลตต์ (ซ้าย) — ตอน onAdd การ์ดที่ลากมายังมี id itemDrag_<n> เหมือนกัน ห้ามใช้ getElementById
+                    var paletteItem = document.querySelector('#accordion_widget .itemDrag[data-id="wg_' + this_wg_id + '"]');
+                    if (paletteItem) { paletteItem.style.display = 'none'; }
                     //$("#icon_setting_" + this_wg_id).trigger("click");
                 },
             });
         });
         areaMove = document.getElementById('tools_module');
+        //----- ปุ่มเลื่อนขึ้น/ลง: ผูกครั้งเดียวแบบ delegate ที่แคนวาส (เดิม SAM addEventListener ซ้ำทุกครั้งที่ลาก -> กดทีเดียวเลื่อนหลายขั้น)
+        var moveButtonsBound = false;
         function onClickMoveUPorDOWN() 
         {
-            var btn_moveDOWN = [...document.getElementsByClassName('icon-sort__down')];
-            var btn_moveUP = [...document.getElementsByClassName('icon-sort__up')];
-            btn_moveUP.forEach(onebyone => 
+            if (moveButtonsBound) { return; }
+            moveButtonsBound = true;
+            areaMove.addEventListener('click', function (e)
             {
-                onebyone.addEventListener('click', ChangeUP)
-            }) 
-            btn_moveDOWN.forEach(onebyone => 
-            {
-                onebyone.addEventListener('click', ChangeDOWN)
-            })
+                var up = e.target.closest('.icon-sort__up');
+                var down = e.target.closest('.icon-sort__down');
+                if (up && areaMove.contains(up)) { ChangeUP.call(up); }
+                else if (down && areaMove.contains(down)) { ChangeDOWN.call(down); }
+            });
         }
         function ChangeUP() 
         {
-            CurrentElement_ToMove = this.parentElement.parentElement.parentElement.parentElement;
+            CurrentElement_ToMove = this.closest('.itemDrag');
             previousElement_ToMove = CurrentElement_ToMove.previousElementSibling;
             if (previousElement_ToMove != null) 
             {
@@ -618,7 +613,7 @@ var sortableMain = null;
         }
         function ChangeDOWN() 
         {
-            CurrentElement_ToMove = this.parentElement.parentElement.parentElement.parentElement;
+            CurrentElement_ToMove = this.closest('.itemDrag');
             nextElement_ToMove = CurrentElement_ToMove.nextElementSibling;
             if (nextElement_ToMove != null) 
             {
@@ -637,7 +632,7 @@ var sortableMain = null;
                 if (order_ref[i].indexOf("_") > -1) 
                 {
                     arr_order = order_ref[i].split('_');
-                    $('.wgs_' + arr_order[1]).load("/Admin/WidgetAjax?id=" + arr_order[1] + "&box_data=" + document.getElementById("box_data").value + "&box_data_sub=" + document.getElementById("box_data_sub").value);
+                    $('.wgs_' + arr_order[1]).load("/Admin/WidgetAjax?id=" + arr_order[1] + "&box_data=" + document.getElementById("box_data").value + "&box_data_sub=" + document.getElementById("box_data_sub").value, function () { initWidgetSwipers(this); });
                 }
             }
         }
@@ -674,6 +669,7 @@ var sortableMain = null;
             {
                 $(this).parents('.itemDrag').remove();
             }); 
+            onClickMoveUPorDOWN();   //----- ผูกปุ่มเลื่อนขึ้น/ลงครั้งเดียว (delegate)
             @{
                 if(row["id"]+"" == "1" && mod.Name == "CMSPage")
                 {
@@ -735,6 +731,27 @@ var sortableMain = null;
     <link href="~/Vendor/slick/slick.css" rel="stylesheet" />
     <link href="~/Vendor/slick/slick-theme.css" rel="stylesheet" />
     <script src="~/Vendor/slick/slick.min.js"></script>
+    @* Swiper ของ front-end — ให้สไลด์ hero ในตัวอย่างเลื่อนได้เหมือนหน้าเว็บจริง *@
+    <script src="@frontUrl/vendors/swiper/swiper-bundle.min.js"></script>
+    <script>
+    //----- หลังโหลดตัวอย่าง widget เข้าการ์ด (Refresh_Widget) ให้เริ่ม Swiper ในนั้น (hero ทั้ง 3 เวอร์ชัน)
+    function initWidgetSwipers(scope)
+    {
+        if (typeof Swiper === 'undefined' || !scope) { return; }
+        $(scope).find('.js-hero-slider').each(function ()   // เฉพาะ hero — section อื่น (กองทุนแนะนำ) เป็น grid บนจอกว้าง ไม่ใช่สไลด์
+        {
+            if (this.swiper) { this.swiper.destroy(true, true); }
+            var pag = this.querySelector('.js-hero-pagination');
+            new Swiper(this, {
+                loop: this.querySelectorAll('.swiper-slide').length > 1,
+                autoplay: { delay: 4000, disableOnInteraction: false },
+                slidesPerView: parseFloat(this.dataset.slidesPerView || '1'),
+                spaceBetween: parseInt(this.dataset.spaceBetween || '0', 10),
+                pagination: pag ? { el: pag, clickable: true } : undefined
+            });
+        });
+    }
+    </script>
     <script> 
     function sConfirmCustom(form) 
     {

@@ -24,7 +24,8 @@
                                     @{
                                         @*----- widget ลูกของกลุ่ม: กรองด้วย cat_id (โครงสร้างกลุ่ม-ลูก) เท่านั้น
                                                 พาเลตต์เป็นค่าคงที่ ไม่กรอง web_id/status เพื่อไม่ให้ microsite เห็นว่าง *@
-                                        var Sub_Widget = ViewBag._db.ExecuteQuery(string.Format("select * from " + Db.T((string)ViewBag.WidgetTable) + " where cat_id = " + ViewBag.All_Widget.Rows[i]["id"] + " order by sort asc"));
+                                        var Sub_Widget = ViewBag._db.ExecuteQuery("select * from " + Db.T((string)ViewBag.WidgetTable) + " where cat_id = @cat_id order by sort asc",
+                                            new Dictionary<string, object>() { { "cat_id", Convert.ToInt64(ViewBag.All_Widget.Rows[i]["id"]) } });   // parameterized (18 ก.ย. 2569)
 
                                         for (int ii = 0; ii < Sub_Widget.Rows.Count; ii++)
                                         {
@@ -56,7 +57,8 @@
                                                             *@
                                                             @*----- ปุ่ม "แก้ไขข้อมูล" แสดงเฉพาะเว็บไซต์หลัก (web_id = 0)
                                                                     microsite (web_id != 0) แก้ไขเนื้อหาผ่านเมนู CMS ของตัวเองแทน *@
-                                                            @if (Convert.ToInt32(ViewBag.WidgetWebID) == 0)
+                                                            @*----- Asset Plus: ดินสอมีเฉพาะ widget ที่ผูกโมดูลข้อมูล (mod_name) — widget ที่เนื้อหา hardcode ไม่มีอะไรให้แก้ *@
+                                                            @if (Convert.ToInt32(ViewBag.WidgetWebID) == 0 && (Sub_Widget.Rows[ii]["pb_mod_name"] + "").Trim() != "")
                                                             {
                                                             <div class="group--tools group--tools__manage"
                                                                  title="แก้ไขข้อมูล"

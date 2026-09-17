@@ -1,4 +1,5 @@
 ﻿@using thaicredit_hr_admin.Areas.Admin.Helpers;
+@using Microsoft.AspNetCore.Http
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "~/Views/Shared/_LayoutIntro.cshtml";
@@ -6,7 +7,34 @@
 @section pageIntro{
     <link rel="stylesheet" href="~/css/pages/intro.min.css?v=ap2026" />
     <link href="~/assets/fonts/fontawesome7/css/all.min.css" rel="stylesheet" />
+    <style>
+        /* แถบผู้ใช้ + ปุ่ม Logout มุมขวาบน (หน้าอื่นในหลังบ้านมีใน header ของ _AdminLayout — หน้านี้ใช้ _LayoutIntro ที่ไม่มี header) */
+        .dashboard-userbar { position: absolute; top: 16px; right: 24px; z-index: 20; display: flex; align-items: center; gap: 12px; color: #fff; font-size: 15px; }
+        .dashboard-userbar__name { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .dashboard-userbar__logout { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid rgba(255,255,255,.7); border-radius: 50rem; background: transparent; color: #fff; font-size: 15px; line-height: 1.2; cursor: pointer; transition: background-color .15s, color .15s; }
+        .dashboard-userbar__logout:hover, .dashboard-userbar__logout:focus-visible { background: #fff; color: #00295A; outline: none; }
+        @@media (max-width: 575.98px) {
+            .dashboard-userbar { top: 10px; right: 12px; font-size: 14px; }
+            .dashboard-userbar__name { display: none; }
+        }
+    </style>
 }
+
+@* ปุ่ม Logout — ส่ง POST /Admin/User/Logout พร้อม anti-forgery token เหมือน logOut() ของหน้าอื่น (wwwroot/js/Admin/admin_site.js) *@
+<div class="dashboard-userbar">
+    <span class="dashboard-userbar__name">
+        <i class="bi bi-person-circle" aria-hidden="true"></i>
+        @(Context.Session.GetString("admin_name") ?? "") @(Context.Session.GetString("admin_surname") ?? "")
+    </span>
+    <button type="button" class="dashboard-userbar__logout" id="btnDashboardLogout" onclick="dashboardLogOut()"
+            title="ออกจากระบบ" data-bs-toggle="tooltip" data-bs-placement="bottom">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span>Logout</span>
+    </button>
+    <form id="dashboardLogoutForm" method="post" action="/Admin/User/Logout" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+</div>
   
 <div class="intropage-wrapper">
     <div class="img-bgintro" style="padding:20px;">
@@ -127,3 +155,27 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script src="~/js/sweetalert2.min.js"></script>
+    <script>
+        function dashboardLogOut() {
+            if (typeof Swal === 'undefined') {
+                if (confirm('คุณต้องการออกจากระบบ ?')) document.getElementById('dashboardLogoutForm').submit();
+                return;
+            }
+            Swal.fire({
+                title: 'ออกจากระบบ ?',
+                text: 'คุณต้องการออกจากระบบ ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#00295A',
+                cancelButtonColor: '#BC1320',
+                confirmButtonText: 'ใช่',
+                cancelButtonText: 'ไม่ใช่'
+            }).then(function (result) {
+                if (result.isConfirmed) document.getElementById('dashboardLogoutForm').submit();
+            });
+        }
+    </script>
+}

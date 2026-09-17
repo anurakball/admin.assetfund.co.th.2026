@@ -571,41 +571,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                 {
                     is_default_field = false;
                 }
-                else if (Module.Name == "HomeHeader")
-                {
-                    // เลือก Template (this_type) แล้ว re-order layout ของหน้าแรก
-                    string this_type = collection["this_type"] + "";
-                    string box_layout;
-
-                    if (_currentWebID == 0)
-                    {
-                        // ----- เว็บไซต์หลัก (web_id=0): คงพฤติกรรมเดิมทุกอย่าง -----
-                        // token wg_* ชุดนี้ถูกตีความโดย Views/Home/Index.cshtml ของเว็บหลัก (เทียบ literal เป็น flag ไม่แตะ web_widget2)
-                        box_layout = "wg_2,wg_3,wg_4,wg_11,wg_12,wg_13,wg_25,wg_14"; // Template 1 (ค่าเริ่มต้น)
-                        if (this_type == "2")
-                        {
-                            box_layout = "wg_6,wg_7,wg_9,wg_10,wg_8,wg_15,wg_26,wg_16";
-                        }
-                        else if (this_type == "3")
-                        {
-                            box_layout = "wg_18,wg_19,wg_20,wg_21,wg_22,wg_23,wg_27,wg_24";
-                        }
-                    }
-                    else
-                    {
-                        // ----- microsite (web_id != 0): สร้าง box_layout จาก web_widget2 ของ microsite เอง -----
-                        // front-end (Microsite1.cshtml) ตีความ token เป็น wg_<id ของ web_widget2>
-                        // จึง map ลำดับ section ตาม Template โดยอ้าง "title" (คีย์ที่เหมือนกันทุก microsite)
-                        // แล้วแปลงเป็น wg_<id> ของ microsite นั้น ๆ
-                        box_layout = BuildMicrositeBoxLayout(_currentWebID, this_type);
-                    }
-
-                    // microsite ที่ไม่มี widget (box_layout ว่าง) จะไม่เขียนทับ เพื่อไม่ให้ล้าง layout เดิมโดยไม่ตั้งใจ
-                    if (!string.IsNullOrEmpty(box_layout))
-                    {
-                        _db.ExecuteNonQuery("UPDATE [2026_web_cms_page] SET box_layout = @box_layout, pb_box_layout = @box_layout WHERE is_home = '1' AND web_id = @web_id ", new() { { "box_layout", box_layout }, { "web_id", _currentWebID } });
-                    }
-                }
 
                 var updateFields = _admin.setFieldsUpdate(Module, collection, is_default_field);
                 //return Json(updateFields);
@@ -646,70 +611,6 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
                     ErrorDetail = string.Format("{0}<br/>{1}", e.Message, e.StackTrace)
                 });
             }
-        }
-
-        /// <summary>
-        /// สร้างค่า box_layout ของหน้าแรก microsite (web_id != 0) ตาม Template (this_type) ที่เลือก
-        /// โดยอ้างลำดับ section ด้วย "title" ของ web_widget2 (title เหมือนกันทุก microsite ส่วน id ต่างกันต่อไซต์)
-        /// แล้วแปลงเป็น token wg_&lt;id&gt; ที่ front-end (Microsite1.cshtml) เข้าใจ
-        /// ลำดับแต่ละ Template อ้างอิงจากภาพต้นแบบ T1/T2/T3
-        /// </summary>
-        private string BuildMicrositeBoxLayout(int webId, string thisType)
-        {
-            // ลำดับ section (อ้างด้วย title) ต่อ Template
-            string[] order = thisType switch
-            {
-                "2" => new[]
-                {
-                    "แบนเนอร์หลัก",
-                    "จุดเด่นบริการ 5 ข้อ",
-                    "ทรัพย์ที่ร่วมรายการ",
-                    "ตารางแผนผ่อนชำระ",
-                    "เงื่อนไขโครงการ",
-                    "สอบถามเพิ่มเติม (QR)",
-                },
-                "3" => new[]
-                {
-                    "แบนเนอร์หลัก",
-                    "ตัวนับสถิติ",
-                    "แนวทางที่เราช่วยได้",
-                    "เอกสารที่ต้องเตรียม",
-                    "ฟอร์มติดต่อกลับ",
-                    "คำถามที่พบบ่อย",
-                },
-                // "1" และค่าอื่น ๆ → Template 1
-                _ => new[]
-                {
-                    "แบนเนอร์หลัก",
-                    "มากกว่าการบริหารสินทรัพย์",
-                    "จุดมุ่งหมาย 4 ข้อ",
-                    "แบนเนอร์ครึ่งจอ",
-                    "เอกสารที่เกี่ยวข้อง",
-                },
-            };
-
-            // map title -> id ของ web_widget2 (พาเลตต์ค่าคงที่ ไม่ใช้ web_id เป็นเงื่อนไข)
-            var rows = _db.ExecuteQuery("SELECT id, title FROM [2026_web_widget2]");
-            var titleToId = new Dictionary<string, string>();
-            foreach (System.Data.DataRow r in rows.Rows)
-            {
-                string t = (r["title"] + "").Trim();
-                if (!string.IsNullOrEmpty(t) && !titleToId.ContainsKey(t))
-                {
-                    titleToId[t] = r["id"] + "";
-                }
-            }
-
-            // ต่อเป็น wg_<id> ตามลำดับ Template (title ที่หาไม่เจอจะข้ามไป)
-            var tokens = new List<string>();
-            foreach (string title in order)
-            {
-                if (titleToId.TryGetValue(title, out var wid) && !string.IsNullOrEmpty(wid))
-                {
-                    tokens.Add("wg_" + wid);
-                }
-            }
-            return string.Join(",", tokens);
         }
 
         [HttpPost]

@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @{
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
@@ -10,9 +10,10 @@
     var row = (System.Data.DataRow)ViewBag.itemEdit;
     string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
 
-    // รูปตัวอย่างเทมเพลต: microsite (web_id != 0) ใช้ชุด m-t1..m-t3, เว็บไซต์หลัก (web_id = 0) ใช้ t1..t3
-    var tplPrefix = _admin.UseWidget2() ? "m-t" : "t";
-    var thisType = (row["this_type"].ToString() ?? "").Trim();
+    // เมนู "ปรับแต่ง Header" ของ Asset Plus — เหลือแค่โลโก้ 2 ภาษา + Alt Text 2 ภาษา
+    // (ฟอร์ม SAM เดิมมีเลือก Template / โทนสีด้วย ซึ่งเว็บใหม่ไม่ใช้ — this_type / des ไม่อยู่ใน FieldUpdate แล้ว)
+    // ลิงก์ของโลโก้บน front-end fix เป็นหน้าแรกเสมอ จึงไม่มีช่อง URL ให้แก้
+    string V(string col) => row.Table.Columns.Contains(col) ? (row[col].ToString() ?? "").Trim() : "";
 }
 
 @section NavbarBack{
@@ -21,203 +22,72 @@
 
 @await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
 
+<style>
+    .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
+    .cms-section > legend { font-size:1.15rem; font-weight:700; color:#00295A; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
+    .cms-note { font-size:.9rem; color:#555; margin:-6px 0 16px; }
+    .cms-note code { color:#BC1320; }
+    /* โลโก้ตัวอย่างเป็นตัวอักษรสีเข้ม — ให้พื้นหลังอ่อนจะได้เห็นชัดใน thumbnail */
+    .show-img .img-thumbnail { background:#f4f6fa; padding:12px; max-height:140px; width:auto; }
+</style>
+
 <div class="form-wrapper">
     <form method="post" id="fm_cms" onsubmit="return sConfirmCustom(this);" class="">
-        
+
         @Html.AntiForgeryToken()
 
-        <input type="hidden" name="title" value="โลโก้เว็บไซต์" />
-
-        <div class="row">
-            <div class="col-lg-6 col-md-6 mb-3">
-                @Html.Raw(_admin.InputFileManeger("โลโก้เว็บไซต์ <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 132 x 60)</span>", "img1", (row["img1"].ToString() ?? "").Trim()))
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="field">
-                <label class="form-label">เลือกเทมเพลต</label>
-
-                <div class="row g-3 template-picker">
-                    @for (var t = 1; t <= 3; t++)
-                    {
-                        var tplName = "Template " + t;
-                        var tplThumb = string.Format("/images/template/{0}{1}-thumb.jpg", tplPrefix, t);
-                        var tplFull = string.Format("/images/template/{0}{1}.jpg", tplPrefix, t);
-                        var isChecked = thisType == t.ToString();
-
-                        <div class="col-lg-4 col-md-6">
-                            <div class="template-card @(isChecked ? "is-selected" : "")">
-                                <div class="template-thumb" data-full="@tplFull" data-title="@tplName" title="คลิกเพื่อดูตัวอย่างเต็มจอ">
-                                    <div class="template-thumb-scroll">
-                                        <img src="@tplThumb" alt="@tplName" loading="lazy" />
-                                    </div>
-                                    <span class="template-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i> คลิกเพื่อดูตัวอย่างเต็มจอ</span>
-                                </div>
-                                <div class="form-check template-check">
-                                    <input class="form-check-input" type="radio" name="this_type" id="this_type_@t" value="@t"
-                                           @(isChecked ? "checked" : "")>
-                                    <label class="form-check-label" for="this_type_@t">
-                                        @tplName
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    }
+        <fieldset class="cms-section">
+            <legend>โลโก้บน Header</legend>
+            <p class="cms-note">
+                โลโก้แสดงที่มุมซ้ายบนของทุกหน้า (สูง 44px บนจอใหญ่ / 34px บนมือถือ — ความกว้างปรับตามอัตราส่วนรูป)
+                และ<strong>ลิงก์ไปหน้าแรกเสมอ</strong> · ถ้าเว้นว่างไว้ หน้าเว็บจะใช้โลโก้มาตรฐานของเว็บแทน
+                · ถ้าไม่ระบุรูปภาษาอังกฤษ จะใช้รูปภาษาไทย
+            </p>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputFileManeger("โลโก้ <span class='fi fi-th'></span> <span style='font-weight: normal;color: orange;'>(.svg, .webp, .png — พื้นโปร่ง แนะนำสูงอย่างน้อย 88px)</span>", "img1", V("img1")))
                 </div>
-
-            </div>
-        </div>
-
-<br /><br />
-
-
-        <div class="row">
-            <div class="field">
-                <label class="form-label">เลือกแถบสีหลักเว็บไซต์</label>
-
-                <div class="d-flex gap-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="des" id="des_1" value="1"
-                               @((row["des"].ToString() ?? "").Trim() == "1" ? "checked" : "")>
-                        <label class="form-check-label" for="des_1">
-                            สีสว่าง
-                        </label>
-                    </div> 
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="des" id="des_2" value="2"
-                               @((row["des"].ToString() ?? "").Trim() == "2" ? "checked" : "")>
-                        <label class="form-check-label" for="des_2">
-                            สีมืด
-                        </label>
-                    </div> 
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputFileManeger("โลโก้ <span class='fi fi-us'></span> <span style='font-weight: normal;color: orange;'>(ไม่ระบุ = ใช้รูปภาษาไทย)</span>", "en_img1", V("en_img1")))
                 </div>
-
             </div>
-        </div>
+        </fieldset>
 
-<br /> 
-        
-
-        @{
-            /*if ((row["this_type"].ToString() ?? "").Trim() == "1")
-            {
-                <script>
-                    document.getElementById('this_type_1').checked = true;
-                </script>
-            }
-            else
-            {
-                <script>
-                    document.getElementById('this_type_2').checked = true;
-                </script>
-            }*/
-        }
+        <fieldset class="cms-section">
+            <legend>Alt Text ของโลโก้</legend>
+            <p class="cms-note">
+                ข้อความอธิบายรูปสำหรับโปรแกรมอ่านหน้าจอและ Search Engine (แอตทริบิวต์ <code>alt</code> / <code>aria-label</code>)
+                · ภาษาไทยจำเป็นต้องระบุ ส่วนภาษาอังกฤษถ้าเว้นว่างจะใช้ภาษาไทยแทน
+            </p>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Alt Text <span class='fi fi-th'></span>", "title", V("title")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Alt Text <span class='fi fi-us'></span>", "en_title", V("en_title")))
+                </div>
+            </div>
+        </fieldset>
 
         @await Component.InvokeAsync("AdminBtnSave", new { linkClose = "/Admin/" + mod.Name })
 
     </form>
 </div>
 
-@* modal ดูตัวอย่างเทมเพลตเต็มจอ (วางนอก form เพื่อไม่ให้ปุ่มใน modal ไป submit form) *@
-<div class="modal fade" id="templatePreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="templatePreviewTitle">ตัวอย่างเทมเพลต</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
-            </div>
-            <div class="modal-body template-preview-body">
-                <img id="templatePreviewImg" src="" alt="" />
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts{
 <link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
-<style>
-    .template-card {
-        border: 2px solid #e3e6ec;
-        border-radius: 10px;
-        overflow: hidden;
-        background: #fff;
-        height: 100%;
-        transition: border-color .15s, box-shadow .15s;
-    }
-    .template-card.is-selected {
-        border-color: #00295A;
-        box-shadow: 0 0 0 3px rgba(0,71,182,.12);
-    }
-    .template-thumb {
-        position: relative;
-        height: 320px;
-        cursor: zoom-in;
-        background: #f2f4f7;
-    }
-    /* ภาพเป็นสกรีนช็อตหน้าเว็บทั้งหน้า (สูงมาก) จึงให้เลื่อนดูในการ์ดได้ */
-    .template-thumb-scroll {
-        height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    .template-thumb-scroll img {
-        width: 100%;
-        height: auto;
-        display: block;
-    }
-    .template-zoom {
-        position: absolute;
-        left: 0; right: 0; bottom: 0;
-        padding: 6px 10px;
-        font-size: 13px;
-        color: #fff;
-        background: rgba(0,0,0,.55);
-        text-align: center;
-        pointer-events: none;
-        opacity: .85;
-        transition: opacity .15s;
-    }
-    .template-thumb:hover .template-zoom { opacity: 1; }
-    .template-check {
-        padding: 10px 12px 10px 34px;
-        border-top: 1px solid #eef0f4;
-    }
-    .template-check .form-check-label { cursor: pointer; font-weight: 500; }
-    .template-preview-body {
-        overflow: auto;
-        background: #f2f4f7;
-        text-align: center;
-        padding: 0;
-    }
-    .template-preview-body img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-</style>
 <script>
     var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
     var jsonRow = @Html.Raw(jsonRow)
     function sConfirmCustom(form) {
 
-        if (
-                    $('#img1').val() == ''
-                ) {
-                    sAlert("โลโก้ไม่ถูกต้อง", "กรุณาระบุ โลโก้เว็บไซต์", "warning");
+        // Alt Text ภาษาไทยจำเป็น — ใช้เป็นชื่อรายการในหน้า list และ Admin Log ด้วย
+        if ($('[name="title"]').val().trim() === '') {
+            sAlert("ข้อมูลไม่ครบ", "กรุณาระบุ Alt Text ภาษาไทย", "warning");
+            $('[name="title"]').focus();
             return false;
         }
 
-
-        // Validate required fields
-        var titleField = $('[name="title"]');
-        if (titleField.length > 0 && titleField.val().trim() === '') {
-            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
-            titleField.focus();
-            return false;
-        }
-        var enTitleField = $('[name="en_title"]');
-        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
-            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
-            enTitleField.focus();
-            return false;
-        }
         Swal.fire({
             title: 'ยืนยัน ?',
             icon: 'warning',
@@ -241,30 +111,9 @@
         });
         return false;
     }
-    
+
     $(document).ready(function() {
-
         checkLockedRow(modConfig, jsonRow);
-
-        // ไฮไลต์การ์ดเทมเพลตที่เลือกอยู่
-        $(document).on('change', '.template-picker input[name="this_type"]', function () {
-            $('.template-card').removeClass('is-selected');
-            $(this).closest('.template-card').addClass('is-selected');
-        });
-
-        // คลิกรูป -> เปิด modal ดูตัวอย่างเต็มจอ
-        $(document).on('click', '.template-thumb', function () {
-            var $t = $(this);
-            $('#templatePreviewTitle').text($t.data('title') || 'ตัวอย่างเทมเพลต');
-            $('#templatePreviewImg').attr('src', $t.data('full')).attr('alt', $t.data('title') || '');
-            $('#templatePreviewModal').modal('show');
-        });
-
-        // ปิด modal -> ล้าง src กันรูปใหญ่ค้างในหน่วยความจำ
-        $('#templatePreviewModal').on('hidden.bs.modal', function () {
-            $('#templatePreviewImg').attr('src', '');
-        });
-
     });
 </script>
 }

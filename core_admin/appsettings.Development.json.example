@@ -30,6 +30,11 @@
     "Port": 587,
     "UseSSL": false
   },
+  "GoogleReCaptcha": {
+    "SiteKey": "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+    "SecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "VerifyUrl": "https://www.google.com/recaptcha/api/siteverify"
+  },
   "ConfigPassword": {
     "LoginFailCount": 5,
     "ExpiresInDay": "600",

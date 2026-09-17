@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http
 @using thaicredit_hr_admin.Areas.Admin.Helpers
 @{
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
@@ -9,6 +9,11 @@
     var _session = (ISession)ViewBag._session;
     var row = (System.Data.DataRow)ViewBag.itemEdit;
     string jsonRow = ((string)ViewBag.itemJSONEdit) ?? "";
+
+    // เมนู "ปรับแต่ง Footer" ของ Asset Plus — แก้ได้เฉพาะโซน footer__brand (โลโก้/ที่อยู่/ติดต่อ/โซเชียล)
+    // และ footer__promo (ปี/สโลแกน/แอป) + copyright · เมนู footer (footer__nav) กับลิงก์นโยบายด้านล่างเป็นเมนูหลังบ้านคนละตัว
+    // ฟอร์ม SAM เดิม (Call Center + รูป, ปุ่ม 3 ปุ่ม, Twitter/TikTok) ไม่ใช้กับเว็บใหม่
+    string V(string col) => row.Table.Columns.Contains(col) ? (row[col].ToString() ?? "").Trim() : "";
 }
 
 @section NavbarBack{
@@ -17,18 +22,14 @@
 
 @await Component.InvokeAsync("AdminBreadcrumb", new { Module = mod })
 
-<script src="/js/spectrum.min.js"></script>
-<link rel="stylesheet" type="text/css" href="/css/Admin/spectrum.min.css">
-
 <style>
     .cms-section { border:1px solid #d9d9d9; border-radius:12px; padding:14px 22px 22px; margin-bottom:26px; background:#fff; }
     .cms-section > legend { font-size:1.15rem; font-weight:700; color:#00295A; width:auto; padding:0 8px; margin-left:-12px; margin-bottom:18px; }
-
-    /* กล่องแก้ไขปุ่มท้ายเว็บ (3 ปุ่ม เรียงข้างกันบนจอกว้าง / ซ้อนกันบนจอแคบ) */
-    .btn-box { border:1px solid #e3e3e3; border-radius:10px; padding:16px; height:100%; background:#fafbfd; }
-    .btn-box__title { font-size:1rem; font-weight:700; color:#00295A; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid #e3e3e3; }
-    .btn-box__note { font-size:.875rem; color:#666; margin-bottom:18px; }
-    .btn-box__note code { color:#BC1320; }
+    .cms-note { font-size:.9rem; color:#555; margin:-6px 0 16px; }
+    .cms-note code { color:#BC1320; }
+    /* โลโก้ footer เป็นตัวอักษรสีขาว — thumbnail ต้องมีพื้นเข้มถึงจะมองเห็น */
+    #id_img1_img_section .img-thumbnail, #id_en_img1_img_section .img-thumbnail { background:#00295A; padding:12px; max-height:140px; width:auto; }
+    #id_app_qr_img_section .img-thumbnail { max-height:160px; width:auto; }
 </style>
 
 <div class="form-wrapper">
@@ -36,117 +37,110 @@
 
         @Html.AntiForgeryToken()
 
-        <input type="hidden" name="title" value="ข้อความด้านล่าง" />
-
         <fieldset class="cms-section">
-            <legend>Call Center และรูปภาพ</legend>
+            <legend>โลโก้ท้ายเว็บ</legend>
+            <p class="cms-note">
+                โลโก้บนพื้นสีน้ำเงินของ footer (สูง 40px — ความกว้างตามอัตราส่วนรูป) และ<strong>ลิงก์ไปหน้าแรกเสมอ</strong>
+                · เว้นว่าง = ใช้โลโก้มาตรฐาน (ตัวอักษรขาว) · ภาษาอังกฤษว่าง = ใช้ค่าภาษาไทย
+            </p>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("เบอร์ Call Center", "tel",  (row["tel"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputFileManeger("โลโก้ <span class='fi fi-th'></span> <span style='font-weight: normal;color: orange;'>(.svg, .webp, .png พื้นโปร่ง ตัวอักษรสีขาว)</span>", "img1", V("img1")))
                 </div>
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputFileManeger("รูปภาพ <span style='font-weight: normal;color: orange;'>(.webp, .svg, .png, .jpg, .jpeg, .gif  ขนาด 960 x 1080 (แนวตั้ง))</span>", "email", (row["email"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputFileManeger("โลโก้ <span class='fi fi-us'></span>", "en_img1", V("en_img1")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Alt Text ของโลโก้ <span class='fi fi-th'></span>", "title", V("title")))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Alt Text ของโลโก้ <span class='fi fi-us'></span>", "en_title", V("en_title")))
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>ที่อยู่และช่องทางติดต่อ</legend>
+            <p class="cms-note">
+                ที่อยู่แสดงพร้อมไอคอนหมุด กดแล้วเปิดลิงก์แผนที่ (ถ้าไม่ระบุลิงก์จะเป็นข้อความเฉย ๆ)
+                · เบอร์โทรจะถูกทำเป็นลิงก์ <code>tel:</code> ให้เอง (พิมพ์แบบที่ต้องการให้แสดง เช่น <code>02 672 1111</code>)
+                · ช่องที่เว้นว่างจะไม่แสดงบนหน้าเว็บ
+            </p>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("ที่อยู่ <span class='fi fi-th'></span>", "address", V("address"), 3))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputTextArea("ที่อยู่ <span class='fi fi-us'></span>", "en_address", V("en_address"), 3))
+                </div>
+                <div class="col-lg-12 mb-3">
+                    @Html.Raw(_admin.InputText("ลิงก์แผนที่ (Google Maps URL)", "address_url", V("address_url"), "https://www.google.com/maps/...", 2000))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("เบอร์โทรศัพท์", "tel", V("tel"), "02 672 1111", 50))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputEmail("อีเมล", "email", V("email"), "customercare@assetfund.co.th", 255))
                 </div>
             </div>
         </fieldset>
 
         <fieldset class="cms-section">
             <legend>โซเชียลมีเดีย</legend>
+            <p class="cms-note">ใส่ URL เต็ม (ขึ้นต้น <code>https://</code>) · ช่องที่เว้นว่างจะซ่อนไอคอนนั้น · ทุกลิงก์เปิดแท็บใหม่</p>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Facebook URL", "sc_fb",  (row["sc_fb"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputText("LINE URL", "sc_ln", V("sc_ln"), "https://line.me/...", 2000))
                 </div>
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Twitter URL", "sc_tw",  (row["sc_tw"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputText("Facebook URL", "sc_fb", V("sc_fb"), "https://www.facebook.com/...", 2000))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("YouTube URL", "sc_yt", V("sc_yt"), "https://www.youtube.com/...", 2000))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Blockdit URL", "sc_bd", V("sc_bd"), "https://www.blockdit.com/...", 2000))
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("LINE URL", "sc_ln",  (row["sc_ln"].ToString() ?? "").Trim()))
-                </div>
-                <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Youtube URL", "sc_yt",  (row["sc_yt"].ToString() ?? "").Trim()))
-                </div>
-            </div>
-@*
-            <div class="row">
-                <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Tiktok URL", "sc_tt",  (row["sc_tt"].ToString() ?? "").Trim()))
-                </div>
-                <div class="col-lg-6 col-md-6 mb-3">
-
-                </div>
-            </div>
-*@
         </fieldset>
 
         <fieldset class="cms-section">
-            <legend>ปุ่มลิงก์ด้านล่าง</legend>
-            <p class="btn-box__note">
-                ถ้าต้องการให้ปุ่มเปิดหน้าต่าง <strong>"รับสมัครข่าวสาร"</strong>
-                ให้กำหนด <strong>"ลิ้งค์ URL ปุ่ม"</strong> เป็น <code>#subscribeModal</code>
-                (ใส่ได้ทั้งภาษาไทยและอังกฤษ) ปุ่มจะเปิดหน้าต่างป๊อปอัพขึ้นมาแทนการลิงก์ไปหน้าอื่น
+            <legend>ปีและสโลแกน (โซนขวาของ footer)</legend>
+            <p class="cms-note">เลขปีตัวใหญ่ + สโลแกน 2 บรรทัด (บรรทัดบนตัวใหญ่ / บรรทัดล่างตัวเล็ก) · เลขปีเว้นว่าง = ใช้ปี ค.ศ. ปัจจุบัน · ส่วนนี้ไม่แสดงบนหน้า Salepage</p>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("เลขปี", "promo_year", V("promo_year"), "2026", 20))
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("สโลแกนบรรทัดบน", "tagline_1", V("tagline_1"), "VALUE BEYOND WEALTH"))
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("สโลแกนบรรทัดล่าง", "tagline_2", V("tagline_2"), "คุณค่าที่เหนือกว่าความมั่งคั่ง"))
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cms-section">
+            <legend>ดาวน์โหลดแอปพลิเคชัน</legend>
+            <p class="cms-note">
+                ปุ่ม App Store / Google Play ใช้รูปมาตรฐานของเว็บ — ระบุ URL แล้วปุ่มจึงกดได้ (เว้นว่าง = แสดงรูปแต่ไม่ลิงก์)
+                · รูป QR เว้นว่าง = ไม่แสดง QR · หัวข้อภาษาอังกฤษว่าง = ใช้ภาษาไทย
             </p>
-
-            <div class="row">
-                @for (int i = 1; i <= AdminMenu.HomeFooterButtonCount; i++)
-                {
-                    string fText     = "btn" + i + "_text";
-                    string fEnText   = "en_btn" + i + "_text";
-                    string fUrl      = "btn" + i + "_url";
-                    string fEnUrl    = "en_btn" + i + "_url";
-                    string fTarget   = "btn" + i + "_url_target";
-                    string fBgColor  = "btn" + i + "_bg_color";
-                    string fTxtColor = "btn" + i + "_text_color";
-
-                    string vBgColor  = (row[fBgColor].ToString() ?? "").Trim();
-                    string vTxtColor = (row[fTxtColor].ToString() ?? "").Trim();
-
-                    <div class="col-xl-4 col-lg-4 col-md-12 mb-3">
-                        <div class="btn-box">
-                            <h5 class="btn-box__title">ปุ่มที่ @i</h5>
-
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputText("ชื่อปุ่ม <span class='fi fi-th'></span>", fText, (row[fText].ToString() ?? "").Trim()))
-                            </div>
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputText("ชื่อปุ่ม <span class='fi fi-us'></span>", fEnText, (row[fEnText].ToString() ?? "").Trim()))
-                            </div>
-
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputTextLinkCMSPage("ลิ้งค์ URL ปุ่ม <span class='fi fi-th'></span>", fUrl, (row[fUrl].ToString() ?? "").Trim()))
-                            </div>
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputTextLinkCMSPage("ลิ้งค์ URL ปุ่ม <span class='fi fi-us'></span>", fEnUrl, (row[fEnUrl].ToString() ?? "").Trim()))
-                            </div>
-
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputUrlTarget("URL Target", fTarget, row[fTarget] + ""))
-                            </div>
-
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputText("สีพื้นหลังปุ่ม", fBgColor, vBgColor))
-                                @Html.Raw("<script> $('#id_" + fBgColor + "').spectrum({ allowEmpty: true, showInput: true, preferredFormat: 'hex', color: '" + vBgColor + "' }); </script>")
-                            </div>
-                            <div class="mb-3">
-                                @Html.Raw(_admin.InputText("สีตัวอักษรปุ่ม", fTxtColor, vTxtColor))
-                                @Html.Raw("<script> $('#id_" + fTxtColor + "').spectrum({ allowEmpty: true, showInput: true, preferredFormat: 'hex', color: '" + vTxtColor + "' }); </script>")
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </fieldset>
-
-        <fieldset class="cms-section">
-            <legend>แอปพลิเคชัน</legend>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("App Store URL", "sc_as", (row["sc_as"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-th'></span>", "app_title", V("app_title"), "ดาวน์โหลดแอป ASP FUND"))
                 </div>
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Google Play URL", "sc_gp", (row["sc_gp"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputText("หัวข้อ <span class='fi fi-us'></span>", "en_app_title", V("en_app_title"), "Download ASP FUND App"))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("App Store URL", "sc_as", V("sc_as"), "https://apps.apple.com/...", 2000))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputText("Google Play URL", "sc_gp", V("sc_gp"), "https://play.google.com/...", 2000))
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    @Html.Raw(_admin.InputFileManeger("รูป QR Code <span style='font-weight: normal;color: orange;'>(.png, .jpg, .webp สี่เหลี่ยมจัตุรัส แนะนำ 300 x 300)</span>", "app_qr", V("app_qr")))
                 </div>
             </div>
         </fieldset>
@@ -155,10 +149,10 @@
             <legend>ลิขสิทธิ์ (Copyright)</legend>
             <div class="row">
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Copy Right <span class='fi fi-th'></span>", "cr", (row["cr"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputText("Copyright <span class='fi fi-th'></span>", "cr", V("cr"), "© 2026 Asset Plus Fund Management Co., Ltd."))
                 </div>
                 <div class="col-lg-6 col-md-6 mb-3">
-                    @Html.Raw(_admin.InputText("Copy Right <span class='fi fi-us'></span>", "en_cr", (row["en_cr"].ToString() ?? "").Trim()))
+                    @Html.Raw(_admin.InputText("Copyright <span class='fi fi-us'></span>", "en_cr", V("en_cr"), "© 2026 Asset Plus Fund Management Co., Ltd."))
                 </div>
             </div>
         </fieldset>
@@ -167,29 +161,38 @@
     </form>
 </div>
 
-@* modal [Link Helper] ของช่อง URL ปุ่ม — เลือกหน้า CMS แล้วเติม path ให้อัตโนมัติ *@
-@await Component.InvokeAsync("LinkHelper")
-
 @section Scripts{
 <link rel="stylesheet" href="~/lib/flag-icons-main/css/flag-icons.min.css" />
 <script>
     var modConfig = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(mod_config))
     var jsonRow = @Html.Raw(jsonRow)
     function sConfirmCustom(form) {
-         
-        // Validate required fields
-        var titleField = $('[name="title"]');
-        if (titleField.length > 0 && titleField.val().trim() === '') {
-            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
-            titleField.focus();
+
+        // Alt Text ภาษาไทยจำเป็น — ใช้เป็นชื่อรายการในหน้า list และ Admin Log
+        if ($('[name="title"]').val().trim() === '') {
+            sAlert("ข้อมูลไม่ครบ", "กรุณาระบุ Alt Text ของโลโก้ (ภาษาไทย)", "warning");
+            $('[name="title"]').focus();
             return false;
         }
-        var enTitleField = $('[name="en_title"]');
-        if (enTitleField.length > 0 && enTitleField.val().trim() === '') {
-            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอก EN Title ก่อนบันทึก', confirmButtonText: 'ตกลง' });
-            enTitleField.focus();
+
+        // ช่อง URL ทุกช่องต้องเป็นลิงก์ที่ใช้ได้ (http/https) หรือเว้นว่าง — กันพิมพ์ชื่อเพจเฉย ๆ แล้วลิงก์พัง
+        var urlFields = { address_url: 'ลิงก์แผนที่', sc_ln: 'LINE URL', sc_fb: 'Facebook URL', sc_yt: 'YouTube URL', sc_bd: 'Blockdit URL', sc_as: 'App Store URL', sc_gp: 'Google Play URL' };
+        for (var name in urlFields) {
+            var v = ($('[name="' + name + '"]').val() || '').trim();
+            if (v !== '' && !/^https?:\/\/\S+$/i.test(v)) {
+                sAlert("ลิงก์ไม่ถูกต้อง", "ช่อง " + urlFields[name] + " ต้องขึ้นต้นด้วย http:// หรือ https://", "warning");
+                $('[name="' + name + '"]').focus();
+                return false;
+            }
+        }
+
+        var email = ($('[name="email"]').val() || '').trim();
+        if (email !== '' && !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+            sAlert("อีเมลไม่ถูกต้อง", "กรุณาตรวจสอบรูปแบบอีเมล", "warning");
+            $('[name="email"]').focus();
             return false;
         }
+
         Swal.fire({
             title: 'ยืนยัน ?',
             icon: 'warning',
@@ -213,11 +216,9 @@
         });
         return false;
     }
-    
-    $(document).ready(function() {
 
+    $(document).ready(function() {
         checkLockedRow(modConfig, jsonRow);
-         
     });
 </script>
 }

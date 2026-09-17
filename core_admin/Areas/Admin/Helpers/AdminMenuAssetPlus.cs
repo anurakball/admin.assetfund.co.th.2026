@@ -105,7 +105,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Config = new Module.ModuleConfig()
                     {
                         Text = "Get Other Indices",
-                        TextBreadcrumb = "หน้าหลัก/Get Other Indices",
+                        TextBreadcrumb = "หน้าเว็บไซต์/Get Other Indices",
                         Table = "tb_home_other_indices",
                         LegacyTable = true,
                         LegacyApproveQueue = false,

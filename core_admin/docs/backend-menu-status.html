@@ -34,9 +34,9 @@
 <div class="wrap">
 
   <h1>สถานะเมนูด้านซ้าย — ASSET PLUS Admin</h1>
-  <p class="sub">รายงานแบบ static · อัปเดตล่าสุด 01/09/2026 · ข้อมูลจาก <code>Areas/Admin/Helpers/AdminMenu.cs</code> (เมธอด <code>Menu()</code>)</p>
+  <p class="sub">รายงานแบบ static · อัปเดตล่าสุด 18/09/2026 · ข้อมูลจาก <code>Areas/Admin/Helpers/AdminMenu.cs</code> (เมธอด <code>Menu()</code>)</p>
 
-  <h2>1. เมนูที่เปิดใช้งานอยู่ <span class="n">(26 เมนู)</span></h2>
+  <h2>1. เมนูที่เปิดใช้งานอยู่ <span class="n">(35 เมนู)</span></h2>
   <p class="note">เมนูที่แสดงในแถบซ้ายของระบบตอนนี้</p>
   <table>
     <thead><tr><th>กลุ่มเมนู</th><th>ชื่อเมนู</th><th>Module / Link</th></tr></thead>
@@ -45,7 +45,13 @@
       <tr class="newgrp"><td class="grp">PERSONAL INFORMATION</td><td>View profile</td><td class="mod">User/Edit</td></tr>
       <tr><td class="grp">PERSONAL INFORMATION</td><td>Change Password</td><td class="mod">User/ChangePassword</td></tr>
       <tr><td class="grp">PERSONAL INFORMATION</td><td>Last Activity</td><td class="mod">User/LastActivity</td></tr>
-      <tr class="newgrp"><td class="grp">หน้าหลัก</td><td>Get Other Indices</td><td class="mod">ApOtherIndices</td></tr>
+      <tr class="newgrp"><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนูเว็บไซต์ <span style="color:#888">(page builder หน้าแรก — แถวเดียว id 1, เปิด 18/09/2026)</span></td><td class="mod">CMSPage</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>หน้า Intro Page</td><td class="mod">HomeIntroPage</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>หน้า Pop-Up</td><td class="mod">HomePopUp</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>ปรับแต่ง Header</td><td class="mod">HomeHeader</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>SEO &amp; Code</td><td class="mod">HomeSEO</td></tr>
+      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>รูปสไลด์หน้าแรก</td><td class="mod">HomeImageSlide</td></tr>
+      <tr><td class="grp">หน้าเว็บไซต์</td><td>Get Other Indices</td><td class="mod">ApOtherIndices</td></tr>
       <tr class="newgrp"><td class="grp">ข้อมูลกองทุน</td><td>ประเภทกองทุนรวม</td><td class="mod">ApFundCat</td></tr>
       <tr><td class="grp">ข้อมูลกองทุน</td><td>Get Fund Fact Sheet</td><td class="mod">ApFundFactSheet</td></tr>
       <tr><td class="grp">ข้อมูลกองทุน</td><td>Get NAV</td><td class="mod">ApFundNav</td></tr>
@@ -67,6 +73,8 @@
       <tr><td class="grp">ผู้ดูแลระบบ</td><td>ผู้ดูแลระบบ</td><td class="mod">AdminUser</td></tr>
       <tr><td class="grp">ผู้ดูแลระบบ</td><td>Admin Logs</td><td class="mod">AdminLog</td></tr>
       <tr><td class="grp">ผู้ดูแลระบบ</td><td>ผู้ใช้ที่ไม่เข้าใช้งาน</td><td class="mod">AdminUserNotLogin</td></tr>
+      <tr class="newgrp"><td class="grp">Widget <span style="color:#888">(เปิด 18/09/2026 — ข้อมูล widget ของ page builder)</span></td><td>กลุ่ม Widget</td><td class="mod">WidgetGroup</td></tr>
+      <tr><td class="grp">Widget</td><td>Widget ทั้งหมด</td><td class="mod">Widget</td></tr>
     </tbody>
   </table>
 
@@ -81,22 +89,16 @@
   </table>
 
   <div class="off">
-  <h2>2. เมนูที่ถูกปิดการแสดงผลไว้ <span class="n">(153 เมนู)</span></h2>
+  <h2>2. เมนูที่ถูกปิดการแสดงผลไว้ <span class="n">(144 เมนู)</span></h2>
   <p class="note">โค้ด / view / controller / ModuleConfig ยังอยู่ครบและใช้งานได้ทันที เพียงถูก <code>//</code> comment ไว้ในเมนูด้านซ้าย —
      เปิดคืนได้ทีละเมนูโดยลบ <code>//</code> ออกจากบรรทัดของเมนูนั้นและบรรทัด <code>listMenu.Add(...)</code> ของกลุ่มนั้น</p>
   <table>
     <thead><tr><th>กลุ่มเมนู</th><th>ชื่อเมนู</th><th>Module / Link</th></tr></thead>
     <tbody>
-      <tr class="newgrp"><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนูเว็บไซต์</td><td class="mod">CMSPage</td></tr>
-      <tr><td class="grp">หน้าเว็บไซต์</td><td>หน้า Intro Page</td><td class="mod">HomeIntroPage</td></tr>
-      <tr><td class="grp">หน้าเว็บไซต์</td><td>หน้า Pop-Up</td><td class="mod">HomePopUp</td></tr>
-      <tr><td class="grp">หน้าเว็บไซต์</td><td>โลโก้ / Template</td><td class="mod">HomeHeader</td></tr>
-      <tr><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนู Footer 1</td><td class="mod">CMSPageFooter1</td></tr>
+      <tr class="newgrp"><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนู Footer 1</td><td class="mod">CMSPageFooter1</td></tr>
       <tr><td class="grp">หน้าเว็บไซต์</td><td>จัดการเมนู Footer 2</td><td class="mod">CMSPageFooter2</td></tr>
       <tr><td class="grp">หน้าเว็บไซต์</td><td>ปรับแต่ง Footer</td><td class="mod">HomeFooter</td></tr>
-      <tr><td class="grp">หน้าเว็บไซต์</td><td>SEO &amp; Code</td><td class="mod">HomeSEO</td></tr>
-      <tr class="newgrp"><td class="grp">ข้อมูลหน้าแรก</td><td>รูปสไลด์หน้าแรก</td><td class="mod">HomeImageSlide</td></tr>
-      <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ตั้งค่ารูปสไลด์</td><td class="mod">HomeImageConf</td></tr>
+      <tr class="newgrp"><td class="grp">ข้อมูลหน้าแรก</td><td>ตั้งค่ารูปสไลด์</td><td class="mod">HomeImageConf</td></tr>
       <tr><td class="grp">ข้อมูลหน้าแรก</td><td>แอสเซท พลัส ใส่ใจ</td><td class="mod">HomeSamText</td></tr>
       <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ภาพรวมการบริหารหนี้</td><td class="mod">HomeSamText2</td></tr>
       <tr><td class="grp">ข้อมูลหน้าแรก</td><td>ปิดหนี้ไว ไปต่อได้</td><td class="mod">HomeSamText3</td></tr>
@@ -236,8 +238,6 @@
       <tr><td class="grp">Logs</td><td>จับคู่ทรัพย์สินอัตโนมัติ API</td><td class="mod">LogsMatchAPI</td></tr>
       <tr><td class="grp">Logs</td><td>Google Map API</td><td class="mod">LogsGoogleMap</td></tr>
       <tr><td class="grp">Logs</td><td>ค้นหาทรัพย์ NPA</td><td class="mod">LogsNpaSearch</td></tr>
-      <tr class="newgrp"><td class="grp">Widget</td><td>กลุ่ม Widget</td><td class="mod">WidgetGroup</td></tr>
-      <tr><td class="grp">Widget</td><td>Widget ทั้งหมด</td><td class="mod">Widget</td></tr>
       <tr class="newgrp"><td class="grp">Widget2</td><td>กลุ่ม Widget2</td><td class="mod">WidgetGroup2</td></tr>
       <tr><td class="grp">Widget2</td><td>Widget2 ทั้งหมด</td><td class="mod">Widget2</td></tr>
     </tbody>

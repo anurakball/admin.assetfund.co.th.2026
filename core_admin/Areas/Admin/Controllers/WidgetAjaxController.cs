@@ -253,99 +253,41 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
         }
 
         [AdminLogin]
-        public virtual IActionResult Manage(int id,string box_data) //ในแต่ละ Widget กดรูปดินสอ เพื่อเปิด Modal และแสดงหน้า Manage ในแต่ละระบบ
+        public virtual IActionResult Manage(int id, string box_data) //ในแต่ละ Widget กดรูปดินสอ เพื่อเปิด Modal และแสดงหน้า Manage ในแต่ละระบบ
         {
+            //----- Asset Plus (18 ก.ย. 2569): ปลายทางของปุ่ม "แก้ไขข้อมูล" มาจากคอลัมน์ pb_mod_name ของ widget (ชื่อโมดูลใน AdminMenu.AllModule())
+            //      แทนตาราง id -> โมดูล แบบ hardcode ของ SAM (ข้อมูล widget ของ SAM ถูกลบแล้ว id ไม่ตรงกัน)
+            //        - โมดูลตารางระเบียนเดียว (web_core_single / web_home_*) -> เปิดหน้า Edit ของแถวแรก
+            //        - โมดูลรายการ (web_core_item ฯลฯ)                      -> เปิดหน้า list
+            //      ไม่มี mod_name = ไม่มีอะไรให้แก้ (view แสดงข้อความ)
             ViewBag.Resp = "";
 
-            string url_core = "";
-            string url_cat_id = "";
-            
-            //กดปุ่มรูปดินสอ เพื่อแสดงหน้า Manage Data หลังบ้าน กำหนดตามชื่อ Module Name ที่หลังบ้าน
-            if (id == 1)      { url_core = "HomeImageSlide";    url_cat_id = "1"; }
-            else if (id == 2) { url_core = "HomeSamText";       url_cat_id = "1"; }
-            else if (id == 3) { url_core = "HomeSamText2";      url_cat_id = "2"; }
-            else if (id == 4) { url_core = "HomeSamText3";      url_cat_id = "3"; }
-            else if (id == 11){ url_core = "HomeSamText4";      url_cat_id = "4"; }
-            else if (id == 12){ url_core = "HomeSamText5";      url_cat_id = "5"; }
-            else if (id == 13){ url_core = "HomeSamText6";      url_cat_id = "6"; }
-            else if (id == 14){ url_core = "HomeSamText7";      url_cat_id = "7"; }
-            else if (id == 5) { url_core = "HomeImageSlide";    url_cat_id = "1"; }
-            else if (id == 6) { url_core = "HomeSamText";       url_cat_id = "1"; }
-            else if (id == 7) { url_core = "HomeSamText2";      url_cat_id = "2"; }
-            else if (id == 9) { url_core = "HomeSamText3";      url_cat_id = "3"; }
-            else if (id == 10){ url_core = "HomeSamText4";      url_cat_id = "4"; }
-            else if (id == 8) { url_core = "HomeSamText5";      url_cat_id = "5"; }
-            else if (id == 15){ url_core = "HomeSamText6";      url_cat_id = "6"; }
-            else if (id == 16){ url_core = "HomeSamText7";      url_cat_id = "7"; }
-            else if (id == 17){ url_core = "HomeImageSlide";    url_cat_id = "1"; }
-            else if (id == 18){ url_core = "HomeSamText";       url_cat_id = "1"; }
-            else if (id == 19){ url_core = "HomeSamText2";      url_cat_id = "2"; }
-            else if (id == 20){ url_core = "HomeSamText3";      url_cat_id = "3"; }
-            else if (id == 21){ url_core = "HomeSamText4";      url_cat_id = "4"; }
-            else if (id == 22){ url_core = "HomeSamText5";      url_cat_id = "5"; }
-            else if (id == 23){ url_core = "HomeSamText6";      url_cat_id = "6"; }
-            else if (id == 24){ url_core = "HomeSamText7";      url_cat_id = "7"; } 
-            else if (id == 25){ url_core = "News";              url_cat_id = "1"; }
-            else if (id == 26){ url_core = "News";              url_cat_id = "1"; }
-            else if (id == 27){ url_core = "News";              url_cat_id = "1"; }
+            var This_Widget = _db.ExecuteQuery(
+                string.Format("select pb_mod_name from {0} where id = @id", Db.T(_admin.WidgetTable())),
+                new Dictionary<string, object>() { { "id", id } });
+            if (This_Widget.Rows.Count == 0) { return View("~/Areas/Admin/Views/WidgetAjax/Manage.cshtml"); }
 
-            /*
-            if (box_data != null && box_data != "")
+            string modName = (This_Widget.Rows[0]["pb_mod_name"] + "").Trim();
+            var mod = modName == "" ? null : _admin.GetModule(modName);
+            if (mod == null || string.IsNullOrEmpty(mod.Config.Table)) { return View("~/Areas/Admin/Views/WidgetAjax/Manage.cshtml"); }
+
+            bool singleRow = mod.Config.Table.EndsWith("_single", StringComparison.OrdinalIgnoreCase)
+                          || mod.Config.Table.StartsWith("web_home_", StringComparison.OrdinalIgnoreCase);
+            if (singleRow)
             {
-                if (box_data.IndexOf(',') > -1)
-                { 
-                    string[] arr_box_data = box_data.Split(",");
-                    for (var i = 0; i < arr_box_data.Length; i++)
-                    {
-                        if (arr_box_data[i] != "")
-                        {
-                            if (arr_box_data[i].IndexOf(':') > -1)
-                            {
-                                string[] arr_widget = arr_box_data[i].Split(":");
-
-                                //ทำการเรียกข้อมูล Box Data ทั้งหมด มา Loop หาว่า Widget นี้ ที่ได้กดปุ่มดินสอ Manage ข้อมูล เป็นระบบ Core อะไร
-
-                                if (arr_widget[0] == id.ToString())
-                                {
-                                    string[] arr_value = arr_widget[1].Split("|");
-                                    string table_data = arr_value[0];
-
-                                    if (table_data == "1") {      url_core = "Announce"; }
-                                    else if (table_data == "2") { url_core = "Banner"; }
-                                    else if (table_data == "3") { url_core = "BranchLocation"; }
-                                    else if (table_data == "4") { url_core = "Download"; }
-                                    else if (table_data == "5") { url_core = "EForm"; }
-                                    else if (table_data == "6") { url_core = "Faq"; }
-                                    else if (table_data == "7") { url_core = "Gallery"; }
-                                    else if (table_data == "8") { url_core = "HomeImageSlide"; }
-                                    else if (table_data == "9") { url_core = "News"; }
-                                    else if (table_data == "10") { url_core = "Product"; }
-                                    else if (table_data == "11") { url_core = "Promotion"; }
-                                    else if (table_data == "12") { url_core = "VDO"; }
-                                    else if (table_data == "13") { url_core = "HomeTextCenter"; }
-                                    else if (table_data == "14") { url_core = "Board"; }
-                                    else if (table_data == "15") { url_core = "Relate"; }
-                                    else if (table_data == "16") { url_core = "TextEditor"; }
-
-                                    url_cat_id = arr_value[1];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            */
-
-            //เมื่อกด Manage จะเช็คว่า เปิดหน้า List Data แต่ละ Cat หรือ เปิดหน้า Edit ข้อมูล
-            if (id == 2 || id == 3 || id == 4 || id == 11 || id == 12 || id == 13 || id == 14 || id == 6 || id == 7 || id == 10 || id == 15 || id == 16 || id == 8 || id == 9 || id == 18 || id == 19 || id == 21 || id == 20 || id == 22 || id == 23 || id == 24)
-            {
-                ViewBag.Resp = "/Admin/" + url_core + "/Edit/" + url_cat_id; 
+                string sql = string.Format("select top 1 id from {0} where web_id = @web_id ", Db.T(mod.Config.Table));
+                var para = new Dictionary<string, object>() { { "web_id", _admin._currentWebID } };
+                int moduleId = mod.Config.TableModuleID ?? 0;
+                if (moduleId > 0) { sql += " and module_id = @module_id "; para.Add("module_id", moduleId); }
+                sql += " order by id asc";
+                var row = _db.ExecuteQuery(sql, para);
+                if (row.Rows.Count > 0) { ViewBag.Resp = "/Admin/" + mod.Name + "/Edit/" + row.Rows[0]["id"]; }
             }
             else
             {
-                ViewBag.Resp = "/Admin/" + url_core + "?text=";
+                ViewBag.Resp = "/Admin/" + mod.Name + "?text=";
             }
-             
+
             return View("~/Areas/Admin/Views/WidgetAjax/Manage.cshtml");
         }
     }

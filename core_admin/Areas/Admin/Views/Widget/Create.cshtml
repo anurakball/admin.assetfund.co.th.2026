@@ -54,9 +54,10 @@
 
         <div class="row">
             <div class="col-lg-6 col-md-6 mb-3">
-                @Html.Raw(_admin.InputText("Mod Name", "mod_name", ""))
+                @Html.Raw(_admin.InputText("Mod Name <span style='font-weight:normal;color:#888;'>(โมดูลข้อมูลที่ใช้เติม token |||pb_xxx||| ในตัวอย่าง — ว่างได้)</span>", "mod_name", ""))
             </div>
             <div class="col-lg-6 col-md-6 mb-3">
+                @Html.Raw(_admin.InputText("Section Key <span style='font-weight:normal;color:#888;'>(ชื่อ section ฝั่ง front-end เช่น Hero, NavPricesV2 — ต้องตรงกับ Views/Home/Partials/_&lt;key&gt;.cshtml)</span>", "section_key", ""))
             </div>
         </div>
 

@@ -216,6 +216,11 @@
                                 name="password_re"
                                 required />
                     </div> 
+                    @* reCAPTCHA v2 — endpoint เดียวกับหน้า Login ซึ่งตรวจ reCAPTCHA ทุกครั้ง (ถ้า modal นี้ไม่มี กล่อง login ซ้ำจะผ่านไม่ได้)
+                       สคริปต์ Google โหลดตอน modal เด้งครั้งแรกเท่านั้น (ensureReloginCaptcha) หน้าหลังบ้านปกติจึงไม่โหลดเพิ่ม *@
+                    <br />
+                    <div id="relogin_recaptcha" data-sitekey="@ReCaptcha.SiteKey(Configuration)"></div>
+                    <div id="relogin_recaptcha_error" style="display:none;color:#BC1320;font-size:14px;margin-top:6px;"></div>
                     @if (ViewBag.webID + "" != "")
                     {
                         <input type="hidden" id="web_id_re" name="web_id" value="@(ViewBag.webID + "")" />
@@ -245,6 +250,7 @@ function callApi()
         if(response == "1")
         {
             try{
+                ensureReloginCaptcha();
                 $('#relogin_section').modal('show');
 
             }
@@ -265,16 +271,51 @@ function callApi()
 }
 callApi();
 
+// ----- reCAPTCHA ของ modal re-login (render แบบ explicit ครั้งเดียว) -----
+var reloginCaptchaId = null;
+var reloginCaptchaLoading = false;
+function reloginCaptchaOnload() {
+    var el = document.getElementById('relogin_recaptcha');
+    if (!el || reloginCaptchaId !== null) return;
+    reloginCaptchaId = grecaptcha.render(el, {
+        sitekey: el.dataset.sitekey,
+        callback: function () { $('#relogin_recaptcha_error').hide(); },
+        'expired-callback': function () { $('#relogin_recaptcha_error').text('การยืนยันหมดอายุ กรุณาติ๊กใหม่อีกครั้ง').show(); }
+    });
+}
+function ensureReloginCaptcha() {
+    var el = document.getElementById('relogin_recaptcha');
+    if (!el || !el.dataset.sitekey || reloginCaptchaId !== null || reloginCaptchaLoading) return;
+    if (typeof grecaptcha !== 'undefined' && grecaptcha.render) { reloginCaptchaOnload(); return; }
+    reloginCaptchaLoading = true;
+    var s = document.createElement('script');
+    s.src = 'https://www.google.com/recaptcha/api.js?onload=reloginCaptchaOnload&render=explicit&hl=th';
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
+}
+function resetReloginCaptcha() {
+    try { if (reloginCaptchaId !== null) grecaptcha.reset(reloginCaptchaId); } catch (e) { }
+}
+
 $('#reloginForm').on('submit', function (e)
 {
     e.preventDefault();
     const token = $('input[name="__RequestVerificationToken"]').val();  
+    const captchaToken = (reloginCaptchaId !== null) ? grecaptcha.getResponse(reloginCaptchaId) : '';
+    if (captchaToken === '')
+    {
+        $('#relogin_recaptcha_error').text('กรุณาติ๊กยืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ').show();
+        document.getElementById('re_login_submit').style.display = '';
+        document.getElementById('re_login_submit_dis').style.display = 'none';
+        return;
+    }
     const data = 
     {
         username: $('#username_re').val(),
         password: $('#password_re').val(),
         web_id:   $('#web_id_re').val(),
-        relogin:  '1'
+        relogin:  '1',
+        'g-recaptcha-response': captchaToken
     };
     $.ajax({
         url: '/Admin/User/Login',
@@ -289,12 +330,17 @@ $('#reloginForm').on('submit', function (e)
             document.getElementById('re_login_submit_dis').style.display = 'none';
 
             console.log("login = [" + res + "]");
+            resetReloginCaptcha();   // token ใช้ได้ครั้งเดียว — ทุกผลลัพธ์ต้องติ๊กใหม่
             if(res == '1')
             {
                 try{
                     $('#relogin_section').modal('hide');
                 }
                 catch{}
+            }
+            else if(res == 'captcha')
+            {
+                $('#relogin_recaptcha_error').text('การยืนยัน reCAPTCHA ไม่ผ่านหรือหมดอายุ กรุณาติ๊กใหม่อีกครั้ง').show();
             }
             else
             {

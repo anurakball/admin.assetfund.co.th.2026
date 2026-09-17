@@ -77,6 +77,11 @@ docs/*
 !docs/backend-menu-status.html
 # ยกเว้น : สเปกระบบ Preview (แยกออกจาก CLAUDE.md)
 !docs/preview-spec.md
+# ยกเว้น : เอกสารส่งต่องาน CMS (เพิ่มเมนูซ้าย + ต่อ front-end + preview) — session ใหม่อ่านไฟล์นี้ก่อน
+!docs/CMS-MENU-HANDOFF.md
+# migration SQL ที่เซิร์ฟเวอร์จริงต้องรัน (คอลัมน์ที่เพิ่มเองสำหรับเมนู Asset Plus)
+!docs/sql/
+!docs/sql/*.sql
 
 # ---------------------------------------------------------------------------
 # One-off debug / audit scratch output (ไม่ถูกอ้างจากโค้ด — ลบทิ้งได้)
