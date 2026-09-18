@@ -28,6 +28,10 @@
          EntityFrameworkCore - out of the publish output. No source file references any of it;
          it used to add ~60 MB of unused assemblies to every deploy. -->
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" PrivateAssets="all" />
+    <!-- Used directly all over the code (JsonConvert / JObject). Must be referenced here: it used
+         to arrive only through the scaffolding package above, and PrivateAssets="all" then left
+         Newtonsoft.Json.dll out of publish -> FileNotFoundException on the server. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.0" />
     <PackageReference Include="MimeKit" Version="4.16.0" />
