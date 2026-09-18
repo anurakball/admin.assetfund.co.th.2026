@@ -429,7 +429,10 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{Comman
     → **ขึ้นเซิร์ฟเวอร์ต้องสมัครคีย์ของโดเมนจริง** ที่ https://www.google.com/recaptcha/admin (แบบ v2 Checkbox) แล้วแทนที่ทั้ง 2 ค่า · แนะนำแยกคีย์ dev (อนุญาต localhost) กับ production
   - **modal "คุณหลุดออกจากระบบ กรุณา Login อีกครั้ง"** (`_PartialAdminMenu.cshtml`) POST ไป endpoint เดียวกัน จึงมีกล่อง reCAPTCHA ด้วย —
     โหลดสคริปต์ Google ตอน modal เด้งครั้งแรกเท่านั้น (`ensureReloginCaptcha()`, render แบบ explicit) · server ตอบ `captcha` เมื่อไม่ผ่าน · ทุกผลลัพธ์ reset กล่อง (token ใช้ครั้งเดียว)
-  - ทดสอบ Playwright: ติ๊กด้วย `page.frameLocator('iframe[title="reCAPTCHA"]').locator('#recaptcha-anchor').click()` แล้วรอ `[aria-checked="true"]` (ใน modal ใช้ `#relogin_recaptcha iframe[title="reCAPTCHA"]` — มี iframe เปล่าอีกตัว ห้ามใช้ `iframe` เฉย ๆ)
+  - **บนเครื่อง dev ข้าม reCAPTCHA** (ผู้ใช้สั่ง 18 ก.ย. 2569) — `ReCaptcha.SkipForLocal()` ต้องครบ 3 ข้อ: `Development` + `GoogleReCaptcha:SkipOnLocalhost = true` (อยู่ใน `appsettings.Development.json` เท่านั้น) + IP ของ connection เป็น loopback
+    → `https://localhost:7300` login ด้วย user/pass อย่างเดียว (หน้า Login ขึ้นบรรทัดเทา "reCAPTCHA ปิดไว้บน localhost", modal re-login ไม่มีกล่อง) · เข้าผ่าน IP วง LAN / Production / ตั้ง `false` = บังคับตามปกติ
+    → อยากทดสอบกล่อง reCAPTCHA จริงบนเครื่อง: ตั้ง `SkipOnLocalhost` เป็น `false` (config reload เอง ไม่ต้องรีสตาร์ท)
+  - ทดสอบ Playwright ตอนกล่องเปิดอยู่: ติ๊กด้วย `page.frameLocator('iframe[title="reCAPTCHA"]').locator('#recaptcha-anchor').click()` แล้วรอ `[aria-checked="true"]` (ใน modal ใช้ `#relogin_recaptcha iframe[title="reCAPTCHA"]` — มี iframe เปล่าอีกตัว ห้ามใช้ `iframe` เฉย ๆ)
 - **หน้า Dashboard มีแถบชื่อผู้ใช้ + ปุ่ม Logout มุมขวาบน** (`Views/User/Dashboard.cshtml` — layout `_LayoutIntro` ไม่มี header ของหลังบ้าน) · POST `/Admin/User/Logout` + anti-forgery token + SweetAlert ยืนยันเหมือน `logOut()` ของหน้าอื่น
 
 - รหัสผ่านเก็บเป็น **SHA512 hex ตัวพิมพ์เล็ก** (`Utility.GenerateSHA512String`, UTF8, ไม่มี salt — คอลัมน์ `vsalt` ไม่ได้ใช้)

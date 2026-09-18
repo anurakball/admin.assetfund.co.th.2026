@@ -47,7 +47,7 @@
 | ปุ่ม Preview ในหลังบ้าน | ใช้ได้ 7 เมนู (ทุกตัวข้างบนยกเว้น `HomeSEO`) · หน้าพรีวิวต้องเหมือนเว็บจริง 100% |
 | หน้าแรก (ข้อมูลจริงใน DB) | `web_cms_page` id 1 `box_layout = pb_box_layout = wg_28,wg_34,wg_40,wg_29,wg_35,wg_41,wg_30,wg_36,wg_42,wg_31,wg_37,wg_43,wg_32,wg_38,wg_44,wg_33,wg_39,wg_45` (**ครบ 18 widget เรียง "ชนิด section → V1,V2,V3"** — ผู้ใช้สั่งจัดแบบนี้ ห้ามคืนเป็น 6 ตัวเองโดยไม่ถาม) · intro (id 27) + popup (id 10,11) `status = 0` ที่ผู้ใช้ปิดเอง ห้ามเปิดเอง |
 | DB สะอาด | ไม่มีแถว `[TEST…]` / `TEST-NAV-*` ค้าง · ทุกเมนูฉบับร่าง = `pb_*` · `pb_status = 1` (ยืนยันก่อนปิด session 4) |
-| Login หลังบ้าน | ซ่อน dropdown เว็บไซต์ · reCAPTCHA v2 (หน้า Login + modal re-login) · ⚠ ยังใช้คีย์ทดสอบของ Google |
+| Login หลังบ้าน | ซ่อน dropdown เว็บไซต์ · reCAPTCHA v2 (หน้า Login + modal re-login) · ⚠ ยังใช้คีย์ทดสอบของ Google · **บน localhost + Development ข้าม reCAPTCHA** (`SkipOnLocalhost` — §5.1) |
 | git | admin `6c63dac` · front-end `20ee58c` · **ทั้งคู่สะอาดและ push แล้ว** (GitHub `anurakball/*`) |
 | เซิร์ฟเวอร์ dev | admin 7300 = spawn หลุด job object (Claude รีสตาร์ทได้) · front-end 7310+5310 = **instance ของผู้ใช้จาก Visual Studio (ห้ามฆ่า/ห้ามเปิดซ้อน)** — ยังเป็น build ก่อนงาน NAV/3 Links → ต้องให้ผู้ใช้ restart · instance ทดสอบ 7311 ของ Claude **ปิดแล้ว** |
 | บั๊กที่รู้แต่ยังไม่แก้ | Hero V3 ในหน้า builder: `Cannot read properties of undefined (reading 'el')` (§15.9) · อื่น ๆ §12.3 |
@@ -242,6 +242,8 @@
   - **fail closed**: ไม่มีคีย์ / ติดต่อ Google ไม่ได้ = ไม่ให้เข้า (หน้า Login ขึ้นกล่องแดงถ้าไม่มี SiteKey)
 - config `GoogleReCaptcha:SiteKey` / `:SecretKey` / `:VerifyUrl` อยู่ใน `appsettings.json`, `appsettings.Development.json` (gitignore) และ `appsettings.Development.json.example`
   - ⚠ **ตอนนี้ทุกไฟล์เป็นคีย์ทดสอบของ Google**: site `6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI` / secret `6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe` — ใช้บน localhost ได้, กล่องมีข้อความแดง "for testing purposes only", **Google ตอบผ่านทุก token (ทดสอบแล้ว token ปลอมก็ผ่าน)**
+- **ข้าม reCAPTCHA บนเครื่อง dev** (ผู้ใช้สั่ง 18 ก.ย. 2569 บ่าย — ลดอุปสรรคตอน login ทดสอบซ้ำ ๆ): `ReCaptcha.SkipForLocal(HttpContext, config)` = `Development` **และ** `GoogleReCaptcha:SkipOnLocalhost = true` (ใส่ใน `appsettings.Development.json` + `.example` เท่านั้น) **และ** `Connection.RemoteIpAddress` เป็น loopback (IP ของ socket — ไม่อ่าน Host / X-Forwarded-For; `Program.cs` ไม่มี ForwardedHeaders) · ใช้ 3 จุด: `Login [HttpGet]` (ไม่ render กล่อง/สคริปต์ Google, ขึ้นบรรทัดเทา `#recaptcha_skip_local`), `Login [HttpPost]` (ถือว่า `Ok`), modal re-login (`data-sitekey` ว่าง → ไม่โหลดกล่องและไม่บังคับติ๊ก)
+  - ทดสอบแล้ว (instance ชั่วคราว 7398): localhost/127.0.0.1 + Development + true → ข้าม · IP วง LAN → บังคับ · Production + true → บังคับ · Development + false → บังคับ (3 กรณีหลังได้ Admin Log `login_fail_captcha … Missing`) · modal re-login บน localhost: รหัสผิด `0` / ถูก `1`
 - ⚠ ไฟล์ `Views/Login/Index.cshtml` มีการแก้ของ**ผู้ใช้เอง**ค้างมาก่อน (สุ่มพื้นหลัง `Random.Shared.Next(0, 10)` → bg0–bg9) ปนกับของ Claude
 
 ### 5.2 modal re-login (`Areas/Admin/Views/Shared/_PartialAdminMenu.cshtml`)
@@ -366,8 +368,15 @@ PERSONAL INFORMATION: View profile, Change Password, Last Activity
 
 ใช้ `mcp__playwright__browser_run_code_unsafe` (โหลดด้วย ToolSearch `select:mcp__playwright__browser_run_code_unsafe` ก่อน) · เปิด context ใหม่ต่อชุดทดสอบ: `page.context().browser().newContext({ ignoreHTTPSErrors: true, viewport: {…} })`
 
-### 7.1 login หลังบ้าน (มี reCAPTCHA แล้ว — ต้องติ๊กจริง)
+### 7.1 login หลังบ้าน
 
+**ตั้งแต่ 18 ก.ย. 2569 บ่าย: บน `https://localhost:7300` ไม่มีกล่อง reCAPTCHA แล้ว** (§5.1 ข้าม reCAPTCHA บนเครื่อง dev) → กรอก user/pass แล้วกด Log In ได้เลย:
+```js
+await p.goto('https://localhost:7300/Admin/User/Login?webID=&targetUrl=/Admin');
+await p.fill('input[name="username"]', 'user'); await p.fill('#inp_password', 'P@ssw0rd');
+await Promise.all([p.waitForNavigation(), p.locator('#loginForm button').first().click()]);   // → /Admin/User/Dashboard
+```
+ถ้าตั้ง `GoogleReCaptcha:SkipOnLocalhost = false` (ทดสอบกล่องจริง) หรือเข้าผ่าน IP ที่ไม่ใช่ loopback ใช้สูตรเดิม:
 ```js
 await p.goto('https://localhost:7300/Admin/User/Login', { waitUntil: 'networkidle' });
 await p.fill('input[name="username"]', 'user');
@@ -565,7 +574,7 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{Comman
 3. `git status` ทั้ง 2 repo ต้องสะอาด (admin `6c63dac`, front-end `20ee58c` หรือใหม่กว่า) · `git log -1` เทียบกับ §11
 4. ตรวจ DB ตาม §9.1 + §15.10 (query สถานะ NAV / 3 Links / layout) — ไม่มีแถวทดสอบ, ฉบับร่าง = `pb_*`
 5. หน้าแรก 7310 (หรือ 7311 ถ้าผู้ใช้ยังไม่ restart) ต้องมี 18 section ตาม `pb_box_layout` + ตาราง NAV 5 แถว (28 เม.ย. 2565) + ไทล์ 3 อันต่อ widget NAV
-6. login หลังบ้านด้วย Playwright (§7.1 — reCAPTCHA ติ๊กไม่ติดบางครั้ง ให้ลองซ้ำ 3 ครั้ง §15.8)
+6. login หลังบ้านด้วย Playwright (§7.1 — บน localhost ไม่มี reCAPTCHA แล้ว กรอก user/pass อย่างเดียว)
 7. รับคำสั่ง → ทำตาม §6 / §15.4–15.6 → ทดสอบ → อัปเดตเอกสาร (ไฟล์นี้, CLAUDE.md 2 ฝั่ง, playbook, backend-menu-status.html ถ้าแตะเมนูซ้าย, preview-spec ถ้าแตะ Preview) → **commit + push ทั้ง 2 repo**
 
 ---

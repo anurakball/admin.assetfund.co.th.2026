@@ -31,6 +31,7 @@
     "UseSSL": false
   },
   "GoogleReCaptcha": {
+    "SkipOnLocalhost": true,
     "SiteKey": "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
     "SecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
     "VerifyUrl": "https://www.google.com/recaptcha/api/siteverify"

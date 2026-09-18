@@ -100,7 +100,12 @@
                             @{
                                 string recaptchaSiteKey = ViewBag.RecaptchaSiteKey + "";
                             }
-                            @if (recaptchaSiteKey != "")
+                            @if (ViewBag.RecaptchaSkipLocal == true)
+                            {
+                                @* เครื่อง dev: ข้าม reCAPTCHA (Development + loopback + GoogleReCaptcha:SkipOnLocalhost) — ดู ReCaptcha.SkipForLocal *@
+                                <div class="text-muted small text-center mb-2" id="recaptcha_skip_local">reCAPTCHA ปิดไว้บน localhost (Development)</div>
+                            }
+                            else if (recaptchaSiteKey != "")
                             {
                                 @* Google reCAPTCHA v2 (I'm not a robot) — site key มาจาก appsettings → GoogleReCaptcha:SiteKey
                                    ต้องติ๊กก่อนกด Log In (ตรวจซ้ำฝั่ง server ที่ Helpers/ReCaptcha.cs) *@

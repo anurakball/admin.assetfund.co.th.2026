@@ -122,7 +122,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
             ViewBag.appVersion = appVersion;
 
             // reCAPTCHA v2 — site key จาก appsettings (GoogleReCaptcha:SiteKey)
-            ViewBag.RecaptchaSiteKey = ReCaptcha.SiteKey(_config);
+            // ยกเว้นบนเครื่อง dev (Development + loopback + SkipOnLocalhost) ไม่แสดงกล่อง — ดู ReCaptcha.SkipForLocal
+            bool recaptchaSkipLocal = ReCaptcha.SkipForLocal(HttpContext, _config);
+            ViewBag.RecaptchaSkipLocal = recaptchaSkipLocal;
+            ViewBag.RecaptchaSiteKey = recaptchaSkipLocal ? "" : ReCaptcha.SiteKey(_config);
 
             //return View("~/Areas/Admin/Views/Login/Index.cshtml");
             return View("~/Views/Login/Index.cshtml");
@@ -161,7 +164,10 @@ namespace thaicredit_hr_admin.Areas.Admin.Controllers
 
             #region ----- Google reCAPTCHA v2 (หน้า Login + modal re-login ใช้ endpoint นี้ร่วมกัน จึงตรวจทั้งคู่) -----
             // ตรวจก่อนแตะ username/password เสมอ — ไม่งั้นบอทใช้ endpoint นี้เดารหัสผ่านได้ (ดู Helpers/ReCaptcha.cs)
-            var captcha = ReCaptcha.Verify(_config, f[ReCaptcha.FormField], HttpContext.Connection.RemoteIpAddress?.ToString());
+            // ยกเว้นเฉพาะเครื่อง dev (Development + loopback + GoogleReCaptcha:SkipOnLocalhost) — เงื่อนไขเต็มอยู่ ReCaptcha.SkipForLocal
+            var captcha = ReCaptcha.SkipForLocal(HttpContext, _config)
+                ? ReCaptcha.Result.Ok
+                : ReCaptcha.Verify(_config, f[ReCaptcha.FormField], HttpContext.Connection.RemoteIpAddress?.ToString());
             if (captcha != ReCaptcha.Result.Ok)
             {
                 #region Logs Action

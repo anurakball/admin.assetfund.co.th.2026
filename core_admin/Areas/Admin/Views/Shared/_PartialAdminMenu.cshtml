@@ -219,7 +219,8 @@
                     @* reCAPTCHA v2 — endpoint เดียวกับหน้า Login ซึ่งตรวจ reCAPTCHA ทุกครั้ง (ถ้า modal นี้ไม่มี กล่อง login ซ้ำจะผ่านไม่ได้)
                        สคริปต์ Google โหลดตอน modal เด้งครั้งแรกเท่านั้น (ensureReloginCaptcha) หน้าหลังบ้านปกติจึงไม่โหลดเพิ่ม *@
                     <br />
-                    <div id="relogin_recaptcha" data-sitekey="@ReCaptcha.SiteKey(Configuration)"></div>
+                    @* เครื่อง dev (ReCaptcha.SkipForLocal) → data-sitekey ว่าง = ไม่โหลดกล่อง และไม่บังคับติ๊ก *@
+                    <div id="relogin_recaptcha" data-sitekey="@(ReCaptcha.SkipForLocal(HttpContextAccessor.HttpContext, Configuration) ? "" : ReCaptcha.SiteKey(Configuration))"></div>
                     <div id="relogin_recaptcha_error" style="display:none;color:#BC1320;font-size:14px;margin-top:6px;"></div>
                     @if (ViewBag.webID + "" != "")
                     {
@@ -302,7 +303,7 @@ $('#reloginForm').on('submit', function (e)
     e.preventDefault();
     const token = $('input[name="__RequestVerificationToken"]').val();  
     const captchaToken = (reloginCaptchaId !== null) ? grecaptcha.getResponse(reloginCaptchaId) : '';
-    if (captchaToken === '')
+    if (captchaToken === '' && document.getElementById('relogin_recaptcha').dataset.sitekey)
     {
         $('#relogin_recaptcha_error').text('กรุณาติ๊กยืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ').show();
         document.getElementById('re_login_submit').style.display = '';

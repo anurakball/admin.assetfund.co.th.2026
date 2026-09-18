@@ -29,6 +29,26 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         public static bool IsConfigured(IConfiguration config) =>
             SiteKey(config) != "" && (config["GoogleReCaptcha:SecretKey"] ?? "").Trim() != "";
 
+        /// <summary>
+        /// ข้าม reCAPTCHA ตอนพัฒนาบนเครื่อง (ผู้ใช้สั่ง 18 ก.ย. 2569 — login ซ้ำหลายรอบตอนทดสอบ) ต้องครบทั้ง 3 ข้อ:
+        ///   1) ASPNETCORE_ENVIRONMENT = Development
+        ///   2) appsettings → GoogleReCaptcha:SkipOnLocalhost = true (ใส่ไว้ใน appsettings.Development.json เท่านั้น)
+        ///   3) IP ของ connection เป็น loopback (127.0.0.1 / ::1) — ใช้ IP ของ socket จริง ไม่ใช่ Host/X-Forwarded-For ที่ปลอมได้
+        /// เซิร์ฟเวอร์จริงไม่เข้าข้อ 1 และไม่มีไฟล์ Development.json จึงบังคับ reCAPTCHA ตามปกติ
+        /// ใช้ทั้ง Login [HttpPost] (ไม่ตรวจ token) หน้า Login และ modal re-login (ไม่แสดงกล่อง)
+        /// </summary>
+        public static bool SkipForLocal(HttpContext? http, IConfiguration config)
+        {
+            if (http == null) return false;
+            if (!string.Equals((config["GoogleReCaptcha:SkipOnLocalhost"] ?? "").Trim(), "true", StringComparison.OrdinalIgnoreCase)) return false;
+            var env = http.RequestServices.GetService<IWebHostEnvironment>();
+            if (env == null || !env.IsDevelopment()) return false;
+            var ip = http.Connection.RemoteIpAddress;
+            if (ip == null) return false;
+            if (ip.IsIPv4MappedToIPv6) ip = ip.MapToIPv4();
+            return System.Net.IPAddress.IsLoopback(ip);
+        }
+
         public enum Result { Ok, Missing, Invalid, NotConfigured, Unreachable }
 
         /// <summary>ตรวจ token ที่ browser ส่งมากับ Google — เรียกก่อนเช็ก username/password ทุกครั้ง</summary>
