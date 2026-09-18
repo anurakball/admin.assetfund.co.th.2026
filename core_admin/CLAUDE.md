@@ -455,7 +455,7 @@ hash ของ `P@ssw0rd` =
 | แอป | โปรเจกต์ | URL (dev) |
 |---|---|---|
 | Admin (repo นี้) | `d:\Project\admin.assetfund.co.th.2026\core_admin` | https://localhost:7300 |
-| Public site | `d:\Project\assetfund.co.th.2026` (.NET 9, attribute routing, **CLAUDE.md แยก — อ่านก่อนแตะ**) | https://localhost:7310 (ผู้ใช้เปิดของตัวเองที่ http://localhost:5310 — **ห้ามฆ่า**) |
+| Public site | `d:\Project\assetfund.co.th.2026` (.NET 9, attribute routing, **CLAUDE.md แยก — อ่านก่อนแตะ**) | https://localhost:7310 (+ http 5310) — **ผู้ใช้รันเองจาก Visual Studio ด้วย profile `https` ที่เป็นค่าเริ่มต้น (18 ก.ย. 2569) ห้ามฆ่า** · ถ้า 7310 ถูก instance ผู้ใช้ถืออยู่ ห้ามเปิดซ้อน — แก้โค้ด front-end แล้วบอกผู้ใช้ให้ restart |
 
 ```
 admin (core_admin) ──เขียน──▶ SQL Server asset_plus_uat ◀──อ่าน── front-end   ([2026_web_*] + tb_*)

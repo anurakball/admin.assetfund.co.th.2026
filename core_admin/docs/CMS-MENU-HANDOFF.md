@@ -41,7 +41,7 @@
 | front-end git | commit ครบ ล่าสุด **`3f4d86f`** "Render home sections in the order saved by the admin page builder" · working tree สะอาด · push ไม่ได้ (ไม่มี remote) |
 | admin git | **ผู้ใช้ commit เองแล้ว `f175199` (17 ก.ย. 2569 15:56)** รวมงาน session 1–3 ทั้งหมด (AdminMenu, CMSPage builder, Widget, ReCaptcha, docs/sql ฯลฯ) · ค้างแค่ `CLAUDE.md` + `docs/CMS-MENU-HANDOFF.md` ที่แก้หลังจากนั้น · **ยังคงห้าม `git checkout --`/`restore`/`stash`** (§8 ข้อ 20) |
 | ข้อมูลจริงใน DB | สะอาด ไม่มีแถวทดสอบค้าง (ยืนยัน 18 ก.ย. หลัง regression ทั้ง 7 เมนู — ทุกตารางเท่า snapshot ก่อนทดสอบ) · `web_cms_page` เหลือแถวเดียว id 1 `pb_box_layout` ล่าสุดที่ผู้ใช้จัดเอง = `wg_28,wg_29,wg_30,wg_31,wg_33,wg_32` (ตัวแทนขายก่อนบทความ) · ⚠ **Intro (id 27) และ Pop-Up (id 10, 11) มี `status = 0`** (ผู้ใช้ปิดเอง — **อย่าเปิดเองโดยไม่ถาม**) → หน้าเว็บจริงไม่มี intro และ popup |
-| เซิร์ฟเวอร์ dev | admin `https://localhost:7300` (spawn หลุด job object, build ล่าสุด 18 ก.ย.) · front-end `https://localhost:7310` รันจาก **build แยกใน `%TEMP%\assetfund-7310-bin`** (ดู §9.3) · ผู้ใช้เปิด instance ของตัวเองที่ **`http://localhost:5310`** (asset-fund.exe จาก `bin/Debug` — ผู้ใช้ rebuild เอง 18 ก.ย. 16:38 หลังพบว่ารันโค้ดเก่า) — **ห้ามฆ่า** · ถ้าหน้า 5310 ไม่ตรงกับ 7310 = ผู้ใช้ยังไม่ rebuild ให้บอกผู้ใช้ ไม่ต้องแก้โค้ด |
+| เซิร์ฟเวอร์ dev | admin `https://localhost:7300` (spawn หลุด job object, build ล่าสุด 18 ก.ย.) · front-end `https://localhost:7310` รันจาก **build แยกใน `%TEMP%\assetfund-7310-bin`** (ดู §9.3) · **18 ก.ย. 2569 (บ่าย): `launchSettings.json` ของ front-end สลับให้ profile `https` เป็นตัวแรก** (ผู้ใช้สั่ง) → เมื่อผู้ใช้รันจาก Visual Studio จะได้ 7310 + 5310 จาก instance เดียวของผู้ใช้ และ browser เปิด 7310 — **ห้ามฆ่า** · ถ้า 7310 เป็นของผู้ใช้ Claude ห้ามเปิด build แยกซ้อน แก้โค้ดแล้วให้ผู้ใช้ restart · ถ้าหน้า 5310/7310 ไม่ตรงกับโค้ด = ผู้ใช้ยังไม่ rebuild ให้บอกผู้ใช้ ไม่ต้องแก้โค้ด |
 | งานที่น่าจะมาถัดไป | เมนู footer 5 คอลัมน์ + ลิงก์นโยบาย / ข้อความในแต่ละ section ของหน้าแรกให้แก้ได้ (`HomeSamText2–6`) / ข่าว-ประกาศ / ข้อมูลกองทุน — ดู §12 |
 
 ---
@@ -129,7 +129,7 @@
 - ทำงานยาวต่อเนื่องได้เลย **ไม่ต้องถามระหว่างทาง** ถ้าเป็นเรื่องที่มีค่าเริ่มต้นชัด (สิทธิ์ Super Admin, ข้อมูล Asset Plus, cache 0, Preview ต้องใช้ได้, ทดสอบ browser 2 ฝั่ง, commit front-end)
 - ถ้าต้องขยายขอบเขตเพื่อความปลอดภัย/ความถูกต้อง (เช่นใส่ reCAPTCHA ใน modal re-login ด้วย) ให้ทำแล้ว**อธิบายเหตุผลในรายงาน**
 - **ห้ามเปลี่ยนข้อมูลจริงที่ผู้ใช้ตั้งเอง** (เช่น status ของ intro/popup) — ทดสอบด้วยแถว `[TEST-…]` ที่สร้างเองแล้วลบผ่าน UI ตอนจบ
-- **ห้ามฆ่า process ของผู้ใช้** (`dotnet watch` พอร์ต 5310) — ใช้วิธีรัน build แยก (§9.3)
+- **ห้ามฆ่า process ของผู้ใช้** (front-end ที่ผู้ใช้รันจาก Visual Studio — ตั้งแต่ 18 ก.ย. 2569 ถือทั้ง 7310 และ 5310) — ถ้า 7310 ว่างค่อยใช้ build แยก (§9.3) และปิดก่อนจบงาน
 - จบงานต้องมี: สิ่งที่แก้ 2 ฝั่ง · ผลทดสอบ · ข้อมูลคืนค่าแล้ว · ไฟล์ค้าง commit ฝั่ง admin · สิ่งที่ยังไม่ทำ/ต้องทำตอน deploy
 
 ---
@@ -505,7 +505,9 @@ $log="$env:TEMP\core_admin-7300.log"; $cmd='cmd /c "dotnet run --no-build --laun
 Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=$cmd; CurrentDirectory="d:\Project\admin.assetfund.co.th.2026\core_admin"}
 ```
 
-### 9.3 front-end (7310) — ขณะที่ผู้ใช้เปิด `dotnet watch` ที่ 5310 อยู่
+### 9.3 front-end (7310) — build แยกของ Claude (ใช้ได้เฉพาะตอน 7310 ว่าง)
+
+> ⚠ ตั้งแต่ 18 ก.ย. 2569 profile เริ่มต้นของ front-end คือ `https` (7310 + 5310) — ถ้าผู้ใช้รันอยู่ **7310 เป็นของผู้ใช้ ห้ามเปิดซ้อน/ห้ามฆ่า** ให้ทดสอบกับ instance ของผู้ใช้ (บอกผู้ใช้ restart หลังแก้โค้ด) · ใช้สูตรด้านล่างเฉพาะตอนไม่มีใครถือ 7310 และ **ปิดตัวนี้ก่อนจบงาน** ไม่งั้นผู้ใช้กดรันแล้วชนพอร์ต
 
 ```powershell
 # ดูว่าใครถือพอร์ต: Get-NetTCPConnection -LocalPort 5310,7310 -State Listen | select LocalPort,OwningProcess
