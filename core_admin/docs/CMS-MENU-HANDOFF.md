@@ -121,6 +121,7 @@
 | 17 ก.ย. (บ่าย) | ไอคอนเมนู `CMSPage` เปลี่ยนจาก `fa-sitemap` (ของ SAM) | `fa-solid fa-layer-group` |
 | 17 ก.ย. (บ่าย) | **ชื่อ + ไอคอน widget**: กลุ่มตัด "(Version n)" เหลือ `DEFAULT`/`MODERN`/`CLASSIC` · widget ตัด "(Hero) — DEFAULT" เหลือชื่อไทยล้วน · ไอคอนเปลี่ยนจาก screenshot เป็น**รูป icon สร้างด้วย ComfyUI** ทุกรายการ (เหมือน back-end SAM) | แก้ใน DB ทั้ง draft + `pb_*` (SQL ไม่ผ่าน UI จึงไม่มี Admin Log) · ไฟล์ `widget_icons/assetplus/icon-*.png` · seed อ้างอิงแก้ตาม · สคริปต์ `docs/comfyui-icons.py` |
 | 17 ก.ย. (บ่าย) | ปุ่ม Back ในหน้า builder ลูกศรกับคำว่า Back ไม่ตรงกัน | CSS override `.btn-icon` ใน `Views/CMSPage/Edit.cshtml` (ชนกับ `.btn-icon` ของ front-end) |
+| 18 ก.ย. | NAV หน้าแรกดึงจริงจาก `tb_fund_nav` (5 กอง, % มากสุด, ลิงก์ `/funds/nav`) · **ลิงก์ด่วน** (ไทล์ข้างตาราง NAV) ทำเมนูหลังบ้านแบบ "SAM ใส่ใจ" · ทั้งสองต้องทำงานทุกการจัดวาง widget (V1/V3 อย่างเดียว, 2, 3 ตัว) และ**ดึงข้อมูลไม่ซ้ำซ้อน** | `SqlNavPriceService` + `SqlHomeQuickTileService` · query ครั้งเดียวต่อ request เฉพาะเมื่อมี widget NAV (วัดด้วย Extended Events) · เมนู `HomeSamText` = "ข้อมูลหน้าแรก > ลิงก์ด่วน" — สเปก `docs/cms-menu-playbook.md` |
 | 17 ก.ย. (เย็น) | **ห้ามใช้ `<p class="cms-note">`** (ย่อหน้าอธิบายใต้ legend) ในฟอร์มหลังบ้าน — ข้อความบนหน้าจอเยอะเกินไป · ตัดออกทั้งหมด + จดใน CLAUDE.md · ของอื่นตาม SAM (`fieldset.cms-section`, `legend`, span สีส้มในป้ายชื่อช่อง) ยังใช้ได้ | ลบ 7 ย่อหน้า + CSS ใน `HomeHeader/Edit.cshtml`, `HomeFooter/Edit.cshtml` · กฎอยู่ Playbook ขั้น 5 ของ `CLAUDE.md` |
 
 ### 2.3 วิธีทำงาน / รายงานที่ผู้ใช้คาดหวัง
@@ -638,8 +639,8 @@ bd64d92 Read home hero slides from SQL Server and add draft preview route
 
 ## 13. งานที่ต้องทำตอน deploy ขึ้นเซิร์ฟเวอร์จริง
 
-1. **DB**: รัน `docs/sql/2026-09-16-fix-default-constraints.sql`, `docs/sql/2026-09-17-web-home-header-footer.sql`, `docs/sql/2026-09-18-web-widget-section-key.sql`, `docs/sql/2026-09-18-delete-sam-cms-widgets.sql` แล้วใส่ widget 3 กลุ่ม × 6 (`seed-ref-home-widgets.sql` — ตรวจ `box_layout` หลังรัน) · ใส่ข้อมูล Asset Plus ของ 6 เมนู (ผ่านหลังบ้าน หรือดัดแปลงจาก `seed-ref-*.sql`) · สิทธิ์ `2026_web_admin_module` ให้ตรง (`HomePopUp can_move = 1` ฯลฯ)
-2. **รูป**: อัปโหลด `core_admin/wwwroot/Files/Site0/1/{home,intro_page,pop_up,header,footer,widget_icons/assetplus}/` ขึ้นเซิร์ฟเวอร์ admin
+1. **DB**: รัน `docs/sql/2026-09-18-home-quick-tiles.sql` (ลิงก์ด่วน + token ใน widget NAV — ขั้น 1 เขียนทับเนื้อหาแถว) · รัน `docs/sql/2026-09-16-fix-default-constraints.sql`, `docs/sql/2026-09-17-web-home-header-footer.sql`, `docs/sql/2026-09-18-web-widget-section-key.sql`, `docs/sql/2026-09-18-delete-sam-cms-widgets.sql` แล้วใส่ widget 3 กลุ่ม × 6 (`seed-ref-home-widgets.sql` — ตรวจ `box_layout` หลังรัน) · ใส่ข้อมูล Asset Plus ของ 6 เมนู (ผ่านหลังบ้าน หรือดัดแปลงจาก `seed-ref-*.sql`) · สิทธิ์ `2026_web_admin_module` ให้ตรง (`HomePopUp can_move = 1` ฯลฯ)
+2. **รูป**: อัปโหลด `core_admin/wwwroot/Files/Site0/1/{home,home/tiles,intro_page,pop_up,header,footer,widget_icons/assetplus}/` ขึ้นเซิร์ฟเวอร์ admin
 3. **admin `appsettings.json` บนเซิร์ฟเวอร์**: `DBConnection`, `RootURL`, **`FrontURL` = โดเมน front-end จริง**, **`GoogleReCaptcha:SiteKey/SecretKey` = คีย์จริงของโดเมน** (ไม่มี = login ไม่ได้ · คีย์ทดสอบ = ไม่กันบอท) · รายการคีย์อื่นดู CLAUDE.md admin หัวข้อ "ต้องตั้งบนเซิร์ฟเวอร์เอง"
 4. **front-end `appsettings.json` บนเซิร์ฟเวอร์**: `ConnectionStrings:DBConnection`, **`AdminURL` = โดเมน admin จริง** (ใช้ทั้งต่อ path รูปและ CSP `frame-ancestors` ของ Preview), `DBCacheTime` (ผู้ใช้สั่ง 0 — ถามก่อนเปลี่ยน)
 5. เซิร์ฟเวอร์ admin ต้องออกอินเทอร์เน็ตไป `https://www.google.com/recaptcha/api/siteverify` ได้ (ไม่งั้น login ไม่ได้)

@@ -224,6 +224,7 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 |---|---|---|---|
 | ข้อมูลหน้าแรก > จัดการ Widget (page builder หน้าแรก) | `CMSPage` | `web_cms_page` แถวเดียว id 1 + `web_widget_group` 3 / `web_widget` 18 (`section_key`) | `SqlHomeLayoutService` |
 | ข้อมูลหน้าแรก > รูปสไลด์หน้าแรก | `HomeImageSlide` | `web_core_item` / 1 | `SqlHeroSlideService` |
+| ข้อมูลหน้าแรก > ลิงก์ด่วน (ไทล์ 3 อันข้างตาราง NAV — เดิม SAM ใส่ใจ) | `HomeSamText` | `web_core_single` / 1 (แถวเดียว, แก้ไข + อนุมัติ) | `SqlHomeQuickTileService` (ดึงพร้อม NAV ครั้งเดียวต่อหน้า) |
 | หน้าเว็บไซต์ > หน้า Intro Page | `HomeIntroPage` | `web_home_intro_page` (ตารางเดี่ยว) | `SqlIntroPageService` (`/intro-page`) |
 | หน้าเว็บไซต์ > หน้า Pop-Up | `HomePopUp` | `web_home_pop_up` (ตารางเดี่ยว, จัดเรียงได้) | `SqlPopupBannerService` |
 | หน้าเว็บไซต์ > ปรับแต่ง Header | `HomeHeader` | `web_home_header` แถวเดียว (+คอลัมน์ `en_img1` ที่เพิ่มเอง) | `SqlSiteHeaderService` |
@@ -301,7 +302,7 @@ Session-based auth (no ASP.NET Identity). Session keys: `admin_login`, `admin_us
 พรีวิวค่า "ฉบับร่าง" (คอลัมน์ที่ไม่ใช่ `pb_*`) ผ่านปุ่ม **[Preview]** ในหน้า list (เมนูที่รองรับ ดูทะเบียนใน `PreviewMenu.cs`)
 **ฝั่ง admin ทำเสร็จแล้ว** (`Areas/Admin/Helpers/PreviewMenu.cs` + `_PartialFrontPreviewModal.cshtml`
 + `openFrontPreview()` ใน `wwwroot/js/Admin/admin_site.js` + ปุ่มใน `AdminCore/Index.cshtml`)
-**ฝั่ง front-end ใช้งานได้แล้วเฉพาะเมนูที่ต่อ DB แล้ว** (`HomeImageSlide`, `HomeIntroPage`, `HomePopUp`, `HomeHeader`, `HomeFooter`, `CMSPage` (ลำดับ widget หน้าแรกฉบับร่าง — โหมด `page` ไม่ใช่ `cms`) — `HomeSEO` ถูกถอดปุ่ม Preview ออกแล้ว) — มี `Helpers/PreviewMap.cs`
+**ฝั่ง front-end ใช้งานได้แล้วเฉพาะเมนูที่ต่อ DB แล้ว** (`HomeImageSlide`, `HomeSamText` (ลิงก์ด่วน), `HomeIntroPage`, `HomePopUp`, `HomeHeader`, `HomeFooter`, `CMSPage` (ลำดับ widget หน้าแรกฉบับร่าง — โหมด `page` ไม่ใช่ `cms`) — `HomeSEO` ถูกถอดปุ่ม Preview ออกแล้ว) — มี `Helpers/PreviewMap.cs`
 + route `/_preview/page/{module}/{id}` ใน `Controllers/HomeController.cs` ของ `d:\Project\assetfund.co.th.2026`
 เมนูอื่นในทะเบียน `PreviewMenu.cs` ยังกดได้แต่ iframe จะขึ้น 404 ของ front-end จนกว่าจะต่อ DB + เพิ่มใน `PreviewMap.Pages`
 
