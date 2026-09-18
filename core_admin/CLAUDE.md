@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > ⏩ **งาน CMS (เพิ่มเมนูซ้าย → DB → front-end → Preview) — session ใหม่อ่าน `docs/CMS-MENU-HANDOFF.md` ก่อน**
-> เป็นเอกสารส่งต่องานฉบับเต็ม (อัปเดตล่าสุด 18 ก.ย. 2569 — **§14 = งานล่าสุด: page builder หน้าแรก `CMSPage` + ข้อมูล Widget, ผลทดสอบ 7 เมนู, เหตุการณ์กู้ไฟล์ `AdminMenu.cs`**): สถานะ 7 เมนู CMS + งาน Login/reCAPTCHA/Dashboard, ความต้องการผู้ใช้ทั้งหมด, ไทม์ไลน์, **สูตรทำเมนูครบวงจร**, **เทคนิค Playwright พร้อมโค้ด**, กับดัก, ไฟล์ค้าง commit, **แผนงานต่อไป**, งานตอน deploy · สคริปต์ DB ถาวรอยู่ `docs/sql/`
+> เป็นเอกสารส่งต่องานฉบับเต็ม (อัปเดตล่าสุด 18 ก.ย. 2569 — **เริ่มที่หัวข้อ ⏩ บนสุด แล้ว §15 = งานล่าสุด session 4** (จัดการ Widget, NAV หน้าแรกจาก `tb_fund_nav`, มูลค่าหน่วยฯ (3 Links), สูตร "section หน้าแรกดึง DB ครั้งเดียว" A/B, เทคนิคนับ query ด้วย Extended Events, บั๊กที่รู้) · §14 = session 3 page builder**): สถานะ 7 เมนู CMS + งาน Login/reCAPTCHA/Dashboard, ความต้องการผู้ใช้ทั้งหมด, ไทม์ไลน์, **สูตรทำเมนูครบวงจร**, **เทคนิค Playwright พร้อมโค้ด**, กับดัก, ไฟล์ค้าง commit, **แผนงานต่อไป**, งานตอน deploy · สคริปต์ DB ถาวรอยู่ `docs/sql/`
 > ⚠ **ห้าม `git checkout --` / `git restore` / `git stash` ใน repo นี้** — มีงานค้าง commit ข้าม session (เคยทำหายแล้วต้องกู้จาก transcript 18 ก.ย. 2569)
 > จากนั้นค่อยอ่าน `docs/cms-menu-playbook.md` (Playbook 19 ขั้น + สเปกรายเมนู) — ไฟล์นี้เหลือแค่กฎที่ต้องรู้ทุก session
 

@@ -1,12 +1,19 @@
 # CMS-MENU-HANDOFF — เอกสารส่งต่องาน ASSET PLUS (หลังบ้าน ↔ front-end ↔ Preview)
 
 > **▶ START HERE — session ใหม่อ่านไฟล์นี้ให้จบก่อนทำอะไรทั้งนั้น**
-> อัปเดตล่าสุด: **18 ก.ย. 2569 (session 3 — เพิ่ม page builder หน้าแรก `CMSPage` + ข้อมูล Widget)** · ฉบับก่อน 17 ก.ย. 2569 (เขียนใหม่ทั้งไฟล์) · เขียนโดย Claude ตามคำสั่งผู้ใช้ก่อน context เต็ม
-> ไฟล์นี้ track ใน git ของ admin (`core_admin/docs/CMS-MENU-HANDOFF.md`, un-ignore ใน `.gitignore`)
-> ถ้าขัดกับ `CLAUDE.md` ของโปรเจกต์ใด **ให้ยึดไฟล์นี้** แล้วไปแก้ `CLAUDE.md` ให้ตรง
+> อัปเดตล่าสุด: **18 ก.ย. 2569 บ่าย (session 4 — ปิด session เพราะ context ใกล้เต็ม)** · session 3 = page builder (§14) · 17 ก.ย. = เขียนใหม่ทั้งไฟล์
+> ไฟล์นี้ track ใน git ของ admin (`core_admin/docs/CMS-MENU-HANDOFF.md`) · ถ้าขัดกับ `CLAUDE.md` ของโปรเจกต์ใด **ให้ยึดไฟล์นี้** แล้วไปแก้ `CLAUDE.md` ให้ตรง
 >
-> ลำดับอ่าน: **§0 → §1 → §2 → §14 (งานล่าสุด: page builder + Widget — อ่านให้จบ) → §10 (เช็คลิสต์เปิด session) → §12 (แผนงานต่อไป)** แล้วค่อยเปิดหัวข้ออื่นตามงานที่ได้รับ
-> รายละเอียดระดับคอลัมน์ของแต่ละเมนูอยู่ใน **`core_admin/docs/cms-menu-playbook.md`** ท้ายไฟล์ หัวข้อ "เมนูที่ทำตาม playbook แล้ว" (ย้ายจาก CLAUDE.md 17 ก.ย. 2569 · ไฟล์นี้สรุป ไม่ copy ซ้ำทุกบรรทัด)
+> **ลำดับอ่าน: ⏩ (ด้านล่าง) → §0 → §2 → §15 (งานล่าสุด session 4 — อ่านให้จบ) → §10 (เช็คลิสต์เปิด session) → §12 (แผนงานต่อไป)** แล้วค่อยเปิดหัวข้ออื่นตามงาน
+> สเปกระดับคอลัมน์ของทุกเมนูอยู่ใน **`core_admin/docs/cms-menu-playbook.md`** (Playbook 19 ขั้น + "เมนูที่ทำตาม playbook แล้ว") · รายละเอียดเมนู `tb_*` อยู่ `core_admin/docs/legacy-backoffice.md`
+
+## ⏩ สรุปด่วนสำหรับ session ใหม่ (อ่าน 1 นาที)
+
+1. **2 repo ที่ทำงานจริง**: admin `D:\Project\admin.assetfund.co.th.2026` (โค้ดอยู่ `core_admin/`, https://localhost:7300) · front-end `D:\Project\assetfund.co.th.2026` (https://localhost:7310) — ทั้งคู่ **working tree สะอาด ณ ปิด session 4** (admin `6c63dac`, front-end `20ee58c`) และ push ขึ้น GitHub แล้ว
+2. **กฎที่ผู้ใช้สั่งและยังมีผล** (ห้ามลืม): จบงาน = **commit + push ทุก repo ที่แก้** (push ด้วย URL ตรง ไม่มี `origin` — §11) · ทดสอบ Playwright ทั้ง 2 ฝั่ง "อย่างละเอียด หลายเงื่อนไข" ก่อนรายงาน · **ห้าม `<p class="cms-note">`** ในฟอร์มหลังบ้าน · **ห้ามแถบ/ป้ายสรุปบนหน้าพรีวิว** · ห้าม `git checkout --`/`restore`/`stash` ใน admin · ห้ามฆ่า process front-end ของผู้ใช้ · CLAUDE.md ต้องเล็ก (ของยาวลง `docs/`) · ตอบภาษาไทย
+3. **เซิร์ฟเวอร์**: front-end ตอนนี้ **ผู้ใช้รันเองจาก Visual Studio profile `https` = 7310 + 5310 (process เดียว, `bin/Debug`)** → Claude **ห้ามเปิด 7310 ซ้อน/ห้ามฆ่า** · ทดสอบโค้ดใหม่ให้เปิด build แยกที่ **`https://localhost:7311`** (§15.8) แล้วปิดก่อนจบ และบอกผู้ใช้ให้ restart 7310 เพื่อเห็นโค้ดใหม่ · ⚠ ณ ปิด session 4 instance ของผู้ใช้ **ยังรันโค้ดก่อนงาน NAV/3 Links** (ผู้ใช้ยังไม่ได้ restart) — ถ้าหน้า 7310 ไม่ตรงกับโค้ดให้บอกผู้ใช้ restart ไม่ต้องแก้โค้ด
+4. **งานที่เสร็จใน session 4** (§15): ย้าย/เปลี่ยนชื่อ page builder เป็น "ข้อมูลหน้าแรก > จัดการ Widget" · ชื่อ+ไอคอน widget (ComfyUI) · ตัด cms-note · CLAUDE.md ลดขนาด · **NAV หน้าแรกดึงจริงจาก `tb_fund_nav`** · **"ข้อมูลหน้าแรก > มูลค่าหน่วยฯ (3 Links)" (`HomeSamText`) = ไทล์ 3 อันข้างตาราง NAV** · launchSettings front-end default https · ทดสอบ 18 widget บนหน้าแรก
+5. **งานที่น่าจะมาถัดไป** (§12.1): ทำ section อื่นของหน้าแรกให้ดึง DB แบบเดียวกับ NAV/3 Links (กองทุนแนะนำ, ธีม, Insights, ตัวแทนขาย, ข้อความหัว section) · เมนู footer 5 คอลัมน์ · หน้า `/funds/*` ต่อ `tb_*` · แก้บั๊ก Hero V3 ใน builder (§15.9)
 
 ---
 
@@ -27,22 +34,23 @@
 12. **แผนงานต่อไป** (เรียงตามความน่าจะมา + สิ่งที่ต้องรู้ล่วงหน้า)
 13. งานที่ต้องทำตอน deploy ขึ้นเซิร์ฟเวอร์จริง
 14. **session 3 (18 ก.ย. 2569) — page builder หน้าแรก (`CMSPage`) + ข้อมูล Widget: รายละเอียดเต็ม, ผลทดสอบ 7 เมนู, เหตุการณ์กู้ไฟล์, สถานะเครื่อง**
+15. **session 4 (18 ก.ย. 2569) — จัดการ Widget / ไอคอน widget / NAV หน้าแรกจาก DB / มูลค่าหน่วยฯ (3 Links) / สูตร "section หน้าแรกดึง DB ครั้งเดียว" / เทคนิคทดสอบใหม่ / บั๊กที่รู้**
 
 ---
 
 ## 0. สถานะตอนนี้ในหน้าเดียว
 
-| เรื่อง | สถานะ ณ 17 ก.ย. 2569 |
+| เรื่อง | สถานะ ณ ปิด session 4 (18 ก.ย. 2569 บ่าย) |
 |---|---|
-| เมนู CMS ที่ทำครบวงจร (หลังบ้าน + DB + front-end + Preview) | **7 เมนู**: **`CMSPage` (จัดการ Widget — ชื่อเดิม "จัดการเมนูเว็บไซต์" = page builder หน้าแรก, 18 ก.ย.)**, `HomeIntroPage`, `HomePopUp`, `HomeHeader`, `HomeFooter`, `HomeSEO` (กลุ่ม "หน้าเว็บไซต์") และ `CMSPage` + `HomeImageSlide` (กลุ่ม "ข้อมูลหน้าแรก" — `CMSPage` เป็นเมนูแรก) + กลุ่มเมนู "Widget" (ข้อมูล widget 3 กลุ่ม × 6) |
-| ปุ่ม Preview ในหลังบ้าน | ใช้ได้ **6 เมนู** (รวม `CMSPage` = ลำดับ widget ฉบับร่าง) — `HomeSEO` ถูกถอดปุ่มตามคำสั่งผู้ใช้ · **หน้าพรีวิวต้องหน้าตาเหมือนเว็บจริง 100% ห้ามมีแถบ/ป้ายสรุปใด ๆ** |
-| หน้า Login หลังบ้าน | ซ่อน dropdown เว็บไซต์ (ส่ง hidden `web_id=0`) · มี **Google reCAPTCHA v2** ทั้งหน้า Login และ modal re-login · ⚠ **ใช้คีย์ทดสอบของ Google อยู่ (ผ่านทุก token = ยังไม่กันบอทจริง)** |
-| Dashboard หลังบ้าน | มีชื่อผู้ใช้ + ปุ่ม Logout มุมขวาบน |
-| front-end git | commit ครบ ล่าสุด **`3f4d86f`** "Render home sections in the order saved by the admin page builder" · working tree สะอาด · push ไม่ได้ (ไม่มี remote) |
-| admin git | **ผู้ใช้ commit เองแล้ว `f175199` (17 ก.ย. 2569 15:56)** รวมงาน session 1–3 ทั้งหมด (AdminMenu, CMSPage builder, Widget, ReCaptcha, docs/sql ฯลฯ) · ค้างแค่ `CLAUDE.md` + `docs/CMS-MENU-HANDOFF.md` ที่แก้หลังจากนั้น · **ยังคงห้าม `git checkout --`/`restore`/`stash`** (§8 ข้อ 20) |
-| ข้อมูลจริงใน DB | สะอาด ไม่มีแถวทดสอบค้าง (ยืนยัน 18 ก.ย. หลัง regression ทั้ง 7 เมนู — ทุกตารางเท่า snapshot ก่อนทดสอบ) · `web_cms_page` เหลือแถวเดียว id 1 `pb_box_layout` ล่าสุดที่ผู้ใช้จัดเอง = `wg_28,wg_29,wg_30,wg_31,wg_33,wg_32` (ตัวแทนขายก่อนบทความ) · ⚠ **Intro (id 27) และ Pop-Up (id 10, 11) มี `status = 0`** (ผู้ใช้ปิดเอง — **อย่าเปิดเองโดยไม่ถาม**) → หน้าเว็บจริงไม่มี intro และ popup |
-| เซิร์ฟเวอร์ dev | admin `https://localhost:7300` (spawn หลุด job object, build ล่าสุด 18 ก.ย.) · front-end `https://localhost:7310` รันจาก **build แยกใน `%TEMP%\assetfund-7310-bin`** (ดู §9.3) · **18 ก.ย. 2569 (บ่าย): `launchSettings.json` ของ front-end สลับให้ profile `https` เป็นตัวแรก** (ผู้ใช้สั่ง) → เมื่อผู้ใช้รันจาก Visual Studio จะได้ 7310 + 5310 จาก instance เดียวของผู้ใช้ และ browser เปิด 7310 — **ห้ามฆ่า** · ถ้า 7310 เป็นของผู้ใช้ Claude ห้ามเปิด build แยกซ้อน แก้โค้ดแล้วให้ผู้ใช้ restart · ถ้าหน้า 5310/7310 ไม่ตรงกับโค้ด = ผู้ใช้ยังไม่ rebuild ให้บอกผู้ใช้ ไม่ต้องแก้โค้ด |
-| งานที่น่าจะมาถัดไป | เมนู footer 5 คอลัมน์ + ลิงก์นโยบาย / ข้อความในแต่ละ section ของหน้าแรกให้แก้ได้ (`HomeSamText2–6`) / ข่าว-ประกาศ / ข้อมูลกองทุน — ดู §12 |
+| เมนู CMS ที่ทำครบวงจร (หลังบ้าน + DB + front-end + Preview) | **8 เมนู** — กลุ่ม "หน้าเว็บไซต์": `HomeIntroPage`, `HomePopUp`, `HomeHeader`, `HomeFooter`, `HomeSEO` (ไม่มี Preview) · กลุ่ม "ข้อมูลหน้าแรก": **`CMSPage` = "จัดการ Widget"** (page builder), `HomeImageSlide` (รูปสไลด์หน้าแรก), **`HomeSamText` = "มูลค่าหน่วยฯ (3 Links)"** (ไทล์ข้างตาราง NAV) + กลุ่ม "Widget" (กลุ่ม Widget / Widget ทั้งหมด) |
+| front-end อ่าน DB แล้ว | hero, intro, popup, SEO, header, footer, ลำดับ widget หน้าแรก, **NAV หน้าแรก (`tb_fund_nav`)**, **ไทล์ 3 Links** — ที่เหลือยัง `Mock*Service` |
+| ปุ่ม Preview ในหลังบ้าน | ใช้ได้ 7 เมนู (ทุกตัวข้างบนยกเว้น `HomeSEO`) · หน้าพรีวิวต้องเหมือนเว็บจริง 100% |
+| หน้าแรก (ข้อมูลจริงใน DB) | `web_cms_page` id 1 `box_layout = pb_box_layout = wg_28,wg_34,wg_40,wg_29,wg_35,wg_41,wg_30,wg_36,wg_42,wg_31,wg_37,wg_43,wg_32,wg_38,wg_44,wg_33,wg_39,wg_45` (**ครบ 18 widget เรียง "ชนิด section → V1,V2,V3"** — ผู้ใช้สั่งจัดแบบนี้ ห้ามคืนเป็น 6 ตัวเองโดยไม่ถาม) · intro (id 27) + popup (id 10,11) `status = 0` ที่ผู้ใช้ปิดเอง ห้ามเปิดเอง |
+| DB สะอาด | ไม่มีแถว `[TEST…]` / `TEST-NAV-*` ค้าง · ทุกเมนูฉบับร่าง = `pb_*` · `pb_status = 1` (ยืนยันก่อนปิด session 4) |
+| Login หลังบ้าน | ซ่อน dropdown เว็บไซต์ · reCAPTCHA v2 (หน้า Login + modal re-login) · ⚠ ยังใช้คีย์ทดสอบของ Google |
+| git | admin `6c63dac` · front-end `20ee58c` · **ทั้งคู่สะอาดและ push แล้ว** (GitHub `anurakball/*`) |
+| เซิร์ฟเวอร์ dev | admin 7300 = spawn หลุด job object (Claude รีสตาร์ทได้) · front-end 7310+5310 = **instance ของผู้ใช้จาก Visual Studio (ห้ามฆ่า/ห้ามเปิดซ้อน)** — ยังเป็น build ก่อนงาน NAV/3 Links → ต้องให้ผู้ใช้ restart · instance ทดสอบ 7311 ของ Claude **ปิดแล้ว** |
+| บั๊กที่รู้แต่ยังไม่แก้ | Hero V3 ในหน้า builder: `Cannot read properties of undefined (reading 'el')` (§15.9) · อื่น ๆ §12.3 |
 
 ---
 
@@ -147,6 +155,7 @@
 | session 2 รอบ 4 | Login ซ่อน dropdown + **reCAPTCHA** (หน้า Login + modal re-login) · Dashboard ปุ่ม Logout · LastActivity ลบ `;` · **ลบแถบสรุปฉบับร่างทุกจุดใน Preview** + ป้ายหน้า Intro · ถอด Preview ของ SEO · กลุ่มเมนู **"ข้อมูลหน้าแรก"** · front-end commit `5e6a921` |
 | session 2 ปิดงาน | เขียนไฟล์นี้ใหม่ทั้งหมด · เก็บ SQL จาก scratchpad เข้า `docs/sql/` |
 | session 3 (18 ก.ย.) | **`CMSPage` page builder หน้าแรก** (เปิดเมนู, เหลือแถว id 1, แก้บั๊ก builder ของ SAM 5 จุด, CSS จาก FrontURL) + **ข้อมูล Widget** (ALTER `section_key`, 3 กลุ่ม × 6 widget จาก `/salepage`, เปิดกลุ่มเมนู "Widget") + front-end `SqlHomeLayoutService` + Preview `CMSPage` โหมด page + CORS ฟอนต์ · ลบข้อมูล SAM (`web_cms_page` 8–79, widget ทั้งหมด) · กู้ `AdminMenu.cs` จาก transcript หลังพลาด `git checkout` |
+| session 4 (18 ก.ย.) | ย้าย/เปลี่ยนชื่อ page builder เป็น "ข้อมูลหน้าแรก > จัดการ Widget" + ไอคอน `fa-layer-group` · ปุ่ม Back ใน builder · ชื่อ+ไอคอน widget (ComfyUI) · commit+push rule · ตัด cms-note · ลด CLAUDE.md (แยก `docs/cms-menu-playbook.md`, `docs/legacy-backoffice.md`) · ทดสอบ 18 widget + จัดเรียงใหม่ · **NAV หน้าแรกจาก `tb_fund_nav`** · launchSettings https เป็นค่าเริ่มต้น · **"มูลค่าหน่วยฯ (3 Links)" (`HomeSamText`)** · เขียน §15 — ดู §15.1 |
 
 ---
 
@@ -271,7 +280,8 @@ Dashboard
 ข้อมูลหน้าแรก (fa-solid fa-book-open)
    จัดการ Widget (CMSPage)                      fa-solid fa-layer-group  ← page builder หน้าแรก list 1 แถว → Edit/1 = แท็บ "ตกแต่งเพจ" · ย้ายมาจาก "หน้าเว็บไซต์" 17 ก.ย. (ผู้ใช้สั่งให้อยู่ลำดับแรก)
    รูปสไลด์หน้าแรก (HomeImageSlide)            fa-regular fa-images
-   //ตั้งค่ารูปสไลด์ (HomeImageConf), //HomeSamText…HomeSamText7   ← เนื้อหา SAM ยังไม่เปิด
+   มูลค่าหน่วยฯ (3 Links) (HomeSamText)        fa-solid fa-signs-post  ← ไทล์ 3 อันข้างตาราง NAV · แก้ไข+อนุมัติ · เปิด 18 ก.ย. (เดิม SAM ใส่ใจ)
+   //ตั้งค่ารูปสไลด์ (HomeImageConf), //HomeSamText2…HomeSamText7   ← เนื้อหา SAM ยังไม่เปิด (ว่างให้ใช้ทำ section อื่นตามสูตร §15.5)
 ข้อมูลกองทุน / กองทุนส่วนบุคคล / ปฏิทินกองทุน / กองทุนสำรองเลี้ยงชีพ   ← เมนู Ap* (AdminMenuAssetPlus.cs) ไม่ได้แตะ
 ผู้ดูแลระบบ (สิทธิ์การใช้, ผู้ดูแลระบบ, Admin Logs, ผู้ใช้ที่ไม่เข้าใช้งาน)
 Widget (bi bi-collection)                          ← เปิด 18 ก.ย. (ผู้ใช้สั่งให้อยู่ถัดจากผู้ดูแลระบบ) · Widget2/WidgetGroup2 ยัง comment
@@ -543,60 +553,58 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{Comman
 
 ## 10. เช็คลิสต์เปิด session ใหม่
 
-1. อ่านไฟล์นี้ให้จบ → `core_admin/CLAUDE.md` (โหลดอัตโนมัติ — กฎ/สถาปัตยกรรม/login) → `core_admin/docs/cms-menu-playbook.md` (Playbook 19 ขั้น + สเปกรายเมนู) เมื่อจะทำเมนู → `d:\Project\assetfund.co.th.2026\CLAUDE.md` ("สถานะปัจจุบัน" + "ระบบ Preview" + "วิธีต่อเมนูถัดไป")
-2. ตรวจเซิร์ฟเวอร์: `Get-NetTCPConnection -LocalPort 7300,7310,5310 -State Listen` + ดูชื่อ process (`Get-CimInstance Win32_Process -Filter "ProcessId=<pid>"`) — 5310 ที่เป็น `dotnet watch` คือของผู้ใช้ · ไม่มี 7300/7310 ให้ spawn ตาม §9.2 / §9.3
-3. `git status` ทั้ง 2 repo: admin ควรเห็นไฟล์ตาม §11 · front-end ต้องสะอาด (ล่าสุด `bc15ab1`)
-4. ตรวจ DB ตาม §9.1: ไม่มีแถว `[TEST…]`/`[DRAFT…]` · ทุกแถว `pb_status = 1` และฉบับร่าง = `pb_*` · intro/popup status 0 เป็นค่าที่ผู้ใช้ตั้ง (ไม่ต้องแก้) · `web_cms_page` 1 แถว, `web_widget` 18 แถว (id 28–45), `web_widget_group` 3 แถว (id 4/5/6), `widget2`/`group2` ว่าง
-4b. ตรวจว่าหน้าแรก 7310 เรียง section ตรงกับ `pb_box_layout` (curl `grep -o '<section class="section[^"]*"'`) — และถ้าผู้ใช้ใช้ 5310 ให้เทียบด้วย (ต่างกัน = 5310 ยังไม่ rebuild)
-5. ลองเปิด `https://localhost:7300/Admin/User/Login` ด้วย Playwright (§7.1) ให้แน่ใจว่า reCAPTCHA ยังโหลดได้ (ต้องมีอินเทอร์เน็ต)
-6. รับคำสั่ง → ทำตาม §6 ทั้งสาย → ปิดงานตาม §6 ข้อ 16–18 และอัปเดตไฟล์นี้
+1. อ่านไฟล์นี้ (⏩ → §0 → §2 → §15 → §12) → `core_admin/CLAUDE.md` (โหลดอัตโนมัติ) → `core_admin/docs/cms-menu-playbook.md` เมื่อจะทำเมนู → `D:\Project\assetfund.co.th.2026\CLAUDE.md` เมื่อจะแตะ front-end (กฎใน CLAUDE.md admin: งานเกี่ยวกับ front-end / เว็บเดิม ต้องอ่าน CLAUDE.md ของโปรเจกต์นั้นเสมอ)
+2. ตรวจเซิร์ฟเวอร์:
+   ```powershell
+   Get-NetTCPConnection -LocalPort 7300,7310,7311,5310 -State Listen | select LocalPort,OwningProcess -Unique
+   Get-CimInstance Win32_Process -Filter "ProcessId=<pid>" | select Name,CommandLine
+   ```
+   - 7310/5310 เป็น `asset-fund.exe` จาก `bin\Debug` = **ของผู้ใช้** (ห้ามฆ่า) · ไม่มีใครถือ 7310 → ถามผู้ใช้ก่อนว่าจะรันเองไหม (ผู้ใช้กดรันจาก Visual Studio ได้เลยเพราะ profile แรกคือ https) หรือเปิด build แยกตาม §9.3 (ต้องปิดก่อนจบงาน)
+   - ไม่มี 7300 → spawn ตาม §9.2 · เจอ 7311 ค้าง (commandline มี `assetfund-7311-bin`) = ของ Claude รอบก่อน ปิดได้
+   - หน้าแรก admin builder โหลด CSS จาก 7310 — ถ้า 7310 ไม่รัน console จะเต็มไปด้วย `ERR_CONNECTION_REFUSED` (ไม่ใช่บั๊ก)
+3. `git status` ทั้ง 2 repo ต้องสะอาด (admin `6c63dac`, front-end `20ee58c` หรือใหม่กว่า) · `git log -1` เทียบกับ §11
+4. ตรวจ DB ตาม §9.1 + §15.10 (query สถานะ NAV / 3 Links / layout) — ไม่มีแถวทดสอบ, ฉบับร่าง = `pb_*`
+5. หน้าแรก 7310 (หรือ 7311 ถ้าผู้ใช้ยังไม่ restart) ต้องมี 18 section ตาม `pb_box_layout` + ตาราง NAV 5 แถว (28 เม.ย. 2565) + ไทล์ 3 อันต่อ widget NAV
+6. login หลังบ้านด้วย Playwright (§7.1 — reCAPTCHA ติ๊กไม่ติดบางครั้ง ให้ลองซ้ำ 3 ครั้ง §15.8)
+7. รับคำสั่ง → ทำตาม §6 / §15.4–15.6 → ทดสอบ → อัปเดตเอกสาร (ไฟล์นี้, CLAUDE.md 2 ฝั่ง, playbook, backend-menu-status.html ถ้าแตะเมนูซ้าย, preview-spec ถ้าแตะ Preview) → **commit + push ทั้ง 2 repo**
 
 ---
 
-## 11. ไฟล์ค้าง commit + กฎ commit
+## 11. git — กฎ commit/push + ประวัติ
 
-### admin (`core_admin`) — ผู้ใช้ commit เองแล้ว `f175199` (17 ก.ย. 2569 15:56) — รายการด้านล่างคือสิ่งที่อยู่ใน commit นั้น (เก็บไว้เป็นบันทึกว่าไฟล์ไหนแก้อะไร) · ค้างจริงตอนนี้: `CLAUDE.md`, `docs/CMS-MENU-HANDOFF.md`
+**กฎ (ผู้ใช้สั่ง 17 ก.ย. 2569)**: จบงาน (build ผ่าน + ทดสอบแล้ว) → `git commit` + `git push` **ทุก repo ที่มีไฟล์แก้** ไม่ต้องถาม · 1 งาน = 1 commit ข้อความบอกว่าแก้อะไร · ลงท้าย `Co-Authored-By:` ตาม system reminder ของ session นั้น · ห้าม `--force` · push ไม่ผ่านต้องแจ้งทันที
+ทั้ง 2 repo **ไม่มี remote `origin`** (ผู้ใช้ push ผ่าน TortoiseGit "Arbitrary URL"):
 
+```bash
+cd /d/Project/admin.assetfund.co.th.2026 && git add -A && git commit -F - && git push https://github.com/anurakball/admin.assetfund.co.th.2026.git master
+cd /d/Project/assetfund.co.th.2026       && git add -A && git commit -F - && git push https://github.com/anurakball/assetfund.co.th.2026.git master
 ```
-M  .gitignore                                   un-ignore docs/CMS-MENU-HANDOFF.md, docs/sql/*.sql
-M  Areas/Admin/Controllers/AdminCoreController.cs   ลบกิ่ง HomeHeader Template + BuildMicrositeBoxLayout (ลบอย่างเดียว)
-M  Areas/Admin/Controllers/UserController.cs    ตรวจ reCAPTCHA ใน Login POST + ส่ง SiteKey ให้ view
-A  Areas/Admin/Helpers/ReCaptcha.cs             (ไฟล์ใหม่ ยัง untracked)
-M  Areas/Admin/Helpers/AdminHelpers.cs          fix Db.T() 4 จุด (บั๊ก sort)
-M  Areas/Admin/Helpers/AdminMenu.cs             เปิด 6 เมนู, ยุบ "หน้าหลัก", กลุ่ม "ข้อมูลหน้าแรก", breadcrumb, Field_HomeHeader/Footer, CanMove Pop-Up, ไอคอน · (18 ก.ย.) เปิด CMSPage + กลุ่ม Widget, CMSPage Can*=false, Widget section_key
-M  Areas/Admin/Helpers/AdminMenuAssetPlus.cs    breadcrumb ApOtherIndices
-M  Areas/Admin/Helpers/PreviewMenu.cs           ถอด HomeSEO · (18 ก.ย.) CMSPage -> page, แก้ ANY(@box)
-M  Areas/Admin/Controllers/WidgetAjaxController.cs   (18 ก.ย.) Manage อ่าน pb_mod_name แทน map id hardcode
-M  Areas/Admin/Views/CMSPage/Edit.cshtml       (18 ก.ย.) CSS จาก FrontURL, fix box_data2/substring/SQL/bind, Swiper hero, ดินสอเฉพาะ mod_name
-M  Areas/Admin/Views/Shared/_PartialToolWidget.cshtml   (18 ก.ย.) parameterized + ดินสอเฉพาะ mod_name
-M  Areas/Admin/Views/Widget/{Create,Edit}.cshtml, WidgetAjax/Manage.cshtml   (18 ก.ย.) ช่อง Section Key
-M  Areas/Admin/Views/HomeHeader/Edit.cshtml, HomeFooter/Edit.cshtml    ฟอร์มใหม่ทั้งไฟล์
-D  Areas/Admin/Views/{HomeIntroPage,HomePopUp,HomeSEO,HomeHeader,HomeFooter}/Index.cshtml   สำเนาเก่า (staged)
-M  Areas/Admin/Views/Shared/_PartialAdminMenu.cshtml   reCAPTCHA ใน modal re-login
-M  Areas/Admin/Views/User/Dashboard.cshtml      ปุ่ม Logout
-M  Areas/Admin/Views/User/LastActivity.cshtml   ลบ ;
-M  Views/Login/Index.cshtml                     ⚠ ปนกัน: ของผู้ใช้ (สุ่มพื้นหลัง bg0–bg9) + ของ Claude (ซ่อน dropdown + reCAPTCHA)
-M  appsettings.json, appsettings.Development.json.example   GoogleReCaptcha (คีย์ทดสอบ)
-M  CLAUDE.md, docs/backend-menu-status.html, docs/preview-spec.md
-?? docs/CMS-MENU-HANDOFF.md, docs/sql/ (11 ไฟล์)
-```
-นอก git: `appsettings.Development.json` (มี GoogleReCaptcha แล้ว) · รูปใน `wwwroot/Files/Site0/1/{home,intro_page,pop_up,header,footer}/` + `widget_icons/assetplus/` (21 รูป thumbnail widget) · `docs/backup-sam-widgets/` (dump ข้อมูล SAM ก่อนลบ) · DB dev (ALTER 2 ตาราง, fix DEFAULT, ข้อมูล Asset Plus)
+⚠ repo admin รัน git ที่ **โฟลเดอร์แม่** `admin.assetfund.co.th.2026` (path ในผลลัพธ์ขึ้นต้น `core_admin/`) · repo `.old` (เว็บเดิม) **ห้าม push** (มี credential ใน web.config) — ถ้าแก้ให้ commit ในเครื่องอย่างเดียว
 
-ถ้าผู้ใช้สั่ง commit admin: แบ่ง commit ตามเรื่องได้ (เมนู CMS / Login-reCAPTCHA / เอกสาร) · ถามเรื่อง `Views/Login/Index.cshtml` เพราะมีงานของผู้ใช้ปน · ลงท้าย `Co-Authored-By:` ตาม system reminder ของ session นั้น
-
-### front-end — commit ครบ (push ด้วย URL ตรง ดู §2.1 ข้อ 7)
-
+**admin (ล่าสุดก่อน → เก่า)**
 ```
-bc15ab1 Point CLAUDE.md at the rewritten CMS handoff document
-5e6a921 Remove draft summary bars from preview pages and drop SEO preview
-8f9bd07 Read header logo and footer brand/promo blocks from SQL Server with draft preview
-6847fec Point CLAUDE.md at the CMS menu handoff document in the admin repo
-f8b558a Read site SEO and embed codes from SQL Server into every layout
-a259e17 Read home announcement pop-ups from SQL Server with draft preview
-d2b1787 Add intro page read from SQL Server with draft preview
-edfdfb7 Point CLAUDE.md at the full end-to-end CMS menu playbook in the admin repo
-bd64d92 Read home hero slides from SQL Server and add draft preview route
+6c63dac Rename ข้อมูลหน้าแรก > ลิงก์ด่วน to มูลค่าหน่วยฯ (3 Links)
+bc242b4 Open HomeSamText as ข้อมูลหน้าแรก > ลิงก์ด่วน for the tiles beside the NAV table
+6740185 Note the front-end now runs on 7310 by default from the user's instance
+b6a2582 Note that the front-end home page now reads tb_fund_nav
+54f8e3d / e189f69  CLAUDE.md: กฎ "งานเกี่ยวกับ front-end/เว็บเดิม ต้องอ่าน CLAUDE.md ของโปรเจกต์นั้น"
+bb937c4 Slim CLAUDE.md to session-wide rules; move long references to docs  (สร้าง docs/cms-menu-playbook.md, docs/legacy-backoffice.md)
+7e8e776 Drop cms-note help paragraphs from the Header and Footer forms
+f8793e8 Move page builder menu to ข้อมูลหน้าแรก as จัดการ Widget with glyph icons
+f175199 (ผู้ใช้ commit เอง 17 ก.ย. — รวมงาน session 1–3)
 ```
+**front-end (ล่าสุดก่อน → เก่า)**
+```
+20ee58c Rename the admin quick-tiles menu to มูลค่าหน่วยฯ (3 Links) in comments and docs
+8e434fc Read the quick tiles beside the NAV table from the admin "ลิงก์ด่วน" menu
+f429b45 Make https the default launch profile so the browser opens https://localhost:7310
+5a860ce Read home page NAV prices from tb_fund_nav instead of mock data
+ac785cd Record the GitHub push target and the commit+push rule in CLAUDE.md
+6021c07 Rename the admin page builder menu to จัดการ Widget in comments and docs
+3f4d86f Render home sections in the order saved by the admin page builder
+bc15ab1 … bd64d92  (session 1–2: hero, intro, popup, SEO, header/footer, ถอดแถบพรีวิว)
+```
+**ของที่ไม่อยู่ใน git (ต้องจำตอน deploy §13)**: `core_admin/appsettings.Development.json` · รูปใน `core_admin/wwwroot/Files/Site0/1/{home,home/tiles,intro_page,pop_up,header,footer,widget_icons/assetplus}/` · `core_admin/docs/backup-sam-widgets/` · สคริปต์ `core_admin/docs/comfyui-icons.py` + `.jobs.json` (docs ไม่ track) · DB dev
 
 ---
 
@@ -608,11 +616,14 @@ bd64d92 Read home hero slides from SQL Server and add draft preview route
 
 | งาน | สิ่งที่ต้องรู้ล่วงหน้า / แนวทาง |
 |---|---|
+| **ทำ section อื่นของหน้าแรกให้ดึง DB** (ต่อจาก NAV + 3 Links — ผู้ใช้สั่งทีละ section ด้วยรูปแบบ "หน้า http://localhost:5310/ มี section X … ยัง hardcode … ดึงข้อมูลจริง … ทำงานได้ทุกเงื่อนไข V1/V3/2/3 widget … ไม่ซ้ำซ้อน … ทดสอบละเอียด") | ใช้ **สูตร §15.4 (ข้อมูลจากตารางที่มีอยู่)** หรือ **§15.5 (เมนูแก้ไขอย่างเดียวแบบ SAM ใส่ใจ)** · ลำดับที่เหลือบนหน้าแรก: **กองทุนแนะนำประจำเดือน** (`FeaturedFunds`, mock `IFundService.GetFeatured(6)` — ต้องออกแบบเมนูเลือกกองทุน/รูป หรือใช้ `tb_fund` + ธง), **เปิดมุมมองลงทุนตามเทรนด์** (`ExploreThemes`, mock `GetThemes()` 6 ธีม — ไม่มีเมนูหลังบ้าน อาจใช้ `web_core_item`/`web_core_group` module ใหม่), **บทความ/กิจกรรม/ข่าวประกาศ** (`Insights`, mock `IInsightService` — ทางเลือก: `web_core_news` ของ SAM หรือพอร์ต `tb_news*`/`tb_announcement*` จากหลังบ้านเดิม → ต้องมีหน้ารายละเอียด + Preview โหมด item), **ตัวแทนขาย** (`Distributors`, mock `IDistributorService` 16 โลโก้ — เหมาะกับ `web_core_item` module ใหม่: รูป+ชื่อ+URL+จัดเรียง), **ข้อความหัวแต่ละ section** (หัวข้อ/ปุ่ม "ดูทั้งหมด" — ยัง hardcode ใน partial ตามที่ผู้ใช้เลือก 18 ก.ย. เช้า; ถ้าจะทำใช้ `HomeSamText2–6` สูตร §15.5) · **ทุกตัวต้อง**: ดึงใน `HomeController.BuildHomeViewModel` ครั้งเดียว + เฉพาะเมื่อ `Sections` มี key นั้น (ดูโค้ด `needNav`) · ทดสอบ V1/V2/V3 เดี่ยว, 2, 3, ไม่มี, นับ query ด้วย XE (§15.8) · ถามผู้ใช้ก่อนถ้าไม่มีเมนูหลังบ้านรองรับ (ต้องเลือกโครงข้อมูล) |
+| **หน้า `/funds/nav`, `/funds/performance` ต่อ DB** | ตอนนี้ยัง `MockFundService.GetNavSummary` (แบ่งหมวดตาม mock) · ข้อมูลจริง: `tb_fund_nav` (Flag=1) + `tb_fund_cat`/`tb_fund` (หมวด) + `tb_fund_performance(_hd)` · ทำแล้ว NAV หน้าแรกชี้ `/funds/nav` ทุกแถว · หน้ารายละเอียดกองทุน `/funds/{code}` ก็ยัง mock (รหัสจริงจะ 404 — เหตุผลที่ลิงก์ NAV หน้าแรกไป `/funds/nav`) · วิธีเว็บเดิมอ่าน: `funds-price.aspx` (latest NAV ต่อกอง), `historical-funds-price.aspx`, `fundfact-template0N.aspx` |
+| **แก้บั๊ก Hero V3 ใน page builder** | §15.9 — แก้ `initWidgetSwipers()` ใน `Areas/Admin/Views/CMSPage/Edit.cshtml` ให้ใช้เงื่อนไข loop แบบ front-end `home.js` (`slideCount >= ceil(slidesPerView)*2`, ไม่งั้น `rewind`) · ผู้ใช้รับทราบแล้วแต่ยังไม่ได้สั่งแก้ |
 | **เมนู footer 5 คอลัมน์ (`footer__nav`) + ลิงก์นโยบายล่างสุด (`footer__legal`)** | ผู้ใช้บอกตอนสั่ง Footer ว่า "จะทำเมนูด้านซ้ายแยกไปอีก" · SAM มี `CMSPageFooter1` / `CMSPageFooter2` (ตาราง `web_cms_page_footer1/2`, Preview โหมด `cms`) อยู่ในกลุ่ม "หน้าเว็บไซต์" (ยัง `//`) · front-end ตอนนี้ hardcode ใน `Views/Shared/_PartialFooter.cshtml` (5 คอลัมน์: กองทุนรวม / กองทุนส่วนบุคคล+สำรองเลี้ยงชีพ / บริการของเรา / ข่าวสาร / เกี่ยวกับเรา) และ `_PartialFooterSale.cshtml` (ไม่มี nav, legal 3 ลิงก์) · **front-end ใช้ attribute routing ไม่ใช่ seo_url แบบ SAM** → ต้องตกลงกับผู้ใช้ว่าจะเก็บ "หัวข้อ + ลิงก์ + ลำดับ" แบบไหน (น่าจะ web_core_group=หัวคอลัมน์ + web_core_item=ลิงก์ หรือใช้ CMSPageFooter1/2 เดิม) · ถ้าใช้ตารางเดิมของ SAM ต้องดูว่า Preview `cms` มีความหมายหรือไม่ (ไม่มีหน้า CMS ให้แสดง อาจถอดปุ่มแบบ SEO) |
-| **ข้อความในแต่ละ section ของหน้าแรกให้แก้ได้จากหลังบ้าน** | ผู้ใช้เลือก 18 ก.ย. ให้ hardcode ไปก่อน · แนวทาง: เปิด `HomeSamText2–6` (web_core_single module 2–6) เปลี่ยนชื่อ/ฟอร์มใหม่แบบ Header/Footer แล้วใส่ `mod_name` ใน widget (ตัวอย่างในหลังบ้านจะเติม token `|||pb_t1|||` เอง) + front-end อ่านค่าไปแทน hardcode ใน partial · hero ทำแบบนี้แล้ว (`mod_name = HomeImageSlide` + `|||REPEAT|||`) |
+| **ข้อความในแต่ละ section ของหน้าแรกให้แก้ได้จากหลังบ้าน** | ผู้ใช้เลือก 18 ก.ย. ให้ hardcode ไปก่อน · ⚠ `HomeSamText` (module 1) ถูกใช้เป็น "มูลค่าหน่วยฯ (3 Links)" แล้ว · แนวทาง: เปิด `HomeSamText2–6` (web_core_single module 2–6) เปลี่ยนชื่อ/ฟอร์มใหม่แบบ Header/Footer แล้วใส่ `mod_name` ใน widget (ตัวอย่างในหลังบ้านจะเติม token `|||pb_t1|||` เอง) + front-end อ่านค่าไปแทน hardcode ใน partial · hero ทำแบบนี้แล้ว (`mod_name = HomeImageSlide` + `|||REPEAT|||`) |
 | **เมนูหน้าอื่น (`CMSPage` แบบ SAM = เมนูหลัก header + หน้า CMS)** | ผู้ใช้ตัดสินใจ 18 ก.ย. ว่า `web_cms_page` เหลือแถวเดียว (หน้าแรก) — เมนูหลักของ front-end ยัง hardcode ใน `_PartialHeader.cshtml` · ถ้าจะทำต้องออกแบบใหม่ (ไม่ใช้ตารางนี้) |
 | **ใช้ reCAPTCHA คีย์จริง** | สมัครที่ https://www.google.com/recaptcha/admin (v2 Checkbox) แยก dev (localhost) / production (โดเมนจริง) → แก้ `GoogleReCaptcha:SiteKey/SecretKey` · ไม่ต้องแก้โค้ด |
-| กลุ่ม "ข้อมูลหน้าแรก" เมนูอื่น | `HomeImageConf` (ตั้งค่า effect/ความเร็วสไลด์ — ผู้ใช้เคยบอก "ยังไม่ต้อง"; front-end `wwwroot/js/pages/home.js` hardcode delay 4000) · `HomeSamText…7` เป็นเนื้อหา SAM (ใส่ใจ/บริหารหนี้/ทรัพย์เด่น) **ไม่ตรงกับเว็บ Asset Plus** → ต้องถามผู้ใช้ว่า section ไหนของหน้าแรก Asset Plus ต้องแก้ได้ (หน้าแรกมี: hero, NAV summary, กองทุนแนะนำ, ธีมกองทุน, Insights, ผู้สนับสนุนการขาย) |
+| กลุ่ม "ข้อมูลหน้าแรก" เมนูอื่น | (`HomeSamText` ใช้ไปแล้วเป็น 3 Links) `HomeImageConf` (ตั้งค่า effect/ความเร็วสไลด์ — ผู้ใช้เคยบอก "ยังไม่ต้อง"; front-end `wwwroot/js/pages/home.js` hardcode delay 4000) · `HomeSamText…7` เป็นเนื้อหา SAM (ใส่ใจ/บริหารหนี้/ทรัพย์เด่น) **ไม่ตรงกับเว็บ Asset Plus** → ต้องถามผู้ใช้ว่า section ไหนของหน้าแรก Asset Plus ต้องแก้ได้ (หน้าแรกมี: hero, NAV summary, กองทุนแนะนำ, ธีมกองทุน, Insights, ผู้สนับสนุนการขาย) |
 
 ### 12.2 งานใหญ่ที่อยู่ในความต้องการตั้งแต่แรก (front-end ยัง mock)
 
@@ -629,6 +640,8 @@ bd64d92 Read home hero slides from SQL Server and add draft preview route
 
 - ~~commit ฝั่ง admin ต้องถามก่อน~~ 17 ก.ย. เย็น ผู้ใช้สั่งให้ commit + push เองทุกครั้งที่จบงาน (§2.1 ข้อ 7)
 - ทั้ง 2 repo ยังไม่มี remote `origin` (push ด้วย URL ตรง) — เสนอผู้ใช้ตั้ง `origin` ได้
+- Hero V3 error ในหน้า builder (§15.9) · id ซ้ำ (`heroSlider`, `myTab`, `gi_<n>`) ในหน้า builder จาก HTML ตัวอย่าง widget + การ์ดที่ลากจากพาเลตต์ (ไม่กระทบการทำงาน)
+- ข้อมูล NAV ใน DB dev เก่า (ล่าสุด 28 เม.ย. 2565) และ "รอบนำเข้าล่าสุด" 16 ต.ค. 2025 เป็นการนำเข้าทดสอบ NAV ปี 2020 (หน้าแรกเว็บเดิมจึงแสดงวันที่ 2563) — ผู้ใช้รับทราบ ไม่ต้องนำเข้าใหม่
 - `AdminCoreController.Edit` ไม่กรอง `module_id`
 - ชื่อผู้ใช้หลังบ้านยังเป็นของ SAM ("สยามอี ซีเอ็มเอส")
 - popup ไม่เด้งตอนพรีวิวเมนูอื่นของหน้าแรก (ข้อยกเว้นเดียวของ "พรีวิวเหมือนเว็บจริง")
@@ -638,6 +651,8 @@ bd64d92 Read home hero slides from SQL Server and add draft preview route
 ---
 
 ## 13. งานที่ต้องทำตอน deploy ขึ้นเซิร์ฟเวอร์จริง
+
+> session 4 เพิ่ม: สคริปต์ `docs/sql/2026-09-18-home-quick-tiles.sql` (3 Links + token ใน widget NAV) · รูป `Files/Site0/1/home/tiles/*.jpg` + `widget_icons/assetplus/icon-*.png` · ชื่อ/ไอคอน widget ที่แก้ด้วย SQL (ต้องทำซ้ำบนเซิร์ฟเวอร์ หรือใช้ `seed-ref-home-widgets.sql` ฉบับที่อัปเดตแล้ว) · ถ้า `web_widget` บนเซิร์ฟเวอร์มาจาก seed เก่า ให้แก้ `title`/`img1` ตาม §15.2
 
 1. **DB**: รัน `docs/sql/2026-09-18-home-quick-tiles.sql` (ลิงก์ด่วน + token ใน widget NAV — ขั้น 1 เขียนทับเนื้อหาแถว) · รัน `docs/sql/2026-09-16-fix-default-constraints.sql`, `docs/sql/2026-09-17-web-home-header-footer.sql`, `docs/sql/2026-09-18-web-widget-section-key.sql`, `docs/sql/2026-09-18-delete-sam-cms-widgets.sql` แล้วใส่ widget 3 กลุ่ม × 6 (`seed-ref-home-widgets.sql` — ตรวจ `box_layout` หลังรัน) · ใส่ข้อมูล Asset Plus ของ 6 เมนู (ผ่านหลังบ้าน หรือดัดแปลงจาก `seed-ref-*.sql`) · สิทธิ์ `2026_web_admin_module` ให้ตรง (`HomePopUp can_move = 1` ฯลฯ)
 2. **รูป**: อัปโหลด `core_admin/wwwroot/Files/Site0/1/{home,home/tiles,intro_page,pop_up,header,footer,widget_icons/assetplus}/` ขึ้นเซิร์ฟเวอร์ admin
@@ -756,3 +771,164 @@ front-end SqlHomeLayoutService: pb_box_layout → split wg_<id> → SELECT pb_se
 3. **เมนูหลัก header** — ผู้ใช้ตัดสินใจแล้วว่า `web_cms_page` ไม่ใช้เป็นเมนูเว็บ (เหลือหน้าแรก) → ถ้าทำต้องออกแบบใหม่
 4. **ต่อข้อมูลกองทุน/ข่าว/ประกาศเข้า front-end** (§12.2) — เมนู `Ap*` มีครบ, front-end ยัง mock · Preview ของตาราง `tb_*` ยังไม่มีกลไก
 5. commit ฝั่ง admin — ผู้ใช้ทำเองแล้ว (`f175199`) เหลือเอกสาร 2 ไฟล์ · **reCAPTCHA คีย์จริง** · งาน deploy §13
+
+---
+
+## 15. session 4 (18 ก.ย. 2569) — รายละเอียดเต็ม + สูตรที่ใช้ต่อได้
+
+> เขียนตอนปิด session 4 (context ใกล้เต็ม) ให้ session ใหม่ทำงานต่อได้ทันที · สเปกระดับคอลัมน์ของเมนูอยู่ `docs/cms-menu-playbook.md` (บล็อก `CMSPage`, `HomeSamText`)
+
+### 15.1 คำสั่งผู้ใช้ใน session นี้ (ตามลำดับ) + ผล
+
+| # | คำสั่ง (สรุป) | ผล / commit |
+|---|---|---|
+| 1 | อ่าน handoff + ตรวจสถานะ | ตรวจ 7300/7310/5310, git, DB, ลำดับ section — ปกติ |
+| 2 | ย้าย "หน้าเว็บไซต์ > จัดการเมนูเว็บไซต์" ไปเป็น**เมนูแรก**ของ "ข้อมูลหน้าแรก" | `Menu()` ย้ายบรรทัด (บรรทัดเดิมเหลือ comment ชี้ทาง) · `TextBreadcrumb` เปลี่ยน |
+| 3 | เปลี่ยนชื่อเป็น **"จัดการ Widget"** | `Title` + `Text` + `TextBreadcrumb` + comment/เอกสาร front-end (`6021c07`) |
+| 4 | ไอคอนเมนูให้เหมาะสม | `fa-solid fa-sitemap` → **`fa-solid fa-layer-group`** |
+| 5 | ปุ่ม Back ใน `/Admin/CMSPage/Edit/1` ลูกศรกับคำว่า Back ไม่ตรงกัน | สาเหตุ: builder โหลด `main.min.css` ของ front-end ที่มีคลาส `.btn-icon` (2.75rem) ชนกับของ admin → override `#header_custom .btn .btn-icon` ใน `Views/CMSPage/Edit.cshtml` |
+| 6 | กลุ่ม Widget: ตัด "(Version n)" · Widget: ตัด "— DEFAULT" และ "(Hero)" · ไอคอนทุกรายการเป็นรูป icon สร้างด้วย ComfyUI (แบบ SAM) | §15.2 (`f8793e8`) |
+| 7 | จด CLAUDE.md: ขั้นตอนสุดท้ายของทุกงาน = **commit + push** (ให้ URL GitHub 2 repo จากรูป TortoiseGit) | หัวข้อ "Git" ต้น `core_admin/CLAUDE.md` + front-end CLAUDE.md + memory |
+| 8 | ห้าม `<p class="cms-note">` ในหลังบ้าน (ข้อความเยอะเกิน) — ของอื่นแบบ SAM (fieldset/legend/span สีส้ม) ยังใช้ | ลบ 7 ย่อหน้าใน `HomeHeader/Edit`, `HomeFooter/Edit` + กฎใน playbook/CLAUDE.md (`7e8e776`) |
+| 9 | ตรวจ CLAUDE.md ว่ามีอะไรไม่จำเป็น (ลดภาระ auto-load) | 164 KB → ~67 KB: ย้าย Playbook+สเปกรายเมนู → `docs/cms-menu-playbook.md`, รายละเอียด `tb_*`/ws_schedule → `docs/legacy-backoffice.md` (`bb937c4`) · เพดานที่แนะนำ ~50,000 ตัวอักษร (ตอนนี้ ~80%) |
+| 10 | CLAUDE.md admin ต้องบอกว่างาน front-end/เว็บเดิม ให้อ่าน CLAUDE.md ของโปรเจกต์นั้นด้วย | กฎ 2 ข้อในบล็อก 🗂 ต้นไฟล์ (`e189f69`, `54f8e3d`) |
+| 11 | ตรวจ `C:\Users\ball\.claude\CLAUDE.md` | เสนอย้ายบัญชี sam/egth ไป `CLAUDE.local.md` ของโปรเจกต์นั้น — **ผู้ใช้สั่ง "ยังไม่ทำอะไร"** ห้ามแตะ |
+| 12 | ตรวจ CLAUDE.md ของ front-end + `.old` | รายงานจุดล้าสมัย (pointer ไป playbook ที่ย้ายแล้ว ฯลฯ) — **ผู้ใช้ยังไม่สั่งแก้** (บางจุดแก้ไปแล้วระหว่างงานอื่น) · `.old` มี `CLAUDE.md` ค้าง modify ยังไม่ commit (ของเดิม ไม่ใช่งาน session นี้) |
+| 13 | console error หลายจุดในหน้า builder | สาเหตุ 7310 ไม่รัน (CSS/Swiper ของ builder โหลดจาก `FrontURL`) — ไม่ใช่บั๊กโค้ด |
+| 14 | ทดสอบใส่ widget ครบ 18 ตัว | ผ่าน ยกเว้นบั๊ก Hero V3 ใน builder (§15.9) · ผู้ใช้สั่งจัดใหม่ 2 รอบ: ทีละกลุ่ม → **ทีละชนิด section (V1,V2,V3)** = ค่าปัจจุบัน |
+| 15 | NAV หน้าแรก (`nav-prices__card`) ดึงข้อมูลจริงตามเว็บเดิม — **วางแผนก่อน** แล้วผู้ใช้เลือก: 1ก เรียง % มากสุดของวันล่าสุด · 2ก ทุกแถวลิงก์ `/funds/nav` · 3 รับทราบว่าข้อมูล dev เก่า | §15.4 (`5a860ce`) |
+| 16 | ข้อความ "ข้อมูล ณ วันที่ 17 กันยายน 2569 เวลา 18:00 น." มาจากไหน | จาก `MockFundService` (วันที่ผูกนาฬิกา, 18:00 คงที่) — 5310 ยังรัน build เก่า |
+| 17 | launchSettings front-end ให้ auto browser ไป https://localhost:7310 | สลับ profile `https` เป็นตัวแรก (`f429b45`) · ปิด 7310 ของ Claude · กฎใหม่เรื่องพอร์ต (⏩ ข้อ 3) |
+| 18 | ไทล์ 3 อัน (`quick-tiles`) ข้างตาราง NAV ดึงจริง แบบเมนู SAM "ข้อมูลหน้าแรก > SAM ใส่ใจ" (`HomeSamText`, แก้ไขอย่างเดียว) | §15.5 (`bc242b4` + `8e434fc`) |
+| 19 | เปลี่ยน "ลิงก์ด่วน" เป็น **"มูลค่าหน่วยฯ (3 Links)"** (แค่ text ไม่ต้องทดสอบ) | `6c63dac` + `20ee58c` · ชื่อรายการใน DB ยังเป็น "ลิงก์ด่วน ข้างตารางมูลค่าหน่วยลงทุน" (ข้อมูล แก้ได้ในฟอร์ม) |
+| 20 | เขียน handoff นี้ | ไฟล์นี้ |
+
+### 15.2 ข้อมูล Widget หลังปรับ (ชื่อ + ไอคอน)
+
+- `[2026_web_widget_group]`: id 4 `DEFAULT` · 5 `MODERN` · 6 `CLASSIC` · `img1` = `Files/Site0/1/widget_icons/assetplus/icon-group-{default,modern,classic}.png` (glyph น้ำเงิน #00295A — หัว accordion ตอนพับพื้นขาว)
+- `[2026_web_widget]` 18 แถว: `title` = ชื่อไทยล้วนเหมือนกัน 3 เวอร์ชัน (แบนเนอร์หน้าแรก / มูลค่าหน่วยลงทุน / กองทุนแนะนำประจำเดือน / เปิดมุมมองลงทุนตามเทรนด์ / บทความ / กิจกรรม / ข่าวประกาศ / ตัวแทนขาย) · `img1` = `widget_icons/assetplus/icon-<SectionKey ไม่มี V2/V3>.png` (glyph ขาว — การ์ดพาเลตต์พื้นน้ำเงิน) · `mod_name`: hero 3 ตัว = `HomeImageSlide`, NAV 3 ตัว (29/35/41) = **`HomeSamText`**
+- ไอคอนสร้างด้วย ComfyUI Z-Image Turbo: prompt "flat minimalist vector icon, one single solid black pictogram … on plain white background" 1024² → invert เป็น alpha → ย้อมสี → PNG 128×128 (สคริปต์ `docs/comfyui-icons.py` + `docs/comfyui-icons.jobs.json` — ไม่ track ใน git; ต้นแบบ `admin.sam.or.th/core_admin/docs/comfyui-gen.py`) · สร้าง 2 seed ต่อรูปแล้วเลือก
+- ไฟล์ screenshot เดิม `<Key>.jpg`/`group-v*.jpg` ยังอยู่ในโฟลเดอร์แต่ไม่ถูกอ้าง · seed อ้างอิง `docs/sql/seed-ref-home-widgets.sql` อัปเดตชื่อ/ไอคอนแล้ว
+
+### 15.3 เอกสารอยู่ไหน (หลังลดขนาด CLAUDE.md)
+
+| ไฟล์ | โหลดอัตโนมัติ? | มีอะไร |
+|---|---|---|
+| `core_admin/CLAUDE.md` | ✅ ทุก session | กฎ (Git, cms-note, Preview, พอร์ต), สถาปัตยกรรม, ตารางเมนูที่ทำแล้ว (สั้น), กับดักหลัก, login/deploy/DB |
+| `C:\Users\ball\.claude\CLAUDE.md` | ✅ | บัญชี sam/egth + ComfyUI (ผู้ใช้สั่งไม่ให้แก้) |
+| `core_admin/docs/CMS-MENU-HANDOFF.md` (ไฟล์นี้) | ❌ อ่านเอง | สถานะ/ความต้องการ/สูตร/เทคนิค/แผน |
+| `core_admin/docs/cms-menu-playbook.md` | ❌ | Playbook 19 ขั้น + **สเปกรายเมนู** (front-end ทำตามอะไร) |
+| `core_admin/docs/legacy-backoffice.md` | ❌ | หลังบ้านเดิม `tb_*`, ws_schedule, drill-down |
+| `core_admin/docs/backend-menu-status.html` | ❌ | รายงานเมนูเปิด 36 / ปิด 143 (อัปเดตทุกครั้งที่แตะเมนูซ้าย) |
+| `core_admin/docs/preview-spec.md` | ❌ | สเปก Preview (บรรทัดสถานะบนสุด) |
+| `D:\Project\assetfund.co.th.2026\CLAUDE.md` | ❌ (อ่านเมื่อแตะ front-end) | ตาราง "สถานะปัจจุบัน" (service ที่ต่อ DB), Git, ทดสอบ 7 ขั้น, SCSS, ไฟล์ที่ต่างจาก static web |
+| `D:\Project\assetfund.co.th.old\CLAUDE.md` | ❌ (อ่านเมื่อแตะเว็บเดิม) | วิธีรัน 8099, หลังบ้านเดิม, ช่องโหว่ |
+| memory `C:\Users\ball\.claude\projects\d--Project-admin-assetfund-co-th-2026\memory\` | ✅ index | กฎ commit/push, CLAUDE.md ต้องเล็ก, ห้าม checkout, workflow |
+
+**กฎการเขียนเอกสาร**: ของที่ต้องรู้ทุก session → CLAUDE.md (1–3 บรรทัด) · ขั้นตอนยาว/สเปก/ตาราง → `docs/*.md` แล้วชี้จาก CLAUDE.md · ทุกงานต้องอัปเดต: ไฟล์นี้, playbook (สเปก), CLAUDE.md 2 ฝั่ง (ตารางสถานะ), `backend-menu-status.html` (ถ้าแตะเมนูซ้าย), `preview-spec.md` (ถ้าแตะ Preview)
+
+### 15.4 สูตร A — section หน้าแรกดึงจาก**ตารางที่มีอยู่แล้ว** (ตัวอย่างจริง: NAV `SqlNavPriceService`)
+
+ใช้เมื่อข้อมูลมีในตารางเดิม (`tb_*`) หรือตาราง CMS อยู่แล้ว ไม่ต้องสร้างเมนูใหม่
+
+1. **สำรวจเว็บเดิม** (`D:\Project\assetfund.co.th.old` — อ่าน CLAUDE.md ของมันก่อน · รัน 8099 ตามนั้น): หา query ใน `default.aspx` และหน้าที่เกี่ยวข้อง (`grep -n "tb_<table>" *.aspx include/*.aspx | grep -v "_backup\|_old"`) · **รัน query ของเว็บเดิมกับ DB จริง** ดูผล (ข้อมูล dev อาจเพี้ยน เช่น NAV รอบนำเข้าล่าสุดเป็นข้อมูลทดสอบ) · เปิดหน้าเว็บเดิมเทียบ (`curl … | grep class="asset-name"`)
+2. **วางแผนให้ผู้ใช้เลือกก่อน** ถ้ามีทางเลือกที่กระทบผล (เรียงแบบไหน / ลิงก์ไปไหน / จำนวน) — ผู้ใช้ชอบให้ "วางแผนก่อน ยังไม่แก้โค้ด" ในงานที่แตะข้อมูลจริง
+3. **front-end**: interface ใหม่ `Services/I<X>Service.cs` + `Services/Sql<X>Service.cs` (ไม่แตะ `IFundService` เพราะหน้าอื่นยังใช้ mock) · อ่านเฉพาะแถวเผยแพร่ (`Flag = 1`, `status/show_front = 1`) · ตัวเลข/วันที่ `tb_*` เป็น varchar → parse ใน C# ด้วย `InvariantCulture` (DB compat 100 ห้าม `TRY_CONVERT`) · วันที่ `yyyyMMdd` = ค.ศ.
+4. **performance**: ตาราง `tb_fund_nav` 100k แถว — `ROW_NUMBER() OVER (PARTITION BY FundCode…)` ใช้ 211 ms/642 ms CPU ต่อหน้า (cache 0) → เปลี่ยนเป็น `FROM tb_fund f CROSS APPLY (SELECT TOP 1 … WHERE n.FundCode = f.fundcode … ORDER BY …)` = 65 ms (ใช้ index FundCode+Flag ที่มี) — **ยืนยันผลเท่ากันด้วย EXCEPT ทั้ง 2 ทางก่อนใช้** · ห้ามเพิ่ม index/แก้ตาราง `tb_*`
+5. **ต่อเข้าหน้าแรกแบบไม่ซ้ำซ้อน** (`Controllers/HomeController.BuildHomeViewModel`):
+   ```csharp
+   var sections = _layout.GetSectionKeys();
+   bool needNav = allVersions || sections.Any(k => k.StartsWith("NavPrices", StringComparison.Ordinal));
+   var nav = needNav ? _navPrices.GetLatest(take: 5, lang) : null;          // ครั้งเดียวต่อ request
+   var navPrices = nav is null ? null : new NavPricesSection { Nav = nav, Tiles = _quickTiles.GetTiles(lang) };
+   ```
+   `allVersions: true` สำหรับ `/salepage`, `/home/preview` (แสดงทุกเวอร์ชันเสมอ) · `Index.cshtml` map `baseKey` → ข้อมูล (null = ข้าม section) · partial V1/V2/V3 รับ model เดียวกัน
+6. **ลิงก์**: model `Fund` มี `LinkUrl` (null = `/funds/{code}`) — ใช้เมื่อรหัสจริงยังไม่มีหน้ารายละเอียด
+7. ลงทะเบียน `Program.cs` บรรทัดเดียว (คอมเมนต์ไทยบอกเมนูหลังบ้าน) · ตาราง `tb_*` เผยแพร่ทันที **ไม่มี Preview**
+8. ทดสอบตาม §15.8 (นับ query, ทุกการจัดวาง widget, แถวทดสอบ `TEST-*` ในตารางเดิมสำหรับกรณีขอบ: Change ว่าง/ติดลบ/NAV อ่านไม่ได้/กองซ่อน/แถว Flag 0 ที่ใหม่กว่า/ชื่อ EN) → ลบแถวทดสอบ → เทียบค่ากับหน้าเว็บเดิม (`funds-price.aspx`)
+
+### 15.5 สูตร B — เมนูหลังบ้าน "แก้ไขอย่างเดียว" แบบ SAM ใส่ใจ (ตัวอย่างจริง: `HomeSamText` = มูลค่าหน่วยฯ (3 Links))
+
+ใช้เมื่อ section มีข้อความ/ลิงก์/รูปชุดตายตัว (ไม่ใช่รายการเพิ่มลบได้) — ต้นแบบ SAM: `admin.sam.or.th` `HomeSamText` + `sam.or.th` `HomeController` (`use_HomeSamText`, `HomeSingleCols`, `PreviewState.HomeGate`)
+
+**หลังบ้าน (`core_admin`)**
+1. เลือกโมดูล SAM ที่ถูกซ่อนและใช้ `web_core_single` (ว่าง: `HomeSamText2`–`7` = module 2–7 ยังเป็นเนื้อหา SAM) — มี controller + view + แถวสิทธิ์ (`can_edit/approve = 1`) + แถว DB ครบแล้ว · ตรวจ: `grep -n "Name = \"HomeSamTextN\"" -A 14 Areas/Admin/Helpers/AdminMenu.cs`, `select * from [2026_web_core_single] where module_id = N`
+2. `Menu()`: เปลี่ยนบรรทัด `//new(){…HomeSamTextN…}` ในกลุ่ม "ข้อมูลหน้าแรก" เป็น `new() { Title = "<ชื่อ>", ModuleName = "HomeSamTextN", Link = "HomeSamTextN", Icon = "fa-solid fa-…" }` (ตรวจไอคอนมีใน FA7: `grep -c "\.fa-<name>{" wwwroot/assets/fonts/fontawesome7/css/all.min.css`)
+3. `AllModule()`: `Text`, `TextBreadcrumb = "ข้อมูลหน้าแรก/<ชื่อ>"`, `ListData = ListData_Default`, **field list ของตัวเอง** (แบบ `Field_HomeQuickTiles` — `BuildQuickTileFields()`: `title` + ช่องที่ฟอร์มมีจริง + `issue_date_config/issue_date/expiry_date`) ใส่ทั้ง `FieldUpdate` และ `FieldApprove` · **ห้ามใช้ `FieldUpdate_CoreSingle` ทั้งชุด** (ช่องที่ฟอร์มไม่มีจะถูกเขียน NULL)
+4. ฟอร์ม `Views/HomeSamTextN/Edit.cshtml` เขียนใหม่ (ลอกโครง `Views/HomeSamText/Edit.cshtml`): fieldset `cms-section` + legend, คำใบ้สีส้มในป้าย, **ไม่มี cms-note**, hidden `issue_date_config=1`, validation ใน `sConfirmCustom` (URL `^(/|https?://)`, ไอคอน `^bi-…`), `checkLockedRow(modConfig, jsonRow)` · ช่อง t ของไทล์/บล็อกซ้ำใช้สูตร `t{(n-1)*k + i}`
+5. ข้อมูล: **สำรองแถวเดิม** → ล้าง t1..t50 ของ SAM → ใส่ข้อมูล Asset Plus (ยกจาก hardcode ใน partial) ทั้งฉบับร่างและ `pb_*` → รูป copy จาก front-end `wwwroot/media/...` ไป `core_admin/wwwroot/Files/Site0/1/<โฟลเดอร์>/` เก็บ path `Files/Site0/1/...` · **เขียนเป็นสคริปต์ idempotent ใน `docs/sql/`** (ตัวอย่าง `2026-09-18-home-quick-tiles.sql` — อ้าง widget ด้วย `section_key` ไม่ใช่ id)
+6. `PreviewMenu.cs`: เมนู SAM มีบรรทัด `{ "HomeSamTextN", "page" }` อยู่แล้ว (แก้คอมเมนต์)
+7. page builder: `web_widget.mod_name/pb_mod_name = 'HomeSamTextN'` ของ widget ที่ใช้ข้อมูลนี้ (ปุ่มดินสอ → `WidgetAjax/Manage` เปิด `Edit/<id แรกของ module>`) · แทนข้อความ/ลิงก์/รูปใน `info`+`pb_info` ด้วย token `|||pb_tN|||` (REPLACE โดยระบุบริบทคลาส เช่น `quick-tile__title">…<` — ระวังข้อความซ้ำในปุ่ม "ดูทั้งหมด") · รูป `src="/|||pb_tN|||"`
+8. build + restart admin (แก้ `.cs`) · อัปเดต `backend-menu-status.html` (ย้ายแถว + ตัวเลข 2 หัวตาราง + วันที่)
+
+**front-end (`assetfund.co.th.2026`)**
+9. model ของ section (เช่น `Models/Home/NavPricesSection.cs` = ข้อมูลเดิม + `Tiles`) ถ้า section เดิมใช้ model อื่นอยู่ → ห่อรวมแทนการยัดเข้า model เดิม · แก้ `Index.cshtml`, `Preview.cshtml`, `Salepage.cshtml` ให้ส่ง model ใหม่
+10. `Services/Sql<X>Service.cs` แบบ `SqlHomeQuickTileService`: `SELECT TOP 1 id, {preview.Cols(Table, ModuleId, cols)} FROM [2026_web_core_single] WHERE module_id = N AND web_id = 0 {preview.Gate(Table, ModuleId, Gate)} {preview.RowFilter(Table, ModuleId)} ORDER BY sort, id` · Gate: `status = 1 AND show_front = 1 AND (pb_issue_date_config = '1' OR ช่วงวันที่)` (**nvarchar(1) — เทียบ `'1'`**) · ภาษา `pb_en_x` ว่าง = ไทย · ข้อความว่างของช่องหลัก = ข้ามรายการ (ตัดสินจากภาษาไทยทุกภาษา)
+11. partial ทั้ง 3 เวอร์ชัน: วน `@for` แทน hardcode · URL ว่าง = `<div>` คลาสเดียวกัน · `_blank` = `target="_blank" rel="noopener"` · ใส่ `data-<x>="n"` ไว้ทดสอบ · ไม่มีข้อมูล = ไม่เรนเดอร์คอลัมน์ (ปรับคอลัมน์ข้างเคียงให้เต็มแถว) · **ห้ามแก้ `wwwroot/css`** (คลาสเดิมพอ)
+12. ดึงใน `BuildHomeViewModel` ครั้งเดียว เฉพาะเมื่อ section key อยู่ใน layout (ดูข้อ 5 ของ §15.4) · `PreviewMap.Pages` เพิ่ม `new("HomeSamTextN", "web_core_single", N, BoxDataHome)` · `Program.cs`
+13. ทดสอบ §15.8 ครบ → คืนข้อมูลผ่าน UI หลังบ้าน (แก้กลับ + Approve) → query ยืนยันเท่าค่าตั้งต้น → เอกสาร → commit + push 2 repo
+
+### 15.6 ความรู้ page builder / widget ที่ได้เพิ่ม
+
+- `WidgetAjaxController.ReplaceTokenByModule(html, modName)`: `LoadModuleData` = `select * from <table> where web_id = … [and module_id = TableModuleID] order by sort` (**ไม่กรอง status** — แสดงค่าตามแถวแรก) · token `|||col|||` แทนด้วยค่าดิบ (ไม่ encode) · ใช้ค่า `pb_*` จึงเห็นค่าที่อนุมัติแล้ว ไม่ใช่ฉบับร่าง
+- การ์ด NAV ในพาเลตต์/แคนวาส: ไทล์เป็น token แล้ว แต่ตาราง NAV ในการ์ดยังเป็น snapshot ตายตัว · ไทล์ที่ว่าง/ไม่มีรูปจะเห็นเป็นช่องว่าง/รูปเสียในการ์ด (หน้าเว็บจริงซ่อนให้)
+- หน้า builder ต้องมี front-end ที่ `FrontURL` (7310) รันอยู่ ไม่งั้น console เต็มไปด้วย `ERR_CONNECTION_REFUSED` (CSS/Swiper/รูป tiles)
+- หน้า list เมนู `web_core_single` แสดงปุ่ม Approve/Unapprove เฉพาะตอน `pb_status = 0`
+
+### 15.7 ข้อมูลใน DB ตอนนี้ (ที่เกี่ยวกับ session 4)
+
+- `[2026_web_core_single]` id 1 (module 1, `HomeSamText`): `title` "ลิงก์ด่วน ข้างตารางมูลค่าหน่วยลงทุน" · ไทล์ 1 = ผลการดำเนินงานทั้งหมด / Fund Performance / `/funds/performance` / `_top` / `Files/Site0/1/home/tiles/performance.jpg` / `bi-graph-up-arrow` · ไทล์ 2 = มูลค่าหน่วยลงทุนทั้งหมด / All Fund NAV / `/funds/nav` / `nav.jpg` / `bi-currency-exchange` · ไทล์ 3 = ปฏิทินกองทุน / Fund Calendar / `/funds/calendar` / `calendar.jpg` / `bi-calendar3` · t19–t50 = NULL · `pb_*` = ฉบับร่าง · สำรองแถว SAM เดิมไว้ใน scratchpad ของ session 4 (อาจหาย)
+- `tb_fund_nav` / `tb_fund`: ไม่ได้แก้ (แถว `TEST-NAV-*` ลบแล้ว) · NAV ล่าสุด 28/04/2565 · top 5 ที่แสดง: ASP-ROBOT, ASP-ROBOTRMF, ASP-DISRUPT, ASP-DISRUPTRMF, ASP-S&P500 · "เวลา 13:03 น." = `NAVDateIn`
+- `web_cms_page` id 1: layout 18 widget ตาม §0
+
+### 15.8 เทคนิคทดสอบที่ใช้ใน session 4 (ใช้ซ้ำได้)
+
+**front-end ทดสอบที่ 7311** (เมื่อ 7310 เป็นของผู้ใช้):
+```powershell
+Set-Location "D:\Project\assetfund.co.th.2026"; $out="$env:TEMP\assetfund-7311-bin"
+dotnet build asset-fund.csproj -nologo -v q -o $out
+$log="$env:TEMP\assetfund-7311.log"
+$cmd='cmd /c "set ASPNETCORE_ENVIRONMENT=Development&& dotnet "'+$out+'\asset-fund.dll" --urls https://localhost:7311 --contentRoot d:\Project\assetfund.co.th.2026 > "'+$log+'" 2>&1"'
+Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=$cmd; CurrentDirectory="d:\Project\assetfund.co.th.2026"}
+# ปิด: หา PID ที่ถือ 7311 และ CommandLine มี assetfund-7311-bin แล้ว Stop-Process เฉพาะตัวนั้น
+```
+พรีวิวทดสอบที่ `https://localhost:7311/_preview/page/<Module>/<id>?lang=th|en` ได้ตรง ๆ (ปุ่ม [Preview] ในหลังบ้านชี้ 7310 เสมอ)
+
+**ทดสอบทุกการจัดวาง widget โดยไม่แตะหน้าจริง**: เขียน `box_layout` (ฉบับร่าง) ของ `web_cms_page` id 1 ชั่วคราวด้วย SQL แล้วเปิด `/_preview/page/CMSPage/1` → ครบกรณีแล้ว `update … set box_layout = pb_box_layout` · กรณีที่ใช้: V1/V2/V3 เดี่ยว, V1+V2, V2+V3, V1+V3, สลับลำดับ, 3 ตัวคั่น section อื่น, ไม่มี widget นั้น, ว่าง, token ซ้ำ/มั่ว
+
+**นับจำนวน query ต่อ request (พิสูจน์ "ไม่ซ้ำซ้อน")** — Extended Events (ตัวนับ plan cache ไม่แม่น ติดลบได้):
+```sql
+-- xe_start.sql (sqlcmd -d master -I)
+CREATE EVENT SESSION tile_probe ON SERVER
+ADD EVENT sqlserver.sql_batch_completed (WHERE sqlserver.like_i_sql_unicode_string(batch_text, N'%<ข้อความเฉพาะของ query>%'))
+ADD TARGET package0.ring_buffer WITH (MAX_DISPATCH_LATENCY = 1 SECONDS);
+ALTER EVENT SESSION tile_probe ON SERVER STATE = START;
+-- xe_count.sql (ต้อง -I = QUOTED_IDENTIFIER ไม่งั้น error 1934)
+SELECT COUNT(*) FROM (SELECT CAST(t.target_data AS xml) d FROM sys.dm_xe_session_targets t JOIN sys.dm_xe_sessions s ON s.address = t.event_session_address WHERE s.name = 'tile_probe') z CROSS APPLY z.d.nodes('RingBufferTarget/event') e(n);
+-- จบ: ALTER EVENT SESSION tile_probe ON SERVER STATE = STOP; DROP EVENT SESSION tile_probe ON SERVER;
+```
+นับก่อน → `curl` 1 หน้า → รอ 2 วิ → นับหลัง · เขียน SQL เป็นไฟล์ (ใส่ใน `-Q` ของ bash แล้ว quote พัง)
+
+**กรณีขอบของข้อมูลตารางเดิม**: insert แถว `TEST-<X>-A..E` ใน `tb_fund` (id ไม่ใช่ identity → `MAX(id)+n`, คอลัมน์ NOT NULL: `brief`, `pb_brief`, `en_brief`, `pb_en_brief` มี default) + `tb_fund_nav` (identity) วันที่ปี 2099 ให้ขึ้นบนสุด → ทดสอบ → `DELETE … WHERE fundcode LIKE 'TEST-%'` ทั้ง 2 ตาราง
+
+**อื่น ๆ**: reCAPTCHA ติ๊กไม่ติดบางครั้ง → วนคลิก 3 รอบ รอ `[aria-checked="true"]` 8 วิ · admin restart = session หลุด ต้อง login ใหม่ · รูป lazy ในมือถือ ต้อง scroll ถึงก่อนเช็ค `naturalWidth` · V2 ซ่อนรูปย่อไทล์บนมือถือ (ดีไซน์) · Python ใน bash heredoc: ห้ามมี `'\'` (ใช้ `os.path.basename`) และ path Windows ใน string ธรรมดาให้ใช้ raw string · อ่าน HTML จาก DB ด้วย `sqlcmd -y 0` (ห้ามคู่ `-h`)
+
+### 15.9 บั๊ก / ข้อจำกัดที่รู้ (ยังไม่แก้)
+
+1. **Hero V3 ใน page builder** — `Cannot read properties of undefined (reading 'el')` ทุกครั้งที่โหลดหน้า/ลาก widget/รีเฟรชการ์ด `wg_40`: `initWidgetSwipers()` ใน `Views/CMSPage/Edit.cshtml` ตั้ง `loop: slides > 1` แต่ V3 มี `data-slides-per-view="1.08"` + 3 สไลด์ → Swiper loop พัง · หน้าเว็บจริงไม่พัง (`home.js`: `canLoop = slideCount >= ceil(slidesPerView)*2`, ไม่งั้น `rewind`) · วิธีแก้ ~3 บรรทัด: ลอกเงื่อนไขเดียวกัน · ผู้ใช้รับทราบ ยังไม่สั่งแก้
+2. id ซ้ำในหน้า builder (`heroSlider`, `heroPagination`, `heroProgress`, `heroToggle`, `myTab` จาก HTML widget · `gi_<n>` การ์ดที่ลากมา) — ไม่กระทบการทำงาน · หน้าเว็บจริงไม่มี id ซ้ำ
+3. การ์ด widget ใน builder: ตาราง NAV + ข้อความหัว section เป็น snapshot · ไทล์ว่างเห็นเป็นช่องว่าง
+4. `/funds/nav`, `/funds/performance`, `/funds/{code}` ยัง mock · วันที่ mock ผูกนาฬิกา (17 ก.ย. 2569 18:00 น. เป็นต้น)
+5. favicon 404 (`/favicon/favicon-32x32.png`) บนหน้าพรีวิว/7311 — ของเดิม
+
+### 15.10 query ตรวจสถานะเร็ว (session 4)
+
+```sql
+SELECT id, pb_status, box_layout, pb_box_layout FROM [2026_web_cms_page];                      -- 18 widget, draft = pb
+SELECT id, title, img1, section_key, mod_name FROM [2026_web_widget] ORDER BY cat_id, sort;    -- ชื่อไทยล้วน, icon-*.png, NAV mod_name = HomeSamText
+SELECT id, title, img1 FROM [2026_web_widget_group] ORDER BY sort;                             -- DEFAULT / MODERN / CLASSIC
+SELECT id, pb_status, pb_title, pb_t1, pb_t3, pb_t5, pb_t6, pb_t7, pb_t13, pb_t18 FROM [2026_web_core_single] WHERE module_id = 1;
+SELECT COUNT(*) FROM tb_fund_nav WHERE FundCode LIKE 'TEST%';                                   -- ต้อง 0
+SELECT mod_name, can_edit, can_approve FROM [2026_web_admin_module] WHERE access_id = 1 AND mod_name IN ('CMSPage','HomeSamText','Widget','WidgetGroup');
+```
+หน้าเว็บ: `curl -sk https://localhost:7310/?intro=1 | grep -c 'data-quick-tile='` → 9 (3 widget NAV × 3 ไทล์) · `grep -c 'nav-table__nav'` → 15
