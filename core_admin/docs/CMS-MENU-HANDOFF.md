@@ -615,7 +615,7 @@ bd64d92 Read home hero slides from SQL Server and add draft preview route
 
 | หน้า front-end | Service (mock) | แหล่งข้อมูลหลังบ้านที่น่าจะใช้ | หมายเหตุ |
 |---|---|---|---|
-| ส่วนต่าง ๆ ของหน้าแรก (NAV, กองทุนแนะนำ, ธีม, ผู้สนับสนุน) | `IFundService`, `IDistributorService` | `tb_fund*`, `tb_fund_nav` (`Flag = 1`) | ต้องออกแบบเมนูสำหรับ "กองทุนแนะนำ/ธีม" (ยังไม่มีเมนูหลังบ้าน) |
+| ~~NAV หน้าแรก~~ **ต่อแล้ว 18 ก.ย. 2569** (`SqlNavPriceService` ← `tb_fund_nav` + `tb_fund`) · ส่วนต่าง ๆ ที่เหลือของหน้าแรก (กองทุนแนะนำ, ธีม, ผู้สนับสนุน) | `IFundService`, `IDistributorService` | `tb_fund*`, `tb_fund_nav` (`Flag = 1`) | ต้องออกแบบเมนูสำหรับ "กองทุนแนะนำ/ธีม" (ยังไม่มีเมนูหลังบ้าน) |
 | `/funds`, `/funds/{code}`, `/funds/nav`, `/funds/performance`, `/funds/calendar` | `IFundService` | เมนู `Ap*` มีครบ (`tb_fund_cat`, `tb_fund`, `tb_fund_doc`, `tb_fund_fundfact*`, `tb_fund_nav`, `tb_fund_performance(_hd)`, `tb_calendar*`) | ตาราง `tb_*` ใช้ร่วมกับเว็บเดิม · ไฟล์แนบเป็นชื่อไฟล์เปล่า ต่อ URL จาก `LegacyUpload(Doc):Url` · ดูวิธีเว็บเดิมอ่านใน `d:\Project\assetfund.co.th.old` · Preview ของเมนู `tb_*` ยังไม่มีกลไก (ต้องออกแบบ) |
 | `/private-fund` | `IPrivateFundService` | `tb_fund_private*` (6 เมนู `ApPrivate*`) | |
 | `/provident-fund` | `IProvidentFundService` | `tb_fund_prov*` (4 เมนู `ApProv*`) | |

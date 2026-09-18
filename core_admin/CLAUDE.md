@@ -461,7 +461,7 @@ hash ของ `P@ssw0rd` =
 admin (core_admin) ──เขียน──▶ SQL Server asset_plus_uat ◀──อ่าน── front-end   ([2026_web_*] + tb_*)
 ```
 **DB schema และตรรกะ Approve คือ "สัญญา" ที่ front-end พึ่งอยู่** — เปลี่ยนชื่อคอลัมน์/ตาราง/`module_id`/วิธีตั้ง `pb_*` `status` `show_front` `Flag` เมื่อไร ต้องตามไปแก้ query ฝั่ง front-end (`Services/Sql*Service.cs`) ด้วย
-เมนูที่ต่อแล้วดูตาราง "เมนู CMS ที่ทำครบสายแล้ว" ด้านบน · ที่เหลือยัง `Mock*Service` (แผนอยู่ handoff §12.2)
+เมนูที่ต่อแล้วดูตาราง "เมนู CMS ที่ทำครบสายแล้ว" ด้านบน · **ตารางเดิม `tb_*` ที่ front-end อ่านแล้ว: `tb_fund_nav` + `tb_fund`** (การ์ด "มูลค่าหน่วยลงทุน" หน้าแรก — `SqlNavPriceService`, NAV ล่าสุดของแต่ละกอง, 18 ก.ย. 2569) → เมนู `ApFundNav` / `ApFundNavDelete` / ws_get_nav และการตั้ง `Flag` คือสัญญากับหน้าแรกแล้ว · ที่เหลือยัง `Mock*Service` (แผนอยู่ handoff §12.2)
 
 **ข้อตกลงระหว่างสองแอปที่ต้องรักษาไว้** (เขียนไว้ทั้งสองฝั่ง — แก้แล้วต้องตามไปแก้อีกฝั่ง):
 - **front-end อ่านค่าที่อนุมัติแล้ว (`pb_*`) เท่านั้น** (ตรงกับเว็บเดิม) ยกเว้นระบบ Preview ที่ตั้งใจอ่านฉบับร่าง · ตารางที่ "Get …"/ws_schedule เขียนต้องกรอง **`Flag = 1`**
