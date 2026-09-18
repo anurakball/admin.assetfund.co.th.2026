@@ -45,8 +45,8 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     new() { Title = "จัดการ Widget", ModuleName = "CMSPage", Link = "CMSPage", Icon = "fa-solid fa-layer-group" },   // ไอคอนเดิม fa-sitemap (ของ SAM = เมนูเว็บไซต์) → layer-group = เรียงชั้น section ของหน้าแรก (17 ก.ย. 2569)
                     new() { Title = "รูปสไลด์หน้าแรก", ModuleName = "HomeImageSlide", Link = "HomeImageSlide", Icon = "fa-regular fa-images" },
                     //new(){Title = "ตั้งค่ารูปสไลด์",ModuleName = "HomeImageConf",Link = "HomeImageConf",Icon = "fa-solid fa-sliders"},
-                    //----- HomeSamText (เดิม SAM "SAM ใส่ใจ") เปิดคืน 18 ก.ย. 2569 เป็น "ลิงก์ด่วน" = ไทล์ 3 อันข้างตารางมูลค่าหน่วยลงทุนบนหน้าแรก (แก้ไข + อนุมัติอย่างเดียว)
-                    new() { Title = "ลิงก์ด่วน", ModuleName = "HomeSamText", Link = "HomeSamText", Icon = "fa-solid fa-signs-post" },
+                    //----- HomeSamText (เดิม SAM "SAM ใส่ใจ") เปิดคืน 18 ก.ย. 2569 เป็น "มูลค่าหน่วยฯ (3 Links)" = ไทล์ 3 อันข้างตารางมูลค่าหน่วยลงทุนบนหน้าแรก (แก้ไข + อนุมัติอย่างเดียว)
+                    new() { Title = "มูลค่าหน่วยฯ (3 Links)", ModuleName = "HomeSamText", Link = "HomeSamText", Icon = "fa-solid fa-signs-post" },
                     //new(){Title = "ภาพรวมการบริหารหนี้",ModuleName = "HomeSamText2",Link = "HomeSamText2",Icon = "fa-regular fa-note-sticky"},
                     //new(){Title = "ปิดหนี้ไว ไปต่อได้",ModuleName = "HomeSamText3",Link = "HomeSamText3",Icon = "fa-solid fa-percent"},
                     //new(){Title = "ทรัพย์เด่นและน่าสนใจ",ModuleName = "HomeSamText4",Link = "HomeSamText4",Icon = "fa-solid fa-building-circle-check"},
@@ -998,7 +998,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
         public List<string> FieldUpdate_JobCMS  = new() { "t1", "en_t1", "issue_date_config", "issue_date", "expiry_date" };
         public List<string> FieldApprove_JobCMS = new() { "t1", "en_t1", "issue_date_config", "issue_date", "expiry_date" };
 
-        #region ----- HomeSamText (ข้อมูลหน้าแรก > ลิงก์ด่วน) -----
+        #region ----- HomeSamText (ข้อมูลหน้าแรก > มูลค่าหน่วยฯ (3 Links)) -----
         // ไทล์ 3 อันข้างตาราง "มูลค่าหน่วยลงทุน" บนหน้าแรก — ทุกช่องต้องมีในฟอร์ม Views/HomeSamText/Edit.cshtml (ช่องที่ฟอร์มไม่มีจะถูกเขียนทับเป็น NULL)
         // ไทล์ที่ n (1..3) ใช้ t{b+1}..t{b+6} โดย b = (n-1)*6 → front-end Services/SqlHomeQuickTileService.cs อ่านคู่ pb_* ตามนี้:
         //   t{b+1}/en_ หัวข้อ (ว่าง = ไม่แสดงไทล์) · t{b+2}/en_ คำอธิบาย · t{b+3}/en_ URL (ว่าง = ไม่ลิงก์) · t{b+4} URL Target
@@ -1256,9 +1256,9 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
                     Name = "HomeSamText",
                     Config = new Module.ModuleConfig()
                     {
-                        //----- Asset Plus (18 ก.ย. 2569): "ลิงก์ด่วน" = ไทล์ 3 อันข้างตาราง NAV บนหน้าแรก (widget NavPrices / V2 / V3)
+                        //----- Asset Plus (18 ก.ย. 2569): "มูลค่าหน่วยฯ (3 Links)" = ไทล์ 3 อันข้างตาราง NAV บนหน้าแรก (widget NavPrices / V2 / V3)
                         //      ระเบียนเดียว web_core_single module_id 1 (แถวเดิมของ "SAM ใส่ใจ") · front-end: Services/SqlHomeQuickTileService.cs
-                        Text = "ลิงก์ด่วน",TextBreadcrumb = "ข้อมูลหน้าแรก/ลิงก์ด่วน",
+                        Text = "มูลค่าหน่วยฯ (3 Links)",TextBreadcrumb = "ข้อมูลหน้าแรก/มูลค่าหน่วยฯ (3 Links)",
                         Table = "web_core_single",TableModuleID = 1,OrderBy = "sort",Sort = "asc",
                         CanAdd = false,CanEdit = true,CanDelete = false,CanMove = false,CanStatus = false,CanApprove = true,
                         UseViewCreateFrom = "HomeSamText",UseViewEditFrom = "HomeSamText",

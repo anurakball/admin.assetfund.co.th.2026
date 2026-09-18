@@ -61,7 +61,7 @@ namespace thaicredit_hr_admin.Areas.Admin.Helpers
 
             // ── page: widget หน้าแรก (พรีวิวจะเปิด "หน้าแรก" ของเว็บ) ──
             { "HomeImageSlide", "page" },   // รูปสไลด์หน้าแรก
-            { "HomeSamText",    "page" },   // ลิงก์ด่วน (ไทล์ข้างตาราง NAV หน้าแรก — เดิม SAM ใส่ใจ) · front-end PreviewMap มีแล้ว 18 ก.ย. 2569
+            { "HomeSamText",    "page" },   // มูลค่าหน่วยฯ (3 Links) (ไทล์ข้างตาราง NAV หน้าแรก — เดิม SAM ใส่ใจ) · front-end PreviewMap มีแล้ว 18 ก.ย. 2569
             { "HomeSamText2",   "page" },   // ภาพรวมการบริหารหนี้
             { "HomeSamText3",   "page" },   // ปิดหนี้ไว ไปต่อได้
             { "HomeSamText4",   "page" },   // ทรัพย์เด่นและน่าสนใจ
