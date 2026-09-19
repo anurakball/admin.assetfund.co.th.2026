@@ -10,10 +10,10 @@
   "DBConnection": {
     "Server": ".",
     "Username": "sa",
-    "Password": "",
+    "Password": "sasa",
     "Database": "asset_plus_uat"
   },
-  "AppKey": "",
+  "AppKey": "919DC5B69CA821E1190E86B1EDECBB65",
   "RootURL": "https://localhost:7300",
   "FrontURL": "https://localhost:7310",
   "API": {

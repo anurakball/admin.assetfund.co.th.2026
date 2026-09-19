@@ -1,37 +1,36 @@
 # ---------------------------------------------------------------------------
-# repo root — โฟลเดอร์นี้มีแค่ core_admin.sln + ไฟล์ตั้งค่า git/IDE
-# กฎละเอียดของตัวโปรเจกต์อยู่ที่ core_admin/.gitignore (ตัวนั้นเป็นตัวหลัก)
+# repo root — โฟลเดอร์นี้มีแค่ core_admin.sln + README.md + ไฟล์ตั้งค่า git/IDE
+# กฎของตัวโปรเจกต์ (build output, ไฟล์อัปโหลด, docs ฯลฯ) อยู่ที่ core_admin/.gitignore ที่เดียว
+# ที่นี่เก็บแค่กฎที่ต้องมีผลทั้ง repo : IDE, ความลับ, OS junk
 # ---------------------------------------------------------------------------
 .vs/
 .idea/
 *.user
 *.suo
 
-# Build / publish output ของ core_admin
-# (ซ้ำกับ core_admin/.gitignore โดยตั้งใจ — กันพลาดถ้าไฟล์นั้นถูกย้าย)
-/core_admin/bin/
-/core_admin/obj/
-/core_admin/publish/
-/core_admin/Logs/
-/core_admin/node_modules/
-/core_admin/App_Data/
-
 # ---------------------------------------------------------------------------
-# ความลับ (ค่าจริงอยู่บนเครื่อง/เซิร์ฟเวอร์เท่านั้น ห้าม commit)
-# appsettings.json ที่ track ไว้มีแต่โครง ช่องรหัสผ่านเว้นว่างไว้หมด
-# ตัวอย่างค่า dev อยู่ที่ core_admin/appsettings.Development.json.example (track ไว้)
+# ความลับ (ค่าจริงอยู่บนเครื่อง/เซิร์ฟเวอร์เท่านั้น ห้าม commit) — ซ้ำกับ core_admin โดยตั้งใจ
+# ให้ครอบทั้ง repo เผื่อมีโปรเจกต์/ไฟล์ตั้งค่าเพิ่มนอก core_admin
 # ---------------------------------------------------------------------------
 appsettings.Development.json
 appsettings.Staging.json
 appsettings.Production.json
 appsettings.Local.json
+appsettings.*.local.json
+.env
+.env.*
 *.pfx
 *.p12
+*.key
+*.pem
+*.crt
+*.csr
 
 # Playwright MCP screenshots/snapshots (temp)
 .playwright-mcp/
 
 # OS junk
 Thumbs.db
+ehthumbs.db
 desktop.ini
 .DS_Store

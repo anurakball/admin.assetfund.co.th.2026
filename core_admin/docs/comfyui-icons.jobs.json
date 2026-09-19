@@ -1,0 +1,20 @@
+[
+{"name":"Hero","seed":2001,"prompt":"a wide picture frame containing a mountain landscape with a sun, and two small round slider dots below the frame, meaning a hero banner slideshow"},
+{"name":"Hero","seed":2002,"prompt":"a wide picture frame containing a mountain landscape with a sun, and two small round slider dots below the frame, meaning a hero banner slideshow"},
+{"name":"NavPrices","seed":2101,"prompt":"a rising line chart with an upward arrow at the end and a small coin symbol, meaning fund unit price"},
+{"name":"NavPrices","seed":2102,"prompt":"a rising line chart with an upward arrow at the end and a small coin symbol, meaning fund unit price"},
+{"name":"FeaturedFunds","seed":2201,"prompt":"a five-pointed star inside a round badge with a small ribbon underneath, meaning recommended featured fund"},
+{"name":"FeaturedFunds","seed":2202,"prompt":"a five-pointed star inside a round badge with a small ribbon underneath, meaning recommended featured fund"},
+{"name":"ExploreThemes","seed":2301,"prompt":"a compass rose inside a circle, meaning exploring investment themes and trends"},
+{"name":"ExploreThemes","seed":2302,"prompt":"a compass rose inside a circle, meaning exploring investment themes and trends"},
+{"name":"Insights","seed":2401,"prompt":"a folded newspaper page with a headline block and a few text lines, meaning news articles and announcements"},
+{"name":"Insights","seed":2402,"prompt":"a folded newspaper page with a headline block and a few text lines, meaning news articles and announcements"},
+{"name":"Distributors","seed":2501,"prompt":"three simple people figures (head and shoulders) connected by lines into a network, meaning sales partners and distributors"},
+{"name":"Distributors","seed":2502,"prompt":"three simple people figures (head and shoulders) connected by lines into a network, meaning sales partners and distributors"},
+{"name":"GroupDefault","seed":3001,"prompt":"a web page layout wireframe: a top header bar, one large rectangle block below it, then a row of three equal small rectangles, meaning the standard default page template"},
+{"name":"GroupDefault","seed":3002,"prompt":"a web page layout wireframe: a top header bar, one large rectangle block below it, then a row of three equal small rectangles, meaning the standard default page template"},
+{"name":"GroupModern","seed":3101,"prompt":"a modern web page layout wireframe with an asymmetric grid of rounded tiles of different sizes, one tall tile on the left and small tiles on the right, meaning a modern page template"},
+{"name":"GroupModern","seed":3102,"prompt":"a modern web page layout wireframe with an asymmetric grid of rounded tiles of different sizes, one tall tile on the left and small tiles on the right, meaning a modern page template"},
+{"name":"GroupClassic","seed":3201,"prompt":"a classic newspaper style page layout wireframe with a wide headline bar on top and three vertical text columns of short lines below, meaning a classic page template"},
+{"name":"GroupClassic","seed":3202,"prompt":"a classic newspaper style page layout wireframe with a wide headline bar on top and three vertical text columns of short lines below, meaning a classic page template"}
+]

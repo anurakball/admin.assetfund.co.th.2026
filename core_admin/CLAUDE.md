@@ -57,7 +57,9 @@ No test project exists in this solution.
 - 1 งาน = 1 commit ข้อความบอกว่าแก้อะไร (ไม่ใช่ `...`) ลงท้าย `Co-Authored-By:` ตาม system reminder ของ session นั้น
 - แก้แค่ฝั่งเดียวก็ commit + push แค่ฝั่งนั้น · **push ไม่ผ่าน (credential/เน็ต) ให้แจ้งผู้ใช้ทันที** อย่าเงียบ · ห้าม `--force`
 - ยังคง **ห้าม `git checkout --` / `git restore` / `git stash`** ใน repo admin (เคยทำงานหาย — ดู handoff §8)
-- `wwwroot/Files/` และ `docs/*` (ยกเว้น `CMS-MENU-HANDOFF.md`, `preview-spec.md`, `sql/*.sql`) ถูก gitignore — รูปที่อัปโหลด/สร้างใหม่**ไม่ไปกับ push** ต้องอัปโหลดขึ้นเซิร์ฟเวอร์เอง
+- **หลักของ `.gitignore` (19 ก.ย. 2569): clone ไปเครื่องใหม่ต้องรันได้ทันที** — อะไรที่โค้ด/ข้อมูลตั้งต้นอ้างถึงตอนรันต้องอยู่ใน git (ขั้นตอนตั้งเครื่องใหม่อยู่ `README.md` ที่ repo root)
+  `wwwroot/Files/` ถูก ignore ทั้งโฟลเดอร์ **ยกเว้นรูปที่ข้อมูลตั้งต้นของเมนู CMS อ้าง** (whitelist ทีละ path ใน `core_admin/.gitignore`) — **ใส่รูปใหม่ให้ seed/DB อ้างเมื่อไร ต้องเพิ่มบรรทัด `!` ด้วย** ไม่งั้นเครื่องอื่นรูปแตก
+  `docs/*` ignore ยกเว้นที่ un-ignore ไว้ · รูปพื้นหลัง Login `wwwroot/images/bg/bg0–9.jpg` track แล้ว (`bak/` ไม่)
 
 ## Architecture
 
@@ -180,7 +182,7 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 ที่เปิดอยู่: กลุ่ม "หน้าเว็บไซต์", "ข้อมูลหน้าแรก", 4 กลุ่มเมนู `tb_*` ของ Asset Plus, "ผู้ดูแลระบบ", "Widget" — **รายการจริงดูที่ `docs/backend-menu-status.html`** (อย่านับจากที่นี่)
 
 > **กฎ: แก้เมนูด้านซ้ายเมื่อไร (เพิ่ม/แก้ชื่อ/ย้าย/ซ่อน/เปิด) ต้องอัปเดต `docs/backend-menu-status.html` ทุกครั้ง** — รายงาน static 2 ตาราง (เปิด / ปิด) ให้เจ้าของโปรเจกต์เปิดดู
-> `docs/*` ถูก gitignore ทั้งโฟลเดอร์ ยกเว้นที่ un-ignore ใน `.gitignore` (`backend-menu-status.html`, `preview-spec.md`, `CMS-MENU-HANDOFF.md`, `cms-menu-playbook.md`, `legacy-backoffice.md`, `sql/*.sql`)
+> `docs/*` ถูก gitignore ทั้งโฟลเดอร์ ยกเว้นที่ un-ignore ใน `.gitignore` (`backend-menu-status.html`, `preview-spec.md`, `CMS-MENU-HANDOFF.md`, `cms-menu-playbook.md`, `legacy-backoffice.md`, `backend-menu-audit.md`, `frontend-to-backend-map.md`, `comfyui-icons.*`, `sql/*.sql`)
 
 
 ## งานเมนู CMS (หลังบ้าน → DB → front-end → Preview) — อ่านเอกสารแยกก่อนทำ
@@ -215,7 +217,7 @@ Everything under `Areas/Admin/` is the admin panel. All admin controllers:
 - **ห้ามใส่ฟิลด์ที่ฟอร์มไม่มีใน `FieldUpdate`** — บันทึกแล้วถูกเขียนทับเป็น NULL
 - `AdminCoreController.Edit` **ไม่กรอง `module_id`** (เปิดแถวของ module อื่นได้ถ้ารู้ id) — ยังไม่แก้เพราะกระทบทุกเมนู `web_core_*`
 - เมนู SAM บางตัวมี `Views/<Module>/Index.cshtml` สำเนาเก่าของตัวเอง (ไม่มีปุ่ม Preview) → ลบทิ้งให้ใช้ `AdminCore/Index.cshtml`
-- `wwwroot/Files/` (รูปจาก elFinder / รูปที่สร้าง) **ไม่ไปกับ git และ publish** — ขึ้นเซิร์ฟเวอร์ต้องอัปโหลดเอง
+- `wwwroot/Files/` (รูปจาก elFinder / รูปที่สร้าง) **ไม่ไปกับ publish** — ขึ้นเซิร์ฟเวอร์ต้องอัปโหลดเอง · ไปกับ git เฉพาะรูปที่ whitelist ไว้ใน `.gitignore` (รูปใหม่ที่ seed อ้าง ต้องเพิ่ม `!` เอง)
 - ชื่อ admin ที่แสดง (`created_by`) มาจาก `[2026_web_admin].name` ซึ่งยังเป็นของ SAM ("สยามอี ซีเอ็มเอส")
 
 ### เมนู CMS ที่ทำครบสายแล้ว (สเปกละเอียดอยู่ `docs/cms-menu-playbook.md` ท้ายไฟล์)

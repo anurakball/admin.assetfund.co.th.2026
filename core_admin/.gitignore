@@ -1,13 +1,23 @@
+# ===========================================================================
+# core_admin/.gitignore — ตัวหลักของโปรเจกต์ (repo root มีแค่กฎ IDE/OS/ความลับ)
+#
+# หลักที่ยึด: clone ไปเครื่องใหม่แล้วต้อง build + run ได้ทันที
+#   → อะไรที่โค้ด/หน้าเว็บอ้างถึงตอนรัน ต้องอยู่ใน git
+#   → ที่ไม่ track มีแค่ของที่ generate ใหม่ได้, ความลับ, และข้อมูลที่ผู้ใช้อัปโหลด
+# ขั้นตอนตั้งเครื่องใหม่อยู่ใน README.md ที่ repo root
+#
+# กฎที่ขึ้นต้นด้วย "/" ยึดตำแหน่งกับโฟลเดอร์นี้ — ใช้เสมอกับชื่อโฟลเดอร์ทั่วไป
+# (เช่น Logs, publish) ไม่งั้นจะไปกันโฟลเดอร์ชื่อเดียวกันที่อยู่ลึกลงไปด้วยโดยไม่รู้ตัว
+# ===========================================================================
+
 # ---------------------------------------------------------------------------
 # Build output
-# (bin/ obj/ Logs/ are also listed in the repo-root .gitignore — kept here too
-#  so this project folder is self-contained)
 # ---------------------------------------------------------------------------
-bin/
-obj/
+/bin/
+/obj/
 # ปลายทางของ publish profile เดียวที่มี (Properties/PublishProfiles/FolderProfile.pubxml)
 # — โฟลเดอร์นี้ถูกล้างทุกครั้งที่ publish อย่าเก็บไฟล์อื่นไว้ในนี้
-publish/
+/publish/
 *.publishproj
 *.binlog
 TestResults/
@@ -28,15 +38,15 @@ TestResults/
 *.swp
 
 # ---------------------------------------------------------------------------
-# Logs
+# Logs (Serilog สร้างโฟลเดอร์ให้เองตอนรัน)
 # ---------------------------------------------------------------------------
-Logs/
+/Logs/
 *.log
 
 # ---------------------------------------------------------------------------
-# Local-only settings / ความลับ (ห้าม commit — ค่าจริงอยู่บนเครื่อง/เซิร์ฟเวอร์เท่านั้น)
+# ความลับ (ห้าม commit — ค่าจริงอยู่บนเครื่อง/เซิร์ฟเวอร์เท่านั้น)
 # appsettings.json ที่ track ไว้มีแต่โครง ช่องรหัสผ่านเว้นว่างไว้หมด
-# ตัวอย่างค่า dev อยู่ที่ appsettings.Development.json.example (ไฟล์นี้ track)
+# เครื่องใหม่: copy appsettings.Development.json.example → appsettings.Development.json (ไฟล์ example track)
 # ---------------------------------------------------------------------------
 appsettings.Development.json
 appsettings.Staging.json
@@ -44,46 +54,81 @@ appsettings.Production.json
 appsettings.Local.json
 appsettings.*.local.json
 .claude/settings.local.json
+.env
+.env.*
+# ใบรับรอง SSL / private key (เช่นชุดที่ดาวน์โหลดจาก ZeroSSL)
 *.pfx
 *.p12
+*.key
+*.pem
+*.crt
+*.csr
 
 # ---------------------------------------------------------------------------
-# Node modules (Playwright etc. — regenerate with npm install)
+# Node modules (Playwright ฯลฯ — npm install ใหม่ได้)
+# ไม่ยึดตำแหน่งโดยตั้งใจ: กัน wwwroot/lib/ckeditor_old/node_modules (40 MB) ด้วย
 # ---------------------------------------------------------------------------
 node_modules/
 
 # ---------------------------------------------------------------------------
-# Playwright MCP test artifacts (screenshots, snapshots, console logs)
+# Playwright MCP / screenshot ชั่วคราว
 # ---------------------------------------------------------------------------
 .playwright-mcp/
+# รูปที่วางไว้ที่ root ของโปรเจกต์ = screenshot ชั่วคราวเสมอ (รูปจริงของเว็บอยู่ใน wwwroot/)
+/*.png
+/*.jpg
 
 # ---------------------------------------------------------------------------
-# Server-managed / runtime content — not versioned
+# ไฟล์ที่ผู้ใช้อัปโหลด / ข้อมูลรันไทม์ — ไม่ track
 # (ตรงกับรายการที่ core_admin.csproj ตั้ง CopyToPublishDirectory=Never ไว้
 #  แก้ที่นี่แล้วต้องตามไปแก้ csproj ด้วย ไม่งั้น deploy จะไปทับไฟล์ที่ผู้ใช้อัปโหลด)
 # ---------------------------------------------------------------------------
-# uploaded content (elFinder / article attachments)
-wwwroot/Files/
+# elFinder / ไฟล์แนบ — โค้ดสร้างโฟลเดอร์ให้เองตอนรัน
+/wwwroot/Files/**
+# ยกเว้น : รูปที่ข้อมูลตั้งต้นของเมนู CMS อ้างถึง (docs/sql/seed-ref-*.sql + DB dev)
+# ไม่มีไฟล์เหล่านี้ เครื่องที่ clone ไปจะเห็นรูปแตกทั้งหน้าแรก/header/footer/popup/widget
+# (บรรทัดแรกเปิดทางให้ git ลงไปดูในโฟลเดอร์ย่อย — ไฟล์อื่นยังถูกกันด้วย ** ข้างบน)
+!/wwwroot/Files/**/
+!/wwwroot/Files/Site0/1/home/hero-*.jpg
+!/wwwroot/Files/Site0/1/home/tiles/*.jpg
+!/wwwroot/Files/Site0/1/header/*
+!/wwwroot/Files/Site0/1/footer/*
+!/wwwroot/Files/Site0/1/intro_page/scam-alert.jpg
+!/wwwroot/Files/Site0/1/pop_up/scam-alert.jpg
+!/wwwroot/Files/Site0/1/pop_up/follow-facebook.jpg
+!/wwwroot/Files/Site0/1/widget_icons/assetplus/icon-*.png
 # runtime uploads
-wwwroot/uploads/
-# background images folder
-wwwroot/images/bg/
+/wwwroot/uploads/
+# พื้นหลังหน้า Login — Views/Login/Index.cshtml สุ่ม bg0.jpg–bg9.jpg จึงต้อง track 10 รูปนี้
+# ที่เหลือ (bak/ 335 MB = ต้นฉบับความละเอียดสูง) ไม่ track
+/wwwroot/images/bg/*
+!/wwwroot/images/bg/bg[0-9].jpg
+
+# ws_schedule : XML ที่ดึงมาจาก web service ของ Asset Plus (ข้อมูลรันไทม์ ไม่ใช่ซอร์ส)
+# เก็บไว้นอก wwwroot เพื่อไม่ให้โหลดจากเว็บได้ — WsScheduleController สร้างโฟลเดอร์ให้เอง
+/App_Data/
 
 # ---------------------------------------------------------------------------
-# เอกสาร/สคริปต์ประกอบงาน + รูปที่ generate เอง — ไม่ track (ไม่ถูกอ้างจากโค้ด)
+# เอกสาร/สคริปต์ประกอบงาน — track เฉพาะที่ระบุ (ที่เหลือเป็น scratch / backup / รูป AI)
 # ---------------------------------------------------------------------------
-docs/*
-# ยกเว้น : รายงานสถานะเมนูด้านซ้าย ต้อง track ไว้ให้ตรงกับ AdminMenu.cs เสมอ
-!docs/backend-menu-status.html
-# ยกเว้น : สเปกระบบ Preview (แยกออกจาก CLAUDE.md)
-!docs/preview-spec.md
-# ยกเว้น : เอกสารส่งต่องาน CMS (เพิ่มเมนูซ้าย + ต่อ front-end + preview) — session ใหม่อ่านไฟล์นี้ก่อน
-!docs/CMS-MENU-HANDOFF.md
-!docs/cms-menu-playbook.md
-!docs/legacy-backoffice.md
-# migration SQL ที่เซิร์ฟเวอร์จริงต้องรัน (คอลัมน์ที่เพิ่มเองสำหรับเมนู Asset Plus)
-!docs/sql/
-!docs/sql/*.sql
+/docs/*
+# รายงานสถานะเมนูด้านซ้าย ต้อง track ไว้ให้ตรงกับ AdminMenu.cs เสมอ
+!/docs/backend-menu-status.html
+# สเปกระบบ Preview
+!/docs/preview-spec.md
+# เอกสารส่งต่องาน CMS — session ใหม่อ่านไฟล์นี้ก่อน
+!/docs/CMS-MENU-HANDOFF.md
+!/docs/cms-menu-playbook.md
+!/docs/legacy-backoffice.md
+# เอกสาร audit ทั้งระบบ (CLAUDE.md หัวข้อ "System audit reference" อ้างถึง)
+!/docs/backend-menu-audit.md
+!/docs/frontend-to-backend-map.md
+# สคริปต์สร้างไอคอน widget ด้วย ComfyUI (ใช้สร้าง widget_icons/assetplus/icon-*.png ใหม่)
+!/docs/comfyui-icons.py
+!/docs/comfyui-icons.jobs.json
+# migration / seed SQL ที่เซิร์ฟเวอร์จริงต้องรัน
+!/docs/sql/
+!/docs/sql/*.sql
 
 # ---------------------------------------------------------------------------
 # One-off debug / audit scratch output (ไม่ถูกอ้างจากโค้ด — ลบทิ้งได้)
@@ -110,9 +155,3 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 .DS_Store
-
-# ---------------------------------------------------------------------------
-# ws_schedule : XML ที่ดึงมาจาก web service ของ Asset Plus (ข้อมูลรันไทม์ ไม่ใช่ซอร์ส)
-# เก็บไว้นอก wwwroot เพื่อไม่ให้โหลดจากเว็บได้ — ดูหัวข้อ ws_schedule ใน CLAUDE.md
-# ---------------------------------------------------------------------------
-App_Data/

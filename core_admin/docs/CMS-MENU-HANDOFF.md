@@ -85,7 +85,7 @@
 ### 1.3 ข้อตกลงที่ห้ามพัง
 
 - path รูปจาก elFinder เก็บเป็น `Files/Site0/1/<โฟลเดอร์>/<ไฟล์>` (ไม่มี `/` นำหน้า) · ไฟล์อยู่ฝั่ง **admin** → front-end ต่อ `AdminURL + "/" + path`
-- `wwwroot/Files/` ของ admin **ไม่ไปกับ git และ publish** → ขึ้นเซิร์ฟเวอร์ต้องอัปโหลดรูปเอง
+- `wwwroot/Files/` ของ admin **ไม่ไปกับ publish** → ขึ้นเซิร์ฟเวอร์ต้องอัปโหลดรูปเอง · ไปกับ git เฉพาะรูปที่ seed/DB อ้าง (whitelist ใน `core_admin/.gitignore` — รูปใหม่ต้องเพิ่มบรรทัด `!` เอง)
 - cookie ห้ามชื่อชนกัน (อยู่ localhost เดียวกัน) — admin ใช้ `AssetPlus.Admin.Session`, front-end ใช้ `AssetPlus.IntroSeen`, `hide_announcement`
 - ทะเบียน Preview 2 ฝั่งต้อง sync เอง: admin `Areas/Admin/Helpers/PreviewMenu.cs` ↔ front-end `Helpers/PreviewMap.cs` (`PreviewMap.Pages`)
 - front-end **ห้ามแก้ `wwwroot/css/*.css` ตรง ๆ** (compile จาก `scss/` ด้วย Visual Studio เท่านั้น — เครื่องนี้ไม่มี sass/npm) → style ใหม่ใส่ `<style>` ใน view
@@ -613,7 +613,8 @@ ac785cd Record the GitHub push target and the commit+push rule in CLAUDE.md
 3f4d86f Render home sections in the order saved by the admin page builder
 bc15ab1 … bd64d92  (session 1–2: hero, intro, popup, SEO, header/footer, ถอดแถบพรีวิว)
 ```
-**ของที่ไม่อยู่ใน git (ต้องจำตอน deploy §13)**: `core_admin/appsettings.Development.json` · รูปใน `core_admin/wwwroot/Files/Site0/1/{home,home/tiles,intro_page,pop_up,header,footer,widget_icons/assetplus}/` · `core_admin/docs/backup-sam-widgets/` · สคริปต์ `core_admin/docs/comfyui-icons.py` + `.jobs.json` (docs ไม่ track) · DB dev
+**ของที่ไม่อยู่ใน git (ต้องจำตอน deploy §13)**: `core_admin/appsettings.Development.json` (copy จาก `.example`) · `core_admin/docs/backup-sam-widgets/` · DB dev
+(19 ก.ย. 2569: รูปที่ seed/DB อ้างใน `wwwroot/Files/Site0/1/...`, รูปพื้นหลัง Login และสคริปต์ `comfyui-icons.*` **track แล้ว** — แต่ `wwwroot/Files/` ยังไม่ไปกับ publish ต้องอัปโหลดขึ้นเซิร์ฟเวอร์เองเหมือนเดิม)
 
 ---
 
@@ -713,7 +714,7 @@ front-end SqlHomeLayoutService: pb_box_layout → split wg_<id> → SELECT pb_se
 | `docs/sql/2026-09-18-web-widget-section-key.sql` | ALTER `web_widget` ADD `section_key`, `pb_section_key` nvarchar(100) + สิทธิ์ `CMSPage` ของ access_id 1 → add/delete/move/status = 0 (idempotent) — **deploy ต้องรัน** |
 | `docs/sql/2026-09-18-delete-sam-cms-widgets.sql` | ลบ `web_cms_page` ที่ไม่ใช่ id 1, `web_widget` ที่ `section_key` ว่าง, กลุ่มที่ไม่มีลูก, `widget2`/`group2` ทั้งหมด (idempotent) — **deploy ต้องรัน** · dump ก่อนลบอยู่ `docs/backup-sam-widgets/*.txt` (เฉพาะเครื่อง dev ไม่ track) |
 | `docs/sql/seed-ref-home-widgets.sql` | seed 3 กลุ่ม + 18 widget (HTML snapshot 426 KB) + `box_layout` ของ id 1 — **อ้างอิง / ใช้ตอน deploy** (id จะไม่ตรง dev; script คำนวณ `box_layout` เอง) · สร้างจาก `scratchpad/gen_seed.py` ซึ่งอ่าน `scratchpad/widgets/<Key>.html` ที่ตัดจาก `curl http://localhost:5310/salepage` (ตัด id/aria-labelledby ออก) |
-| `wwwroot/Files/Site0/1/widget_icons/assetplus/` | **ไอคอน glyph PNG 128×128** `icon-<SectionKey>.png` ×6 (ขาว) + `icon-group-{default,modern,classic}.png` ×3 (น้ำเงิน) สร้างด้วย ComfyUI 17 ก.ย. 2569 (สคริปต์ `docs/comfyui-icons.py` + `docs/comfyui-icons.jobs.json`) · ไฟล์ screenshot เดิม `<Key>.jpg`/`group-v*.jpg` ยังอยู่แต่ไม่ถูกอ้าง — **ไม่ไปกับ git/publish ต้องอัปโหลดเอง** |
+| `wwwroot/Files/Site0/1/widget_icons/assetplus/` | **ไอคอน glyph PNG 128×128** `icon-<SectionKey>.png` ×6 (ขาว) + `icon-group-{default,modern,classic}.png` ×3 (น้ำเงิน) สร้างด้วย ComfyUI 17 ก.ย. 2569 (สคริปต์ `docs/comfyui-icons.py` + `docs/comfyui-icons.jobs.json`) · ไฟล์ screenshot เดิม `<Key>.jpg`/`group-v*.jpg` ยังอยู่แต่ไม่ถูกอ้าง — `icon-*.png` track ใน git แล้ว แต่**ไม่ไปกับ publish ต้องอัปโหลดเอง** |
 | `CLAUDE.md`, `docs/backend-menu-status.html` (เปิด 35 / ปิด 144), `docs/preview-spec.md`, ไฟล์นี้ | เอกสาร |
 
 ### 14.4 ไฟล์ที่แก้ (front-end — commit `3f4d86f` แล้ว)
@@ -816,7 +817,7 @@ front-end SqlHomeLayoutService: pb_box_layout → split wg_<id> → SELECT pb_se
 
 - `[2026_web_widget_group]`: id 4 `DEFAULT` · 5 `MODERN` · 6 `CLASSIC` · `img1` = `Files/Site0/1/widget_icons/assetplus/icon-group-{default,modern,classic}.png` (glyph น้ำเงิน #00295A — หัว accordion ตอนพับพื้นขาว)
 - `[2026_web_widget]` 18 แถว: `title` = ชื่อไทยล้วนเหมือนกัน 3 เวอร์ชัน (แบนเนอร์หน้าแรก / มูลค่าหน่วยลงทุน / กองทุนแนะนำประจำเดือน / เปิดมุมมองลงทุนตามเทรนด์ / บทความ / กิจกรรม / ข่าวประกาศ / ตัวแทนขาย) · `img1` = `widget_icons/assetplus/icon-<SectionKey ไม่มี V2/V3>.png` (glyph ขาว — การ์ดพาเลตต์พื้นน้ำเงิน) · `mod_name`: hero 3 ตัว = `HomeImageSlide`, NAV 3 ตัว (29/35/41) = **`HomeSamText`**
-- ไอคอนสร้างด้วย ComfyUI Z-Image Turbo: prompt "flat minimalist vector icon, one single solid black pictogram … on plain white background" 1024² → invert เป็น alpha → ย้อมสี → PNG 128×128 (สคริปต์ `docs/comfyui-icons.py` + `docs/comfyui-icons.jobs.json` — ไม่ track ใน git; ต้นแบบ `admin.sam.or.th/core_admin/docs/comfyui-gen.py`) · สร้าง 2 seed ต่อรูปแล้วเลือก
+- ไอคอนสร้างด้วย ComfyUI Z-Image Turbo: prompt "flat minimalist vector icon, one single solid black pictogram … on plain white background" 1024² → invert เป็น alpha → ย้อมสี → PNG 128×128 (สคริปต์ `docs/comfyui-icons.py` + `docs/comfyui-icons.jobs.json` — track ใน git แล้ว; ต้นแบบ `admin.sam.or.th/core_admin/docs/comfyui-gen.py`) · สร้าง 2 seed ต่อรูปแล้วเลือก
 - ไฟล์ screenshot เดิม `<Key>.jpg`/`group-v*.jpg` ยังอยู่ในโฟลเดอร์แต่ไม่ถูกอ้าง · seed อ้างอิง `docs/sql/seed-ref-home-widgets.sql` อัปเดตชื่อ/ไอคอนแล้ว
 
 ### 15.3 เอกสารอยู่ไหน (หลังลดขนาด CLAUDE.md)

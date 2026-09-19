@@ -46,8 +46,10 @@
 	       carry them. Excluded from it are only the folders the running site writes into -
 	       uploaded content must never be overwritten by whatever happens to sit in a
 	       developer's copy - plus the scss sources, which are compiled into wwwroot/css and
-	       are never served directly. Keep this list in sync with the same folders in .gitignore. -->
-	  <Content Update="wwwroot\Files\**;wwwroot\uploads\**;wwwroot\images\bg\**;wwwroot\scss\**">
+	       are never served directly. Keep this list in sync with the same folders in .gitignore.
+	       wwwroot\images\bg itself IS published (the login page picks bg0-bg9.jpg at random);
+	       only its bak\ folder of full-size originals (~335 MB) stays behind. -->
+	  <Content Update="wwwroot\Files\**;wwwroot\uploads\**;wwwroot\images\bg\bak\**;wwwroot\scss\**">
 		<CopyToPublishDirectory>Never</CopyToPublishDirectory>
 	  </Content>
 	  <!-- Templates and fonts read at runtime through ContentRootPath (for instance

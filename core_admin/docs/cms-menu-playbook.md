@@ -115,7 +115,7 @@ Index / Create / Edit / Delete / Status / Approve / Move / Export มาจา�
 - ใส่ทั้งฉบับร่างและ `pb_*` ให้ตรงกัน + `status = 1, pb_status = 1, show_front = 1, web_id = 0, module_id = <n>`, `sort` = 10, 20, 30 …
 - **รูป**: copy ไฟล์ไปไว้ใต้ `wwwroot/Files/Site0/1/<โฟลเดอร์>/` แล้วเก็บ path แบบ **`Files/Site0/1/<โฟลเดอร์>/<ไฟล์>` (ไม่มี `/` นำหน้า)**
   — รูปแบบเดียวกับที่ elFinder ใส่ให้ · root ของ elFinder คือ `Files/Site{webID}/{admin_id}` (แสดงในหน้าต่างว่า "Files/Site0")
-  ⚠ `wwwroot/Files/` ไม่ไปกับ git และ publish → **ต้องอัปโหลดรูปขึ้นเซิร์ฟเวอร์เอง**
+  ⚠ `wwwroot/Files/` ไม่ไปกับ publish → **ต้องอัปโหลดรูปขึ้นเซิร์ฟเวอร์เอง** · และ ignore ใน git → **รูปที่ seed อ้างต้องเพิ่มบรรทัด `!` ใน `.gitignore`** ไม่งั้นเครื่องที่ clone ไปรูปแตก
 
 **สิทธิ์** — ตาราง `[2026_web_admin_module]` (1 แถว / `mod_name` / `access_id` / `web_id`):
 ```sql
